@@ -3,14 +3,8 @@
 //#include "../../Common/wxMemMonitorLib/wxMemMonitor.h"
 #include "TestScene.h"
 //#include "../Graphic/character/character.h"
-
-#include <objidl.h>
-#include <gdiplus.h> 
-#pragma comment( lib, "gdiplus.lib" ) 
-using namespace Gdiplus;
-
-#include "../../Common/Graphic/character/teracharacter.h"
-#include "../../Common/ai/action/move.h"
+//#include "../../Common/Graphic/character/teracharacter.h"
+//#include "../../Common/ai/action/move.h"
 
 using namespace graphic;
 
@@ -27,7 +21,7 @@ public:
 	virtual void OnUpdate(const float elapseT) override;
 	virtual void OnRender(const float elapseT) override;
 	virtual void OnShutdown() override;
-	virtual void MessageProc( UINT message, WPARAM wParam, LPARAM lParam) override;
+	virtual void OnMessageProc( UINT message, WPARAM wParam, LPARAM lParam) override;
 
 
 private:
@@ -37,7 +31,7 @@ private:
 	graphic::cMaterial m_mtrl;
 	graphic::cTexture m_texture;
 	graphic::cCharacter m_character;
-	graphic::cTeraCharacter m_teraCharacter;
+	//graphic::cTeraCharacter m_teraCharacter;
 	vector<graphic::cCharacter> m_chars;
 	graphic::cGrid m_grid;
 
@@ -46,8 +40,8 @@ private:
 	graphic::cCube m_cube;
 	graphic::cSphere m_sphere;
 
-	graphic::cParticles m_particles;
-	graphic::cSnow m_snow;
+	//graphic::cParticles m_particles;
+	//graphic::cSnow m_snow;
 	graphic::cBillboard m_billboard;
 
 	//Vector3 m_light2;
@@ -65,10 +59,6 @@ private:
 	Matrix44 m_rotateTm;
 
 	Vector3 m_boxPos;
-
-	// GDI plus
-	ULONG_PTR m_gdiplusToken;
-	GdiplusStartupInput m_gdiplusStartupInput; 
 };
 
 INIT_FRAMEWORK(cViewer);
@@ -93,7 +83,6 @@ cViewer::~cViewer()
 	SAFE_DELETE(m_image);
 	SAFE_DELETE(m_scene);
 	SAFE_RELEASE(m_sprite);
-	Gdiplus::GdiplusShutdown(m_gdiplusToken);
 	graphic::ReleaseRenderer();
 }
 
@@ -102,9 +91,9 @@ bool cViewer::OnInit()
 {
 	DragAcceptFiles(m_hWnd, TRUE);
 
-	Gdiplus::GdiplusStartup(&m_gdiplusToken, &m_gdiplusStartupInput, NULL); 
+	cResourceManager::Get()->SetMediaDirectory("../media/");
 
-	D3DXCreateSprite(graphic::GetDevice(), &m_sprite);
+	D3DXCreateSprite(m_renderer.GetDevice(), &m_sprite);
 
 	//m_scene = new cTestScene(m_sprite);
 	//m_scene->SetPos(Vector3(100,100,0));
@@ -143,29 +132,28 @@ bool cViewer::OnInit()
 	//m_particles.m_velocityVar = 2.f;
 
 	// 3
-	m_particles.Create( "particle.bmp", 256 );
-	m_particles.m_numToRelease = 10;
-	m_particles.m_releaseInterval = 0.05f;
-	m_particles.m_lifeCycle = 5.f;
-	m_particles.m_pointSize = 1.5f;
-	m_particles.m_gravity = Vector3(0,-9.8f,0);
-	m_particles.m_emitPos = Vector3(0,0.1f,0);
-	m_particles.m_velocityVar = 20.f;
-	m_particles.AddCollisionPlane( Plane(Vector3(0,1,0), Vector3(0,0,0)) );
-
-	m_snow.Create( Vector3(-5,-5,-5), Vector3(5,5,5), 256);
+	//m_particles.Create( "particle.bmp", 256 );
+	//m_particles.m_numToRelease = 10;
+	//m_particles.m_releaseInterval = 0.05f;
+	//m_particles.m_lifeCycle = 5.f;
+	//m_particles.m_pointSize = 1.5f;
+	//m_particles.m_gravity = Vector3(0,-9.8f,0);
+	//m_particles.m_emitPos = Vector3(0,0.1f,0);
+	//m_particles.m_velocityVar = 20.f;
+	//m_particles.AddCollisionPlane( Plane(Vector3(0,1,0), Vector3(0,0,0)) );
+	//m_snow.Create( Vector3(-5,-5,-5), Vector3(5,5,5), 256);
 
 
 	// start craft 2
 	// zealot
 	{
-		m_character.Create( "zealot.dat" );
+		m_character.Create( m_renderer, "zealot.dat" );
 		if (graphic::cMesh* mesh = m_character.GetMesh("Sphere001"))
 			mesh->SetRender(false);
 		//m_character.SetShader( graphic::cResourceManager::Get()->LoadShader(
 		//	"hlsl_skinning_using_texcoord.fx") );
 		m_character.SetShader( graphic::cResourceManager::Get()->LoadShader(
-			"hlsl_skinning_using_texcoord_sc2.fx") );
+			m_renderer, "hlsl_skinning_using_texcoord_sc2.fx") );
 		m_character.SetRenderShadow(true);
 
 		using namespace graphic;
@@ -179,8 +167,8 @@ bool cViewer::OnInit()
 
 		//m_character.Action( CHARACTER_ACTION::RUN );
 		
-		m_character.SetAction( new ai::cAction(&m_character, "normal", "zealot_stand.ani") );
-		m_character.StartAction();
+		//m_character.SetAction( new ai::cAction(&m_character, "normal", "zealot_stand.ani") );
+		//m_character.StartAction();
 	}
 
 	if (0)
@@ -203,26 +191,26 @@ bool cViewer::OnInit()
 		m_chars.resize(100);
 		BOOST_FOREACH (auto &character, m_chars)
 		{
-			character.Create( "zealot.dat" );
+			character.Create(m_renderer, "zealot.dat" );
 			if (graphic::cMesh* mesh = character.GetMesh("Sphere001"))
 				mesh->SetRender(false);
 
 			character.SetShader( graphic::cResourceManager::Get()->LoadShader(
-				"hlsl_skinning_using_texcoord.fx") );
+				m_renderer, "hlsl_skinning_using_texcoord.fx") );
 
 			character.SetActionData(actions);
 			character.Action( CHARACTER_ACTION::RUN );
 
 			Matrix44 matT;
-			matT.SetTranslate( Vector3(idx%10, 0, (idx/10)) );
+			matT.SetTranslate( Vector3((float)(idx%10), 0, (float)(idx/10)) );
 			character.SetTransform(matT);
 			++idx;
 		}
 	}
 
-	m_grid.Create(100, 100, 50);
+	m_grid.Create(m_renderer, 100, 100, 50);
 
-	m_billboard.Create(graphic::BILLBOARD_TYPE::Y_AXIS, 100, 100, Vector3(100,0,100), "Pine.png" );
+	m_billboard.Create(m_renderer, graphic::BILLBOARD_TYPE::Y_AXIS, 100, 100, Vector3(100,0,100), "Pine.png" );
 
 
 	//using namespace graphic;
@@ -250,9 +238,9 @@ bool cViewer::OnInit()
 
 
 
-	m_terrain.CreateFromTRNFile( "./media/terrain/terrain121.trn" );
+	m_terrain.CreateFromTRNFile(m_renderer, "../media/terrain/terrain121.trn" );
 
-	m_cube.SetCube(Vector3(-10,-10,-10), Vector3(10,10,10));
+	m_cube.SetCube(m_renderer, Vector3(-10,-10,-10), Vector3(10,10,10));
 	//m_sphere.Create(100, 20, 20);
 
 	m_mtrl.InitWhite();
@@ -268,6 +256,7 @@ bool cViewer::OnInit()
 	
 	const int WINSIZE_X = 1024;		//초기 윈도우 가로 크기
 	const int WINSIZE_Y = 768;	//초기 윈도우 세로 크기
+	GetMainCamera()->Init(&m_renderer);
 	GetMainCamera()->SetCamera(Vector3(10, 10,-10), Vector3(0,0,0), Vector3(0,1,0));
 	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float) WINSIZE_Y, 1.f, 10000.0f);
 	
@@ -275,8 +264,8 @@ bool cViewer::OnInit()
 	GetMainLight().SetPosition(Vector3(5,5,5));
 	GetMainLight().SetDirection(Vector3(1,-1,1).Normal());
 
-	GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
-	GetDevice()->LightEnable (0,true);
+	m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
+	m_renderer.GetDevice()->LightEnable (0,true);
 
 	return true;
 }
@@ -286,14 +275,14 @@ void cViewer::OnUpdate(const float elapseT)
 {
 	m_terrain.Move(elapseT);
 	//m_model.Move(elapseT);
-	m_character.Move(elapseT);
+	m_character.Update(elapseT);
 	//m_teraCharacter.Move(elapseT);
 
 	//m_particles.Move(elapseT);
 	//m_snow.Move(elapseT);
 
 	BOOST_FOREACH (auto &character, m_chars)
-		character.Move(elapseT);
+		character.Update(elapseT);
 
 
 	//collisionMgr.UpdateCollisionBox();
@@ -322,53 +311,42 @@ void cViewer::OnUpdate(const float elapseT)
 
 void cViewer::OnRender(const float elapseT)
 {
-	m_terrain.PreRender();
-	m_terrain.RenderModelShadow(m_character);
+	m_terrain.PreRender(m_renderer);
+	m_terrain.RenderModelShadow(m_renderer, m_character);
 
-	//화면 청소
-	if (SUCCEEDED(graphic::GetDevice()->Clear( 
-		0,			//청소할 영역의 D3DRECT 배열 갯수		( 전체 클리어 0 )
-		NULL,		//청소할 영역의 D3DRECT 배열 포인터		( 전체 클리어 NULL )
-		D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,	//청소될 버퍼 플레그 ( D3DCLEAR_TARGET 컬러버퍼, D3DCLEAR_ZBUFFER 깊이버퍼, D3DCLEAR_STENCIL 스텐실버퍼
-		D3DCOLOR_XRGB(150, 150, 150),			//컬러버퍼를 청소하고 채워질 색상( 0xAARRGGBB )
-		1.0f,				//깊이버퍼를 청소할값 ( 0 ~ 1 0 이 카메라에서 제일가까운 1 이 카메라에서 제일 먼 )
-		0					//스텐실 버퍼를 채울값
-		)))
+	if (SUCCEEDED(m_renderer.GetDevice()->Clear(
+		0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
+		D3DCOLOR_XRGB(150, 150, 150), 1.0f, 0)))
 	{
+		m_renderer.GetDevice()->BeginScene();
 
-		//화면 청소가 성공적으로 이루어 졌다면... 랜더링 시작
-		graphic::GetDevice()->BeginScene();
-
-		if (m_scene)
-			m_scene->Render(Matrix44::Identity);
+		//if (m_scene)
+		//	m_scene->Render(m_renderer, Matrix44::Identity);
 
 		//m_grid.RenderLinelist();
-		m_terrain.Render();
-		graphic::GetRenderer()->RenderGrid();
-		graphic::GetRenderer()->RenderAxis();
+		m_terrain.Render(m_renderer);
+		m_renderer.RenderGrid();
+		m_renderer.RenderAxis();
 
 		//m_particles.Render();
 
+		//m_cube.Render(m_renderer, Matrix44::Identity);
 		//m_character.SetTM(m_cube.GetTransform());
-		m_character.Render(Matrix44::Identity);
+		m_character.Render(m_renderer, Matrix44::Identity);
 		//m_teraCharacter.Render(Matrix44::Identity);
 
-		BOOST_FOREACH (auto &character, m_chars)
-			character.Render(Matrix44::Identity);
+		//BOOST_FOREACH (auto &character, m_chars)
+		//	character.Render(m_renderer, Matrix44::Identity);
 
 		//m_snow.Render();
-		m_billboard.Render();
+		//m_billboard.Render(m_renderer);
 		//m_character.GetShadow().RenderShadowMap();
 
 		//m_cube.Render(matIdentity);
+		m_renderer.RenderFPS();
 
-
-		graphic::GetRenderer()->RenderFPS();
-
-		//랜더링 끝
-		graphic::GetDevice()->EndScene();
-		//랜더링이 끝났으면 랜더링된 내용 화면으로 전송
-		graphic::GetDevice()->Present( NULL, NULL, NULL, NULL );
+		m_renderer.GetDevice()->EndScene();
+		m_renderer.GetDevice()->Present( NULL, NULL, NULL, NULL );
 	}
 }
 
@@ -379,7 +357,7 @@ void cViewer::OnShutdown()
 }
 
 
-void cViewer::MessageProc( UINT message, WPARAM wParam, LPARAM lParam)
+void cViewer::OnMessageProc( UINT message, WPARAM wParam, LPARAM lParam)
 {
 	if (m_scene)
 		m_scene->MessageProc(message, wParam, lParam);
@@ -443,8 +421,8 @@ void cViewer::MessageProc( UINT message, WPARAM wParam, LPARAM lParam)
 		case VK_TAB:
 			{
 				static bool flag = false;
-				graphic::GetDevice()->SetRenderState(D3DRS_CULLMODE, flag? D3DCULL_CCW : D3DCULL_NONE);
-				graphic::GetDevice()->SetRenderState(D3DRS_FILLMODE, flag? D3DFILL_SOLID : D3DFILL_WIREFRAME);
+				m_renderer.GetDevice()->SetRenderState(D3DRS_CULLMODE, flag? D3DCULL_CCW : D3DCULL_NONE);
+				m_renderer.GetDevice()->SetRenderState(D3DRS_FILLMODE, flag? D3DFILL_SOLID : D3DFILL_WIREFRAME);
 				flag = !flag;
 			}
 			break;
@@ -482,12 +460,11 @@ void cViewer::MessageProc( UINT message, WPARAM wParam, LPARAM lParam)
 			Vector3 pickPos;
 			if (m_terrain.Pick(ray.orig, ray.dir, pickPos))
 			{
-				m_character.SetAction(new ai::cAction(&m_character, "normal", "zealot_stand.ani") );
-
-				ai::cMove *action = new ai::cMove();
-				action->Init(&m_character, pickPos);
-				m_character.PushAction( action );
-				m_character.StartAction();
+				//m_character.SetAction(new ai::cAction(&m_character, "normal", "zealot_stand.ani") );
+				//ai::cMove<cCharacter> *action = new ai::cMove<cCharacter>(&m_character, pickPos);
+				//action->Init(&m_character, pickPos);
+				//m_character.	.PushAction( action );
+				//m_character.StartAction();
 			}
 		
 		}
@@ -513,7 +490,7 @@ void cViewer::MessageProc( UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				POINT pos = {LOWORD(lParam), HIWORD(lParam)};
 				if (m_scene)
-					m_scene->SetPos(Vector3(pos.x, pos.y,0));
+					m_scene->SetPos(Vector3((float)pos.x, (float)pos.y,0));
 			}
 
 			if (m_LButtonDown)

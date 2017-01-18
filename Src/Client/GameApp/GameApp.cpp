@@ -33,7 +33,8 @@ cGameApp::~cGameApp()
 
 bool cGameApp::OnInit()
 {
-	ReadModelFile("vase.dat", m_vtxBuff, m_VtxSize, m_idxBuff, m_FaceSize);
+	graphic::cResourceManager::Get()->SetMediaDirectory("../media/");
+	ReadModelFile("../media/vase.dat", m_vtxBuff, m_VtxSize, m_idxBuff, m_FaceSize);
 
 	m_mtrl.InitRed();
 
@@ -43,24 +44,23 @@ bool cGameApp::OnInit()
 		color,
 		color * 0.6f,
 		Vector3(1,0,0));
-	
 
 	Matrix44 V;
 	Vector3 dir = Vector3(0,0,0)-Vector3(0,0,-5);
 	dir.Normalize();
 	V.SetView(Vector3(0,0,-500), dir, Vector3(0,1,0));
-	graphic::GetDevice()->SetTransform(D3DTS_VIEW, (D3DXMATRIX*)&V);
+	m_renderer.GetDevice()->SetTransform(D3DTS_VIEW, (D3DXMATRIX*)&V);
 
 	const int WINSIZE_X = 1024;		//초기 윈도우 가로 크기
 	const int WINSIZE_Y = 768;	//초기 윈도우 세로 크기
 
 	Matrix44 proj;
 	proj.SetProjection(D3DX_PI * 0.5f, (float)WINSIZE_X / (float) WINSIZE_Y, 1.f, 1000.0f) ;
-	graphic::GetDevice()->SetTransform(D3DTS_PROJECTION, (D3DXMATRIX*)&proj) ;
+	m_renderer.GetDevice()->SetTransform(D3DTS_PROJECTION, (D3DXMATRIX*)&proj) ;
 
-	m_light.Bind(0);
+	m_light.Bind(m_renderer, 0);
 
-	graphic::GetDevice()->LightEnable (
+	m_renderer.GetDevice()->LightEnable (
 		0, // 활성화/ 비활성화 하려는 광원 리스트 내의 요소
 		true); // true = 활성화 ， false = 비활성화
 
@@ -76,18 +76,12 @@ void cGameApp::OnUpdate(const float elapseT)
 
 void cGameApp::OnRender(const float elapseT)
 {
-	//화면 청소
-	if (SUCCEEDED(graphic::GetDevice()->Clear( 
-		0,			//청소할 영역의 D3DRECT 배열 갯수		( 전체 클리어 0 )
-		NULL,		//청소할 영역의 D3DRECT 배열 포인터		( 전체 클리어 NULL )
-		D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,	//청소될 버퍼 플레그 ( D3DCLEAR_TARGET 컬러버퍼, D3DCLEAR_ZBUFFER 깊이버퍼, D3DCLEAR_STENCIL 스텐실버퍼
-		D3DCOLOR_XRGB(255, 255, 255),			//컬러버퍼를 청소하고 채워질 색상( 0xAARRGGBB )
-		1.0f,				//깊이버퍼를 청소할값 ( 0 ~ 1 0 이 카메라에서 제일가까운 1 이 카메라에서 제일 먼 )
-		0					//스텐실 버퍼를 채울값
-		)))
+	if (SUCCEEDED(m_renderer.GetDevice()->Clear( 
+		0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
+		D3DCOLOR_XRGB(255, 255, 255),
+		1.0f, 0)))
 	{
-		//화면 청소가 성공적으로 이루어 졌다면... 랜더링 시작
-		graphic::GetDevice()->BeginScene();
+		m_renderer.GetDevice()->BeginScene();
 
 		static float y = 0;
 		y += elapseT;
@@ -99,18 +93,15 @@ void cGameApp::OnRender(const float elapseT)
 		rx.SetRotationX(MATH_PI/4.f); 	// x축으로 45도 회전시킨다.
 		ry.SetRotationY(y); // y축으로 회전
 		r = rx*ry;
-		graphic::GetDevice()->SetTransform(D3DTS_WORLD, (D3DXMATRIX*)&r);
+		m_renderer.GetDevice()->SetTransform(D3DTS_WORLD, (D3DXMATRIX*)&r);
 
-		m_mtrl.Bind();
-		m_idxBuff.Bind();
-		m_vtxBuff.Bind();
-		graphic::GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, m_VtxSize, 0, m_FaceSize);
+		m_mtrl.Bind(m_renderer);
+		m_idxBuff.Bind(m_renderer);
+		m_vtxBuff.Bind(m_renderer);
+		m_renderer.GetDevice()->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, m_VtxSize, 0, m_FaceSize);
 
-
-		//랜더링 끝
-		graphic::GetDevice()->EndScene();
-		//랜더링이 끝났으면 랜더링된 내용 화면으로 전송
-		graphic::GetDevice()->Present( NULL, NULL, NULL, NULL );
+		m_renderer.GetDevice()->EndScene();
+		m_renderer.GetDevice()->Present( NULL, NULL, NULL, NULL );
 	}
 }
 
@@ -121,7 +112,7 @@ void cGameApp::OnShutdown()
 }
 
 
-void cGameApp::MessageProc( UINT message, WPARAM wParam, LPARAM lParam)
+void cGameApp::OnMessageProc( UINT message, WPARAM wParam, LPARAM lParam)
 {
 
 }
@@ -145,7 +136,7 @@ bool cGameApp::ReadModelFile( const string &fileName, graphic::cVertexBuffer &vt
 	vtxSize = numVertices;
 
 	// 버텍스 버퍼 생성.
-	if (!vtxBuff.Create(vtxSize, sizeof(Vertex), Vertex::FVF))
+	if (!vtxBuff.Create(m_renderer, vtxSize, sizeof(Vertex), Vertex::FVF))
 		return false;
 
 	// 버텍스 버퍼 초기화.
@@ -168,7 +159,7 @@ bool cGameApp::ReadModelFile( const string &fileName, graphic::cVertexBuffer &vt
 
 	faceSize = numIndices;
 
-	idxBuff.Create(numIndices);
+	idxBuff.Create(m_renderer, numIndices);
 
 	WORD *indices = (WORD*)idxBuff.Lock();
 	int num4, num5, num6;

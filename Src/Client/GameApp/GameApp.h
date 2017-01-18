@@ -12,7 +12,7 @@ public:
 	virtual void OnUpdate(const float elapseT) override;
 	virtual void OnRender(const float elapseT) override;
 	virtual void OnShutdown() override;
-	virtual void MessageProc( UINT message, WPARAM wParam, LPARAM lParam) override;
+	virtual void OnMessageProc( UINT message, WPARAM wParam, LPARAM lParam) override;
 
 
 protected:
