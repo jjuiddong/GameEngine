@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{bb87ef24-be82-4133-8444-cd6417c4a6ba}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="basic.prt">
+      <Filter>Protocol</Filter>
+    </CustomBuild>
+    <CustomBuild Include="login.prt">
+      <Filter>Protocol</Filter>
+    </CustomBuild>
+    <CustomBuild Include="p2pComm.prt">
+      <Filter>Protocol</Filter>
+    </CustomBuild>
+    <CustomBuild Include="farm.prt">
+      <Filter>Protocol</Filter>
+    </CustomBuild>
+    <CustomBuild Include="server_network.prt">
+      <Filter>Protocol</Filter>
+    </CustomBuild>
+    <CustomBuild Include="certify.prt">
+      <Filter>Protocol</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

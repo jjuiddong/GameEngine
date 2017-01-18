@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="panel">
+      <UniqueIdentifier>{96e78267-b016-4af4-be32-4010b45924a9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="res\Viewer2.rc2">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\Viewer2.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\bitmap1.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Viewer2.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewer2Dlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelView.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Controller.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationController2.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InputDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadingDialog.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FileTreeCtrl.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BoneDialog.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BoneTreeCtrl.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="UIUtiltity.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FilePanel.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelPanel.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelBase.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+    <ClInclude Include="MainPanel.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationPanel.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchebladePanel.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+    <ClInclude Include="TeraPanel.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+    <ClInclude Include="viewer2def.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PropGridSlider.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Sc2Panel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LightPanel.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererPanel.h">
+      <Filter>panel</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Viewer2.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewer2Dlg.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelView.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\Controller.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationController2.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="InputDlg.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadingDialog.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FileTreeCtrl.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BoneDialog.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BoneTreeCtrl.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUtiltity.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainPanel.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="MainPanelTab.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelPanel.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="FilePanel.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationPanel.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchebladePanel.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="TeraPanel.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="PropGridSlider.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Sc2Panel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LightPanel.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelBase.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererPanel.cpp">
+      <Filter>panel</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Viewer2.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

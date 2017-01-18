@@ -1,0 +1,13 @@
+
+protocol s2c 600
+{
+	AckLobbyIn( error::ERROR_CODE errorCode );
+
+}
+
+protocol c2s 700
+{
+	ReqLobbyIn();
+
+}
+

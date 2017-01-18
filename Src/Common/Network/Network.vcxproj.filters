@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Lib">
+      <UniqueIdentifier>{7f8c7ce2-44f8-4caa-9a34-fe5decf2d9f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Algorithm">
+      <UniqueIdentifier>{afdf5d49-bced-4026-ace5-ca41bc2a23a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\DataStructure">
+      <UniqueIdentifier>{c3b5f69e-3282-4ef2-a7ea-bb121be452d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\ErrReport">
+      <UniqueIdentifier>{1277187a-a491-476e-a703-7a0500169015}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Task">
+      <UniqueIdentifier>{3d79bede-b4a9-4f29-b6f8-4c0562f39dd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Controller">
+      <UniqueIdentifier>{b95e0e89-7636-4f0f-a07c-eef1720ec3c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Service">
+      <UniqueIdentifier>{55f95af7-b0a2-45d0-ae5d-bf4436480343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\ProtocolHandler">
+      <UniqueIdentifier>{0a45ec0b-5b81-40cd-b4e5-ed8a71f44e66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\MultiNetwork">
+      <UniqueIdentifier>{7dc2aa02-2618-4d8d-8726-2aa3e345f931}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Utility">
+      <UniqueIdentifier>{648cc939-3b3c-4290-bd49-501ada6af3e2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Network.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DataStructure\Room.cpp">
+      <Filter>Lib\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\CoreClient.cpp">
+      <Filter>Lib\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\P2PClient.cpp">
+      <Filter>Lib\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\AllProtocol.cpp">
+      <Filter>Lib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\AllProtocolListener.cpp">
+      <Filter>Lib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\Client.cpp">
+      <Filter>Lib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\Server.cpp">
+      <Filter>Lib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Algorithm\GroupTraverse.cpp">
+      <Filter>Lib\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="ProtocolHandler\BasicProtocolDispatcher.cpp">
+      <Filter>Lib\ProtocolHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiNetwork\MultiNetwork.cpp">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\ServerBasic.cpp">
+      <Filter>Lib\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\ClientBasic.cpp">
+      <Filter>Lib\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="ProtocolHandler\AllProtocolDisplayer.cpp">
+      <Filter>Lib\ProtocolHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ErrReport\ErrorCheck.cpp">
+      <Filter>Lib\ErrReport</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiNetwork\MultiNetworkUtility.cpp">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\Launcher.cpp">
+      <Filter>Lib\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiNetwork\MultiPlug.cpp">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiNetwork\MultiPlugDelegation.cpp">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\ServerApp.cpp">
+      <Filter>Lib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiNetwork\FarmServerPlug.cpp">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\SubServerPlug.cpp">
+      <Filter>Lib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\Controller.cpp">
+      <Filter>Lib\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="ProtocolHandler\BasicC2SHandler.cpp">
+      <Filter>Lib\ProtocolHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ProtocolHandler\BasicS2CHandler.cpp">
+      <Filter>Lib\ProtocolHandler</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Network.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkDef.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkUtility.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm\BindCore.h">
+      <Filter>Lib\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStructure\Room.h">
+      <Filter>Lib\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="Task\TaskAccept.h">
+      <Filter>Lib\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="Task\TaskLogic.h">
+      <Filter>Lib\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="Task\TaskWork.h">
+      <Filter>Lib\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\CoreClient.h">
+      <Filter>Lib\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\P2PClient.h">
+      <Filter>Lib\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\AllProtocol.h">
+      <Filter>Lib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\AllProtocolListener.h">
+      <Filter>Lib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\Client.h">
+      <Filter>Lib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\Server.h">
+      <Filter>Lib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Task\TaskWorkServer.h">
+      <Filter>Lib\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="Task\TaskWorkClient.h">
+      <Filter>Lib\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm\GroupTraverse.h">
+      <Filter>Lib\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtocolHandler\BasicProtocolDispatcher.h">
+      <Filter>Lib\ProtocolHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiNetwork\MultiNetwork.h">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\ClientBasic.h">
+      <Filter>Lib\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\ServerBasic.h">
+      <Filter>Lib\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtocolHandler\AllProtocolDisplayer.h">
+      <Filter>Lib\ProtocolHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Utility.h">
+      <Filter>Lib\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrReport\ErrorCheck.h">
+      <Filter>Lib\ErrReport</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiNetwork\MultiNetworkUtility.h">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\Launcher.h">
+      <Filter>Lib\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiNetwork\MultiPlug.h">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiNetwork\MultiPlugDelegation.h">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\ServerApp.h">
+      <Filter>Lib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiNetwork\FarmServerPlug.h">
+      <Filter>Lib\MultiNetwork</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\SubServerPlug.h">
+      <Filter>Lib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\Controller.h">
+      <Filter>Lib\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtocolHandler\BasicC2SHandler.h">
+      <Filter>Lib\ProtocolHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtocolHandler\BasicS2CHandler.h">
+      <Filter>Lib\ProtocolHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\ClientAccess.h">
+      <Filter>Lib\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\ServerAccess.h">
+      <Filter>Lib\Utility</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>

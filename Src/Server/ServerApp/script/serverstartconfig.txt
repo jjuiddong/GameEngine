@@ -1,0 +1,11 @@
+GPJ
+
+ServerLaunchInfo
+{
+	lobbyserver name = "lobbysvr", s2sport = 1000, s2cport = 1001
+
+	gameserver name = "gameserver1", s2sip = "127.0.0.1", s2sport = 1000, s2cport = 1003
+
+	gameserver name = "gameserver2", s2sip = "127.0.0.1", s2sport = 1000, s2cport = 1004
+
+}

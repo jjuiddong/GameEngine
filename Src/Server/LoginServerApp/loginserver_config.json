@@ -1,0 +1,15 @@
+{
+	"type" : "loginsvr",
+	"parent server ip" : "127.0.0.1",
+	"parent server port" : "2300",
+
+	"p2pC" : [
+		"certifysvr"
+	],
+
+	"output link" : [
+		"lobbysvr"
+	]
+}
+
+

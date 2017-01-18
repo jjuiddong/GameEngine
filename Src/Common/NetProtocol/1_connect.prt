@@ -1,0 +1,14 @@
+
+
+protocol c2s 0
+{
+	Connect( std::string ip, int port );
+	DisConnect( );
+
+	ClientDisconnect( int uniq, netid id );
+	Accept( int socket, std::string ip );
+	P2PMemberJoin( netid id );
+	P2PMemberLeave( netid id );
+
+}
+

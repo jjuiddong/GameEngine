@@ -1,0 +1,35 @@
+{
+	"servers" : 
+	[
+		{
+			"type" : "balancesvr",
+			"inner port" : "1234",
+			"outer port" : "1335"
+		},
+
+		{
+			"type" : "certifysvr",
+			"inner port" : "1500",
+			"outer port" : "1600"
+		},	
+
+		{
+			"type" : "loginsvr",
+			"inner port" : "2234",
+			"outer port" : "2235"
+		},
+
+		{
+			"type" : "lobbysvr",
+			"inner port" : "3234",
+			"outer port" : "3335"
+		},
+
+		{
+			"type" : "gamesvr",
+			"inner port" : "4234",
+			"outer port" : "4335"
+		}
+	]
+}
+

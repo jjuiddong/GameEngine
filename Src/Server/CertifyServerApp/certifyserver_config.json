@@ -1,0 +1,13 @@
+{
+	"type" : "certifysvr",
+	"parent server ip" : "127.0.0.1",
+	"parent server port" : "2300",
+
+	"p2pS" : [
+		"lobbysvr",
+		"gamesvr",
+		"loginsvr"
+	]
+
+}
+

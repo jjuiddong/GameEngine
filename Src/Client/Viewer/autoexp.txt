@@ -1,0 +1,324 @@
+POINT|tagPOINT{
+	graph
+	(
+		#(
+			x : $e.x,
+			y : $e.y,
+		)
+
+	)
+
+}
+
+common::Vector3|Vector3|_D3DVECTOR{
+	graph
+	(
+		#(
+			x : $e.x,
+			y : $e.y,
+			z : $e.z,
+		)
+
+	)
+
+}
+
+
+common::Matrix44|Matrix44|_D3DMATRIX{
+	graph
+	(
+		#(
+			#horz( $e._11, $e._12, $e._13, $e._14 ),
+			#horz( $e._21, $e._22, $e._23, $e._24 ),
+			#horz( $e._31, $e._32, $e._33, $e._34 ),
+			#horz( $e._41, $e._42, $e._43, $e._44 )
+		)
+
+	)
+
+}
+
+
+D3DCOLORVALUE|_D3DCOLORVALUE {
+	graph
+	(
+		#(
+			r : [$e.r],
+			g : [$e.g],
+			b : [$e.b],
+			a : [$e.a]
+		)
+
+	)
+}
+
+
+D3DMATERIAL9|_D3DMATERIAL9 {
+	graph
+	(
+		#(
+			#horz( $e.Diffuse ),
+			#horz( $e.Ambient ),
+			#horz( $e.Specular ),
+			#horz( $e.Emissive ),
+			$e.Power
+		)
+	)
+}
+
+
+
+_D3DLIGHT9 | D3DLIGHT9 {
+	graph
+	(
+		#(
+			#horz( $e.Diffuse ),
+			#horz( $e.Ambient ),
+			#horz( $e.Specular ),
+			#horz( $e.Position ),
+			#horz( $e.Direction )
+		)
+	)
+}
+
+
+evc::CCreature{
+	graph
+	(
+		#(
+			fitness : [$e.m_Genome.fitness]
+		)
+	)
+}
+
+
+evc::CSensor{
+	graph
+	(
+		#(
+			output : [$e.m_Output]
+		)
+	)
+}
+
+
+evc::CEffector{
+	graph
+	(
+		#(
+			signal : [$e.m_Signal]
+		)
+	)
+}
+
+
+evc::SNeuron{
+	graph
+	(
+		#(
+			Output : [$e.m_Output],
+			#vert(
+				expr: $e.m_vecWeight
+			)			
+		)
+	)
+}
+
+
+evc::SNeuronLayer{
+	graph
+	(
+		#(
+			NumNeurons : [$e.m_NumNeurons],
+			#horz(
+				expr: $e.m_vecNeurons
+			)			
+		)
+	)
+}
+
+
+evc::CNeuralNet{
+	graph
+	(
+		#(
+			Input : [$e.m_NumInputs],
+			#vert(
+				expr: $e.m_vecLayers
+			)			
+		)
+	)
+}
+
+
+
+CLobbyServer{
+	preview
+	(
+		#(
+			Users : [$e.m_Users],
+			Rooms : [$e.m_Rooms],
+			[actual member] : [$e, !]
+		)
+	)
+}
+
+
+common::ReferencePtr<*>{
+	preview
+	(
+		#(
+			 Ptr : [$e.m_p, !]
+		)
+	)
+}
+
+common::CThread{
+	preview
+	(
+		#(
+			Name : [$e.m_Name],
+			State : [$e.m_State],
+			[actual member] : [$e, !]
+		)
+	)
+}
+
+Vector2{
+	preview
+	(
+		$e.x,
+		$e.y
+	)
+}
+
+boost::container::basic_string<char,*>{
+
+	preview		( #if( $e.members_.m_repr.s.h.is_short != 0 ) ( [$e.members_.m_repr.s.data , s]) )
+
+}
+
+std::list<*>{
+	children
+	(
+		#list
+		(
+			head : $e._Myhead->_Next,
+			size : $e._Mysize,
+			next : _Next
+		) : $e._Myval
+	)
+	preview
+	(
+		#(
+			"[", $e._Mysize, "](",
+			#list
+			(
+				head : $e._Myhead->_Next,
+				size : $e._Mysize,
+				next : _Next
+			) : $e._Myval,
+			")"
+		)
+	)
+}
+
+std::basic_string<char,*>{
+	preview		( #if(($e._Myres) < ($e._BUF_SIZE)) ( [$e._Bx._Buf,s]) #else ( [$e._Bx._Ptr,s]))
+	stringview	( #if(($e._Myres) < ($e._BUF_SIZE)) ( [$e._Bx._Buf,sb]) #else ( [$e._Bx._Ptr,sb]))
+	children
+	(
+		#if(($e._Myres) < ($e._BUF_SIZE))
+		(
+			#([actual members]: [$e,!] , #array( expr: $e._Bx._Buf[$i], size: $e._Mysize))
+		)
+		#else
+		(
+			#([actual members]: [$e,!],  #array( expr: $e._Bx._Ptr[$i], size: $e._Mysize))
+		)
+	)
+}
+std::basic_string<unsigned short,*>|std::basic_string<wchar_t,*>{
+	preview
+	(
+		#if(($e._Myres) < ($e._BUF_SIZE)) ( [$e._Bx._Buf,su] )
+		#else ( [$e._Bx._Ptr,su] )
+	)
+	stringview
+	(
+		#if(($e._Myres) < ($e._BUF_SIZE)) ( [$e._Bx._Buf,sub] )
+		#else ( [$e._Bx._Ptr,sub] )
+	)
+	children
+	(
+		#if(($e._Myres) < ($e._BUF_SIZE))
+		(
+			#(
+				[actual members]: [$e,!] ,
+				#array( expr: $e._Bx._Buf[$i], size: $e._Mysize)
+			)
+		)
+		#else
+		(
+			#(
+				[actual members]: [$e,!],
+				#array( expr: $e._Bx._Ptr[$i], size: $e._Mysize)
+			)
+		)
+	)
+}
+
+std::vector<*>{
+	children
+	(
+		#array
+		(
+			expr :		($e._Myfirst)[$i],
+			size :		$e._Mylast-$e._Myfirst
+		)
+	)
+	preview
+	(
+		#(
+			"[", $e._Mylast - $e._Myfirst , "](",
+			#array
+			(
+				expr :	($e._Myfirst)[$i],
+				size :	$e._Mylast-$e._Myfirst
+			),
+			")"
+		)
+	)
+}
+
+
+std::map<*>|std::multimap<*>|std::set<*>|std::multiset<*>{
+	preview (
+		#(
+			"[",
+			$e._Mysize,
+			"](",
+			#tree(
+				head: $e._Myhead->_Parent,
+				skip: $e._Myhead,
+				left: _Left,
+				right: _Right,
+				size: $e._Mysize
+			) : $e._Myval,
+			")"
+		)
+	)
+
+	children (
+		#(
+			#([comp] : $e.comp),
+			#tree(
+				head: $e._Myhead->_Parent,
+				skip: $e._Myhead,
+				left: _Left,
+				right: _Right,
+				size: $e._Mysize
+			) : $e._Myval
+		)
+	)
+}

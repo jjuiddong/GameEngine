@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ToolCommon">
+      <UniqueIdentifier>{3261dd98-6b76-4b8f-8364-80d9d237cd8e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="res\MapTool.rc2">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\MapTool.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MapTool.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MapToolDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MapView.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TopPanel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TabPanel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="HeightMapPanel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MapController.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainPanel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BrushPanel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MapToolDef.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelPanel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LightPanel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ToolCommon\LoadingDialog.h">
+      <Filter>ToolCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ToolCommon\PanelBase.h">
+      <Filter>ToolCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ToolCommon\PropGridSlider.h">
+      <Filter>ToolCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ToolCommon\ToolCommon.h">
+      <Filter>ToolCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ToolCommon\UIUtiltity.h">
+      <Filter>ToolCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ToolCommon\FileTreeCtrl.h">
+      <Filter>ToolCommon</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MapTool.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MapToolDlg.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MapView.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TopPanel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TabPanel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="HeightMapPanel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MapController.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainPanel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BrushPanel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelPanel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LightPanel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ToolCommon\LoadingDialog.cpp">
+      <Filter>ToolCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ToolCommon\PanelBase.cpp">
+      <Filter>ToolCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ToolCommon\PropGridSlider.cpp">
+      <Filter>ToolCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ToolCommon\UIUtiltity.cpp">
+      <Filter>ToolCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ToolCommon\FileTreeCtrl.cpp">
+      <Filter>ToolCommon</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MapTool.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

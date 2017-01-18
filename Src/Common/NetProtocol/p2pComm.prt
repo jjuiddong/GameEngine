@@ -1,0 +1,6 @@
+
+protocol c2c 1000
+{
+	SendData( );	
+
+}

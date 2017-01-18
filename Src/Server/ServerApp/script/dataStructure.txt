@@ -1,0 +1,25 @@
+GPJ
+
+lobbyserver
+{
+	char[32]	name
+	char[32]	s2sip
+	int			s2sport
+	int			s2cport
+}
+
+gameserver
+{
+	char[32]	name
+	char[32]	s2sip
+	int			s2sport
+	int			s2cport
+}
+
+ServerLaunchInfo
+{
+	size
+	lobbyserver*	lobbysvrs
+	size
+	gameserver*		gamesvrs
+}

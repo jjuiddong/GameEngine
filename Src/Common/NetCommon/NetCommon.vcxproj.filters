@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="PrtCompiler">
+      <UniqueIdentifier>{5df9946c-edaf-480b-8b0a-e853617cbcef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{84222274-65da-42a6-b871-25032d374ccd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DataStructure">
+      <UniqueIdentifier>{58785896-38ae-4049-856f-4c1297297984}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Controller">
+      <UniqueIdentifier>{727828a4-4996-4710-b617-87abdf42a8f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Marshalling">
+      <UniqueIdentifier>{30c414f4-9889-41ae-a162-6481b1e1c7a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Event">
+      <UniqueIdentifier>{34aaa631-1444-41d4-9876-e74281fb9b31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{881cff24-bc1d-4751-9094-be053a633700}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Error">
+      <UniqueIdentifier>{a76fa9ea-8def-4ae6-8983-79a2eeb41717}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PrtCompiler\ProtocolDefine.h">
+      <Filter>PrtCompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="PrtCompiler\ProtocolMacro.h">
+      <Filter>PrtCompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="PrtCompiler\ProtocolParser.h">
+      <Filter>PrtCompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="PrtCompiler\ProtocolScanner.h">
+      <Filter>PrtCompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="NetCommon.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface\Protocol.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface\ProtocolDispatcher.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface\ProtocolListener.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStructure\Packet.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStructure\PacketQueue.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="Marshalling\Marshalling.h">
+      <Filter>Marshalling</Filter>
+    </ClInclude>
+    <ClInclude Include="Event\NetEvent.h">
+      <Filter>Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface\Factory.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Marshalling\MarshallingGroup.h">
+      <Filter>Marshalling</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStructure\Group.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="Marshalling\MarshallingEtc.h">
+      <Filter>Marshalling</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Protocols.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStructure\RemoteServer.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\Session.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\Plug.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Error\ErrorCode.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStructure\Character.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStructure\Player.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\PlayerAccess.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PrtCompiler\ProtocolDefine.cpp">
+      <Filter>PrtCompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="PrtCompiler\ProtocolParser.cpp">
+      <Filter>PrtCompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="PrtCompiler\ProtocolScanner.cpp">
+      <Filter>PrtCompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="DataStructure\Packet.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="Marshalling\Marshalling.cpp">
+      <Filter>Marshalling</Filter>
+    </ClCompile>
+    <ClCompile Include="Marshalling\MarshallingGroup.cpp">
+      <Filter>Marshalling</Filter>
+    </ClCompile>
+    <ClCompile Include="DataStructure\Group.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="Marshalling\MarshallingEtc.cpp">
+      <Filter>Marshalling</Filter>
+    </ClCompile>
+    <ClCompile Include="Interface\ProtocolDispatcher.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Protocols.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="DataStructure\RemoteServer.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\Session.cpp">
+      <Filter>Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\Plug.cpp">
+      <Filter>Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="DataStructure\Character.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="DataStructure\Player.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

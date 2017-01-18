@@ -1,0 +1,40 @@
+#pragma once
+
+
+static const int VIEW_WIDTH = 1024;
+static const int VIEW_HEIGHT = 768;
+static const int REAL_WINDOW_WIDTH = VIEW_WIDTH+18;
+static const int REAL_WINDOW_HEIGHT = VIEW_HEIGHT+70;
+
+
+
+namespace EDIT_MODE
+{
+	enum TYPE
+	{
+		MODE_TERRAIN,
+		MODE_HEIGHTMAP,
+		MODE_BRUSH,
+		MODE_MODEL,
+		MODE_LIGHT,
+	};
+}
+
+
+namespace NOTIFY_TYPE
+{
+	enum TYPE
+	{
+		NOTIFY_CHANGE_TERRAIN = 0,
+		NOTIFY_ADD_LAYER,
+		NOTIFY_CHANGE_CURSOR,
+		NOTIFY_CHANGE_SPLATLAYER,
+		NOTIFY_ADD_PLACE_MODEL,
+		NOTIFY_SELECT_PLACE_MODEL,
+			// parameter : model id
+
+		NOTIFY_CHANGE_TERRAIN_EDIT_MODE,
+		NOTIFY_UPDATE_LIGHT_DIRECTION,
+	};
+}
+

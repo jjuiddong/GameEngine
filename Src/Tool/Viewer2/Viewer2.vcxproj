@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{37A60E43-6F45-4438-ABB4-D634D128D23F}</ProjectGuid>
+    <RootNamespace>Viewer2</RootNamespace>
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>../../../Bin/</OutDir>
+    <IntDir>../../../Obj/$(ProjectName)/$(Configuration)/</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>../../../Bin/</OutDir>
+    <IntDir>../../../Obj/$(ProjectName)/$(Configuration)/</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/MP -Zm200 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/MP -Zm200 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="res\bitmap1.bmp" />
+    <None Include="res\Viewer2.ico" />
+    <None Include="res\Viewer2.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AnimationController2.h" />
+    <ClInclude Include="AnimationPanel.h" />
+    <ClInclude Include="ArchebladePanel.h" />
+    <ClInclude Include="BoneDialog.h" />
+    <ClInclude Include="BoneTreeCtrl.h" />
+    <ClInclude Include="FilePanel.h" />
+    <ClInclude Include="FileTreeCtrl.h" />
+    <ClInclude Include="InputDlg.h" />
+    <ClInclude Include="LightPanel.h" />
+    <ClInclude Include="LoadingDialog.h" />
+    <ClInclude Include="MainPanel.h" />
+    <ClInclude Include="ModelPanel.h" />
+    <ClInclude Include="ModelView.h" />
+    <ClInclude Include="Model\Controller.h" />
+    <ClInclude Include="PanelBase.h" />
+    <ClInclude Include="PropGridSlider.h" />
+    <ClInclude Include="RendererPanel.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Sc2Panel.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="TeraPanel.h" />
+    <ClInclude Include="UIUtiltity.h" />
+    <ClInclude Include="Viewer2.h" />
+    <ClInclude Include="viewer2def.h" />
+    <ClInclude Include="Viewer2Dlg.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AnimationController2.cpp" />
+    <ClCompile Include="AnimationPanel.cpp" />
+    <ClCompile Include="ArchebladePanel.cpp" />
+    <ClCompile Include="BoneDialog.cpp" />
+    <ClCompile Include="BoneTreeCtrl.cpp" />
+    <ClCompile Include="FilePanel.cpp" />
+    <ClCompile Include="FileTreeCtrl.cpp" />
+    <ClCompile Include="InputDlg.cpp" />
+    <ClCompile Include="LightPanel.cpp" />
+    <ClCompile Include="LoadingDialog.cpp" />
+    <ClCompile Include="MainPanel.cpp" />
+    <ClCompile Include="MainPanelTab.cpp" />
+    <ClCompile Include="ModelPanel.cpp" />
+    <ClCompile Include="ModelView.cpp" />
+    <ClCompile Include="Model\Controller.cpp" />
+    <ClCompile Include="PanelBase.cpp" />
+    <ClCompile Include="PropGridSlider.cpp" />
+    <ClCompile Include="RendererPanel.cpp" />
+    <ClCompile Include="Sc2Panel.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="TeraPanel.cpp" />
+    <ClCompile Include="UIUtiltity.cpp" />
+    <ClCompile Include="Viewer2.cpp" />
+    <ClCompile Include="Viewer2Dlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Viewer2.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Common\Common.vcxproj">
+      <Project>{ef9ca22d-0c8f-42e9-ab66-98bc1a640f10}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Framework\Framework.vcxproj">
+      <Project>{b4998e31-b50a-4583-b023-ce8262773cc1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Graphic\Graphic.vcxproj">
+      <Project>{3a91e3aa-18df-4733-9f41-ed09a61f97e3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="Viewer2.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

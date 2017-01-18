@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B2CB8551-B147-4C4D-86AB-A04309AF20DE}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>NetCommon</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>../../../Lib/$(ProjectName)/$(Configuration)/</OutDir>
+    <IntDir>../../../Obj/$(ProjectName)/$(Configuration)/</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>../../../Lib/$(ProjectName)/$(Configuration)/</OutDir>
+    <IntDir>../../../Obj/$(ProjectName)/$(Configuration)/</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Zm200 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>../../common/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>wsock32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Controller\Plug.h" />
+    <ClInclude Include="Controller\Session.h" />
+    <ClInclude Include="DataStructure\Character.h" />
+    <ClInclude Include="DataStructure\Group.h" />
+    <ClInclude Include="DataStructure\Packet.h" />
+    <ClInclude Include="DataStructure\PacketQueue.h" />
+    <ClInclude Include="DataStructure\RemoteServer.h" />
+    <ClInclude Include="DataStructure\Player.h" />
+    <ClInclude Include="Error\ErrorCode.h" />
+    <ClInclude Include="Event\NetEvent.h" />
+    <ClInclude Include="Interface\Factory.h" />
+    <ClInclude Include="Interface\Protocol.h" />
+    <ClInclude Include="Interface\ProtocolDispatcher.h" />
+    <ClInclude Include="Interface\ProtocolListener.h" />
+    <ClInclude Include="Marshalling\Marshalling.h" />
+    <ClInclude Include="Marshalling\MarshallingEtc.h" />
+    <ClInclude Include="Marshalling\MarshallingGroup.h" />
+    <ClInclude Include="NetCommon.h" />
+    <ClInclude Include="PrtCompiler\ProtocolDefine.h" />
+    <ClInclude Include="PrtCompiler\ProtocolMacro.h" />
+    <ClInclude Include="PrtCompiler\ProtocolParser.h" />
+    <ClInclude Include="PrtCompiler\ProtocolScanner.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Utility\Protocols.h" />
+    <ClInclude Include="Utility\PlayerAccess.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Controller\Plug.cpp" />
+    <ClCompile Include="Controller\Session.cpp" />
+    <ClCompile Include="DataStructure\Character.cpp" />
+    <ClCompile Include="DataStructure\Group.cpp" />
+    <ClCompile Include="DataStructure\Packet.cpp" />
+    <ClCompile Include="DataStructure\RemoteServer.cpp" />
+    <ClCompile Include="DataStructure\Player.cpp" />
+    <ClCompile Include="Interface\ProtocolDispatcher.cpp" />
+    <ClCompile Include="Marshalling\Marshalling.cpp" />
+    <ClCompile Include="Marshalling\MarshallingEtc.cpp" />
+    <ClCompile Include="Marshalling\MarshallingGroup.cpp" />
+    <ClCompile Include="PrtCompiler\ProtocolDefine.cpp" />
+    <ClCompile Include="PrtCompiler\ProtocolParser.cpp" />
+    <ClCompile Include="PrtCompiler\ProtocolScanner.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Utility\Protocols.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{f3998dc9-8441-45d0-a8f0-719c0a06c955}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

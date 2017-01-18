@@ -1,0 +1,16 @@
+
+protocol s2s 800
+{
+
+	ReqMovePlayer( std::string id, certify_key c_key, netid groupId, std::string ip, int port );
+	AckMovePlayer( error::ERROR_CODE errorCode, std::string id, netid groupId, std::string ip, int port );
+	ReqMovePlayerCancel( std::string id );
+	AckMovePlayerCancel( error::ERROR_CODE errorCode, std::string id );
+
+	ReqCreateGroup( std::string name, netid groupId, netid reqPlayerId );
+	AckCreateGroup( error::ERROR_CODE errorCode, std::string name, netid groupId, netid reqPlayerId );
+
+	SendServerInfo( std::string svrType, std::string ip, int port, int userCount );
+
+}
+

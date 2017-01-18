@@ -1,0 +1,38 @@
+
+protocol s2c 100
+{
+	Error( error::ERROR_CODE errorCode );
+
+	AckLogIn( error::ERROR_CODE errorCode, std::string id, certify_key c_key  );
+	AckLogOut( error::ERROR_CODE errorCode, std::string id, int result );
+
+	AckMoveToServer( error::ERROR_CODE errorCode, std::string serverName, std::string ip, int port );
+
+	AckGroupList( error::ERROR_CODE errorCode, GroupVector groups );
+	AckGroupJoin( error::ERROR_CODE errorCode, netid reqId, netid joinGroupId );
+	AckGroupCreate( error::ERROR_CODE errorCode, netid reqId, netid crGroupId, netid crParentGroupId, std::string groupName );
+	AckGroupCreateBlank( error::ERROR_CODE errorCode, netid reqId, netid crGroupId, netid crParentGroupId, std::string groupName );
+
+	JoinMember( netid toGroupId, netid fromGroupId, netid userId );
+
+	AckP2PConnect( error::ERROR_CODE errorCode, P2P_STATE state, std::string ip, int port );
+
+}
+
+protocol c2s 200
+{
+	ReqLogIn( std::string id, std::string passwd, certify_key c_key );
+	ReqLogOut( std::string id );
+
+	ReqMoveToServer( std::string serverName );
+
+	ReqGroupList( netid groupid );
+	ReqGroupJoin( netid groupid );
+	ReqGroupCreate( netid parentGroupId, std::string groupName  );
+	ReqGroupCreateBlank( netid parentGroupId, std::string groupName  );
+
+	ReqP2PConnect( );
+	ReqP2PConnectTryResult(  bool isSuccess );
+
+}
+

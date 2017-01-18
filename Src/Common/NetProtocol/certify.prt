@@ -1,0 +1,15 @@
+
+protocol s2s 900
+{
+	ReqUserLogin( std::string id, std::string passwd, std::string svrType );
+	AckUserLogin( error::ERROR_CODE errorCode, std::string id, certify_key c_key );
+
+	ReqUserMoveServer( std::string id, std::string svrType );
+	AckUserMoveServer( error::ERROR_CODE errorCode, std::string id, std::string svrType );
+
+	ReqUserLogout( std::string id );
+	AckUserLogout( error::ERROR_CODE errorCode, std::string id );
+
+
+}
+
