@@ -1,0 +1,5 @@
+Diffuse=AncientGardener_diff
+Normal=AncientGardener_norm
+Specular=AncientGardener_spec
+Opacity=RageModeMask_mask
+Emissive=AncientGardener_rage

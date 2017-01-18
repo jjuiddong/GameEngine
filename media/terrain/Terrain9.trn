@@ -1,0 +1,41 @@
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMapStyle" : 1,
+	"heightMap" : "./terrain/Terrain9_geo.grd",
+	"bg texture" : "./terrain/ÁøÈë.jpg",
+	"alpha texture" : "./terrain/Terrain9_alpha.png",
+	"alpha texture width" : 256,
+	"alpha texture height" : 256,
+	"texture factor" : 8,
+	"height factor" : 3,
+	"render water" : 1,
+	"layer" : [
+		{
+			"texture" : "./terrain/Ç®.jpg"
+		},
+		{
+			"texture" : "./terrain/Ç®º¯Çü.jpg"
+		},
+		{
+			"texture" : "./terrain/È²¸ð·¡.jpg"
+		},
+		{
+			"texture" : "./terrain/¿¶ÀºÀÜµð.jpg"
+		}
+	],
+	"model" : [
+		{
+			"filename" : "./max script/cezanne_A.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-451.142 228.695 -701.178 1"
+		}
+	]
+	}
+}

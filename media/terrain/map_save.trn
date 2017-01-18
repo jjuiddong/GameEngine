@@ -1,0 +1,36 @@
+
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMap" : "",
+	"bg texture" : "",
+	"alpha texture" : "",
+	"texture factor" : 8,
+	"height factor" : 4,
+	"layer" : [
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		}
+	],
+	"model" : [
+		{
+			"filename" : "",
+			"tm1" : ""
+		}
+	]
+	}
+}
+

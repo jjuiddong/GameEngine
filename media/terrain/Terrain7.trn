@@ -1,0 +1,110 @@
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMapStyle" : 1,
+	"heightMap" : "./terrain/Terrain7_geo.grd",
+	"bg texture" : "./terrain/¸ð·¡1.jpg",
+	"alpha texture" : "./terrain/Terrain7_alpha.png",
+	"alpha texture width" : 256,
+	"alpha texture height" : 256,
+	"texture factor" : 8,
+	"height factor" : 3,
+	"layer" : [
+		{
+			"texture" : "./terrain/Tile07.jpg"
+		},
+		{
+			"texture" : "./terrain/¸ð·¡2.jpg"
+		},
+		{
+			"texture" : "./terrain/¿¶ÀºÀÜµð.jpg"
+		},
+		{
+			"texture" : "./terrain/ÀÚ°¥.jpg"
+		}
+	],
+	"model" : [
+		{
+			"filename" : "./max script/hyde.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-453.069 198.651 -414.562 1"
+		},
+		{
+			"filename" : "./max script/hyde.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "170.749 343.266 -755.467 1"
+		},
+		{
+			"filename" : "./max script/hyde.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "516.143 262.823 -831.694 1"
+		},
+		{
+			"filename" : "./max script/hyde.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "824.132 140.392 -704.223 1"
+		},
+		{
+			"filename" : "./max script/hyde.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "1075.26 128.078 -444.486 1"
+		},
+		{
+			"filename" : "./max script/ridika.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-326.684 31.7819 25.885 1"
+		},
+		{
+			"filename" : "./max script/ridika.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "28.6033 45.1975 -208.202 1"
+		},
+		{
+			"filename" : "./max script/ridika.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "420.752 37.8539 -202.905 1"
+		},
+		{
+			"filename" : "./max script/tiac.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-120.331 4.9198 256.334 1"
+		},
+		{
+			"filename" : "./max script/tiac.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "304.143 0.0999756 169.696 1"
+		},
+		{
+			"filename" : "./max script/tiac.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "606.092 0.0998535 94.3671 1"
+		}
+	]
+	}
+}

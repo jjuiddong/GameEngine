@@ -1,0 +1,5 @@
+Diffuse=AbandonedAutomatedGuardian_diff
+Normal=AbandonedAutomatedGuardian_norm
+Specular=AbandonedAutomatedGuardian_spec
+Opacity=RageModeMask_mask
+Emissive=AbandonedAutomatedGuardian_rage

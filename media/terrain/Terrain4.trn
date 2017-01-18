@@ -1,0 +1,30 @@
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMap" : "./terrain/heightmap.jpg",
+	"bg texture" : "./terrain/texture.jpg",
+	"alpha texture" : "./terrain/Terrain4_alpha.png",
+	"texture factor" : 1,
+	"height factor" : 4.39,
+	"layer" : [
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		}
+	],
+	"model" : [
+	]
+	}
+}

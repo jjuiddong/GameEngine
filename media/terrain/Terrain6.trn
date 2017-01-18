@@ -1,0 +1,33 @@
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMapStyle" : 1,
+	"heightMap" : "./terrain/Terrain6_geo.grd",
+	"bg texture" : "./terrain/grass014.jpg",
+	"alpha texture" : "./terrain/Terrain6_alpha.png",
+	"alpha texture width" : 256,
+	"alpha texture height" : 256,
+	"texture factor" : 8.86,
+	"height factor" : 2.2,
+	"layer" : [
+		{
+			"texture" : "./terrain/±‚∫ª»Î.jpg"
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		}
+	],
+	"model" : [
+	]
+	}
+}

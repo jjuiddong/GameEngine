@@ -1,0 +1,72 @@
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMap" : "",
+	"bg texture" : "./terrain/¹Ù´Úµ¹.jpg",
+	"alpha texture" : "./terrain/Terrain3_alpha.png",
+	"texture factor" : 8,
+	"height factor" : 3,
+	"layer" : [
+		{
+			"texture" : "./terrain/±âº»Èë.jpg"
+		},
+		{
+			"texture" : "./terrain/¹Ù´Ú.jpg"
+		},
+		{
+			"texture" : "./terrain/ÀÜµð.jpg"
+		},
+		{
+			"texture" : "./terrain/Ç®.jpg"
+		}
+	],
+	"model" : [
+		{
+			"filename" : "./max script/dick.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-287.178 0.0999756 -259.674 1"
+		},
+		{
+			"filename" : "./max script/dick.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-221.286 0.0999756 339.111 1"
+		},
+		{
+			"filename" : "./max script/dick.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "496.2 0.100037 152.206 1"
+		},
+		{
+			"filename" : "./max script/dick.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "439.632 0.0999756 -360.163 1"
+		},
+		{
+			"filename" : "./max script/dick.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "182.786 0.0999756 701.66 1"
+		},
+		{
+			"filename" : "./max script/dick.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "83.3082 0.0999756 -723.701 1"
+		}
+	]
+	}
+}

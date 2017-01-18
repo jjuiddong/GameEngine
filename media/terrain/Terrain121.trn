@@ -1,0 +1,104 @@
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMapStyle" : 1,
+	"heightMap" : "./terrain/Terrain121_geo.grd",
+	"bg texture" : "./terrain/tile.jpg",
+	"alpha texture" : "./terrain/Terrain121_alpha.png",
+	"alpha texture width" : 256,
+	"alpha texture height" : 256,
+	"texture factor" : 1000,
+	"height factor" : 3,
+	"render water" : 0,
+	"layer" : [
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		}
+	],
+	"model" : [
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "37.2361 -1.52588e-005 71.6181 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-57.0908 1.52588e-005 100.251 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-53.8083 0 24.6274 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "63.1792 0 -24.2274 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-57.8588 0 80.5614 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "50.9829 -3.05176e-005 60.829 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "143.775 3.05176e-005 -31.2377 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-126.677 0 5.97449 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "17.4667 0 24.0447 1"
+		},
+		{
+			"filename" : "./box.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "-20.4704 0 -6.23428 1"
+		}
+	]
+	}
+}

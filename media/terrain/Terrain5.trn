@@ -1,0 +1,61 @@
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMapStyle" : 1,
+	"heightMap" : "./terrain/Terrain5_geo.grd",
+	"bg texture" : "./terrain/모래1.jpg",
+	"alpha texture" : "./terrain/Terrain5_alpha.png",
+	"alpha texture width" : 256,
+	"alpha texture height" : 256,
+	"texture factor" : 8,
+	"height factor" : 3,
+	"layer" : [
+		{
+			"texture" : "./terrain/잔디.jpg"
+		},
+		{
+			"texture" : "./terrain/풀.jpg"
+		},
+		{
+			"texture" : "./terrain/황모래.jpg"
+		},
+		{
+			"texture" : ""
+		}
+	],
+	"model" : [
+		{
+			"filename" : "./max script/elichea2.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "393.127 174.161 -708.711 1"
+		},
+		{
+			"filename" : "./max script/elichea2.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "978.218 425.3 -270.117 1"
+		},
+		{
+			"filename" : "./max script/elichea2.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "622.172 501.798 -256.46 1"
+		},
+		{
+			"filename" : "./max script/elichea2.dat",
+			"tm1" : "1 0 0 0",
+			"tm2" : "0 1 0 0",
+			"tm3" : "0 0 1 0",
+			"tm4" : "120.296 328.173 -711.47 1"
+		}
+	]
+	}
+}

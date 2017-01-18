@@ -1,0 +1,53 @@
+{
+	"terrain version" : "v1",
+	"info" : 
+	{
+	"rowCellCount" : 64,
+	"colCellCount" : 64,
+	"cellSize" : 50,
+	"heightMap" : "",
+	"bg texture" : "",
+	"alpha texture" : "",
+	"texture factor" : 8,
+	"height factor" : 3,
+	"layer" : [
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+		{
+			"texture" : ""
+		},
+	],
+	"model" : [
+		{
+			"filename" : "../../media/max script/cezanne.dat",
+			"tm1" : "0 0 0 0",
+		},
+		{
+			"filename" : "../../media/max script/danmei.dat",
+			"tm1" : "0 0 0 0",
+		},
+		{
+			"filename" : "../../media/max script/dick.dat",
+			"tm1" : "0 0 0 0",
+		},
+		{
+			"filename" : "../../media/max script/elichea.dat",
+			"tm1" : "0 0 0 0",
+		},
+		{
+			"filename" : "../../media/max script/elichea.dat",
+			"tm1" : "0 0 0 0",
+		}
+		{
+			"filename" : "../../media/max script/hyde.dat",
+			"tm1" : "0 0 0 0",
+		}
+	],
+}
