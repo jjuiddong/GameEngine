@@ -65,8 +65,8 @@ sampler ShadowMapSamp = sampler_state
     MagFilter = LINEAR;
     MipFilter = LINEAR;
 
-	AddressU = Clamp;
-	AddressV = Clamp;
+	AddressU = Border;
+	AddressV = Border;
 };
 
 
@@ -81,8 +81,8 @@ sampler SplattingMapSamp = sampler_state
     MagFilter = LINEAR;
     MipFilter = LINEAR;
 
-	AddressU = Clamp;
-	AddressV = Clamp;
+	AddressU = Border;
+	AddressV = Border;
 };
 
 

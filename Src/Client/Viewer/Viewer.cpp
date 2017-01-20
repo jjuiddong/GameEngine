@@ -1,10 +1,6 @@
 
 #include "stdafx.h"
-//#include "../../Common/wxMemMonitorLib/wxMemMonitor.h"
 #include "TestScene.h"
-//#include "../Graphic/character/character.h"
-//#include "../../Common/Graphic/character/teracharacter.h"
-//#include "../../Common/ai/action/move.h"
 
 using namespace graphic;
 
@@ -24,14 +20,16 @@ public:
 	virtual void OnMessageProc( UINT message, WPARAM wParam, LPARAM lParam) override;
 
 
+protected:
+	void MakeShadowMap();
+
+
 private:
 	LPD3DXSPRITE m_sprite;
 
-	//graphic::cLight m_light;
 	graphic::cMaterial m_mtrl;
 	graphic::cTexture m_texture;
 	graphic::cCharacter m_character;
-	//graphic::cTeraCharacter m_teraCharacter;
 	vector<graphic::cCharacter> m_chars;
 	graphic::cGrid m_grid;
 
@@ -39,16 +37,11 @@ private:
 	graphic::cTerrain m_terrain;
 	graphic::cCube m_cube;
 	graphic::cSphere m_sphere;
+	cShadow1 m_shadow;
 
-	//graphic::cParticles m_particles;
-	//graphic::cSnow m_snow;
-	graphic::cBillboard m_billboard;
-
-	//Vector3 m_light2;
 	Vector3 m_pos;
 
 	cTestScene *m_scene;
-	//graphic::cCollisionManager collisionMgr;
 
 	string m_filePath;
 
@@ -94,6 +87,8 @@ bool cViewer::OnInit()
 	cResourceManager::Get()->SetMediaDirectory("../media/");
 
 	D3DXCreateSprite(m_renderer.GetDevice(), &m_sprite);
+
+	m_shadow.Create(m_renderer, 1024, 1024);
 
 	//m_scene = new cTestScene(m_sprite);
 	//m_scene->SetPos(Vector3(100,100,0));
@@ -155,6 +150,9 @@ bool cViewer::OnInit()
 		m_character.SetShader( graphic::cResourceManager::Get()->LoadShader(
 			m_renderer, "hlsl_skinning_using_texcoord_sc2.fx") );
 		m_character.SetRenderShadow(true);
+		//Matrix44 tm;
+		//tm.SetPosition(Vector3(100, 0, -100));
+		//m_character.SetTransform(tm);
 
 		using namespace graphic;
 
@@ -171,7 +169,7 @@ bool cViewer::OnInit()
 		//m_character.StartAction();
 	}
 
-	if (0)
+	if (1)
 	{
 		using namespace graphic;
 		vector<sActionData> actions;
@@ -196,13 +194,15 @@ bool cViewer::OnInit()
 				mesh->SetRender(false);
 
 			character.SetShader( graphic::cResourceManager::Get()->LoadShader(
-				m_renderer, "hlsl_skinning_using_texcoord.fx") );
+				m_renderer, "hlsl_skinning_using_texcoord_sc2.fx") );
+
+			character.SetRenderShadow(true);
 
 			character.SetActionData(actions);
 			character.Action( CHARACTER_ACTION::RUN );
 
 			Matrix44 matT;
-			matT.SetTranslate( Vector3((float)(idx%10), 0, (float)(idx/10)) );
+			matT.SetTranslate( Vector3((float)(idx%10 - 5), 0, (float)(idx/10 - 5)) );
 			character.SetTransform(matT);
 			++idx;
 		}
@@ -210,7 +210,7 @@ bool cViewer::OnInit()
 
 	m_grid.Create(m_renderer, 100, 100, 50);
 
-	m_billboard.Create(m_renderer, graphic::BILLBOARD_TYPE::Y_AXIS, 100, 100, Vector3(100,0,100), "Pine.png" );
+	//m_billboard.Create(m_renderer, graphic::BILLBOARD_TYPE::Y_AXIS, 100, 100, Vector3(100,0,100), "Pine.png" );
 
 
 	//using namespace graphic;
@@ -261,7 +261,7 @@ bool cViewer::OnInit()
 	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float) WINSIZE_Y, 1.f, 10000.0f);
 	
 	GetMainLight().Init( cLight::LIGHT_DIRECTIONAL );
-	GetMainLight().SetPosition(Vector3(5,5,5));
+	GetMainLight().SetPosition(Vector3(30,30,30));
 	GetMainLight().SetDirection(Vector3(1,-1,1).Normal());
 
 	m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
@@ -309,10 +309,37 @@ void cViewer::OnUpdate(const float elapseT)
 }
 
 
-void cViewer::OnRender(const float elapseT)
+void cViewer::MakeShadowMap()
 {
 	m_terrain.PreRender(m_renderer);
-	m_terrain.RenderModelShadow(m_renderer, m_character);
+	//m_terrain.RenderModelShadow(m_renderer, m_character);
+
+	const Vector3 pos(0,0,0);
+	// 전역 광원으로 부터 그림자 생성에 필요한 정보를 얻어온다.
+	Vector3 lightPos;
+	Matrix44 view, proj, tt;
+	cLightManager::Get()->GetMainLight().GetShadowMatrix(
+		pos, lightPos, view, proj, tt);
+
+	m_shadow.m_surface.Begin();
+
+	m_renderer.GetDevice()->Clear(0, NULL
+		, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER
+		, 0x00000000, 1.0f, 0L);
+
+	BOOST_FOREACH(auto &character, m_chars)
+		character.RenderShadow(m_renderer, view*proj, lightPos, Vector3(0, -1, 0), Matrix44::Identity);
+
+	m_shadow.m_surface.End();
+
+	m_terrain.m_shader->SetTexture("ShadowMap", m_shadow.GetTexture());
+	m_terrain.m_shader->SetMatrix("mWVPT", view * proj * tt);
+}
+
+
+void cViewer::OnRender(const float elapseT)
+{
+	MakeShadowMap();
 
 	if (SUCCEEDED(m_renderer.GetDevice()->Clear(
 		0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
@@ -332,11 +359,13 @@ void cViewer::OnRender(const float elapseT)
 
 		//m_cube.Render(m_renderer, Matrix44::Identity);
 		//m_character.SetTM(m_cube.GetTransform());
-		m_character.Render(m_renderer, Matrix44::Identity);
+		//m_character.Render(m_renderer, Matrix44::Identity);
 		//m_teraCharacter.Render(Matrix44::Identity);
 
-		//BOOST_FOREACH (auto &character, m_chars)
-		//	character.Render(m_renderer, Matrix44::Identity);
+		m_shadow.RenderShadowMap(m_renderer);
+
+		BOOST_FOREACH (auto &character, m_chars)
+			character.Render(m_renderer, Matrix44::Identity);
 
 		//m_snow.Render();
 		//m_billboard.Render(m_renderer);
@@ -512,7 +541,7 @@ void cViewer::OnMessageProc( UINT message, WPARAM wParam, LPARAM lParam)
 				const int y = pos.y - m_curPos.y;
 				m_curPos = pos;
 
-				if (GetAsyncKeyState('C'))
+				//if (GetAsyncKeyState('C'))
 				{
 					graphic::GetMainCamera()->Yaw2( x * 0.005f );
 					graphic::GetMainCamera()->Pitch2( y * 0.005f );
