@@ -59,9 +59,9 @@
 
 
 
-#include "../../Common/Common/common.h"
+#include "../../../../Common/Common/common.h"
 using namespace common;
-#include "../../Common/Graphic/graphic.h"
+#include "../../../../Common/Graphic/graphic.h"
 
 
 #include <windows.h>
@@ -100,3 +100,5 @@ extern CLightPanel *g_lightPanel;
 extern CViewer2Dlg *g_viewerDlg;
 extern CRendererPanel *g_rendererPanel;
 extern CModelView *g_modelView;
+
+extern graphic::cRenderer *g_renderer;

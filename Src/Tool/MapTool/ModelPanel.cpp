@@ -80,7 +80,7 @@ BOOL CModelPanel::OnInitDialog()
 	m_placeModelList.SetExtendedStyle(m_placeModelList.GetExtendedStyle() |
 		LVS_EX_FULLROWSELECT);
 
-	UpdateModelList("./media/" );
+	UpdateModelList("../media/" );
 
 	return TRUE;
 }
@@ -184,7 +184,7 @@ void CModelPanel::UpdateModelInfo(const cModel &model, const bool updateList)//u
 
 void CModelPanel::OnBnClickedButtonRefresh()
 {
-	UpdateModelList("./media/" );
+	UpdateModelList("../media/" );
 }
 
 

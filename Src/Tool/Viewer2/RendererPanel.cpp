@@ -73,7 +73,7 @@ void CRendererPanel::UpdateShaderFileList()
 	// 파일 찾기.
 	list<string> extList;
 	extList.push_back("fx");
-	m_shaderFiles.Update( "./media/shader/", extList);
+	m_shaderFiles.Update( "../media/shader/", extList);
 	m_shaderFiles.ExpandAll();
 }
 
@@ -108,11 +108,11 @@ void CRendererPanel::OnSelchangedTreeModel(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 
 	const string fileName = m_shaderFiles.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == "..") || (fileName == ".."))
 		return;
 
 	cController::Get()->GetCharacter()->SetShader( 
-		cResourceManager::Get()->LoadShader(fileName) );
+		cResourceManager::Get()->LoadShader(*g_renderer, fileName) );
 
 	cController::Get()->SendUpdate(NOTIFY_MSG::UPDATE_SHADER);
 

@@ -11,13 +11,15 @@ cController::cController() :
 ,	m_archeCharacter(common::GenerateId())
 ,	m_sc2Character(common::GenerateId())
 ,	m_viewerDlg(NULL)
-,	m_modelName("modelName: ", 10, 27)
-,	m_animationName("animationName: ", 10, 44)
-,	m_shaderName("shaderName: ", 10, 61)
+//,	m_modelName("modelName: ", 10, 27)
+//,	m_animationName("animationName: ", 10, 44)
+//,	m_shaderName("shaderName: ", 10, 61)
 ,	m_currentMode(EDIT_MODE::FILE)
 {
 	m_analyzer = new cCharacterAnalyzer();
 	m_analyzer->SetCharacter(&m_archeCharacter);
+	graphic::cResourceManager::Get()->SetMediaDirectory("../media/");
+
 }
 
 cController::~cController()
@@ -39,7 +41,7 @@ bool cController::LoadFile( const string &fileName )
 	{
 	case RESOURCE_TYPE::MESH:
 		m_currentMeshFileName = fileName;
-		if (result = character->Create(fileName))
+		if (result = character->Create(*g_renderer, fileName))
 		{
 			m_modelName.SetText("model: " + common::GetFileName(fileName));
 			m_animationName.SetText("animation: ");
@@ -48,7 +50,7 @@ bool cController::LoadFile( const string &fileName )
 
 			// 모델 크기에 따라 조명의 위치를 조절한다.
 			// 그림자 크기를 조정하기 위해서.
-			const Vector3 lightPos = Vector3(1,1,-1) * character->GetCollisionBox()->Length() * 4;
+			const Vector3 lightPos = Vector3(1,1,-1) * character->GetCollisionBox(m_renderer)->Length() * 4;
 			cLightManager::Get()->GetMainLight().SetPosition(lightPos);
 		}
 		else
@@ -87,7 +89,7 @@ error:
 void cController::Render()
 {
 	RET(!m_analyzer);
-	m_analyzer->Render(Matrix44::Identity);
+	m_analyzer->Render(m_renderer, Matrix44::Identity);
 	m_modelName.Render();
 	m_animationName.Render();
 	m_shaderName.Render();
@@ -106,9 +108,9 @@ void cController::Update(const float elapseT)
 	RET(!m_analyzer);
 
 	if (m_isPlay)
-		m_analyzer->Move(elapseT);
+		m_analyzer->Update(elapseT);
 	else
-		m_analyzer->Move(0);
+		m_analyzer->Update(0);
 }
 
 

@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "Viewer2.h"
 #include "ArchebladePanel.h"
-#include "../../Common/Graphic/character/archebladecharacter.h"
+#include "../../../../Common/Graphic/character/archebladecharacter.h"
 
 
 
@@ -52,9 +52,9 @@ BOOL CArchebladePanel::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	m_modelBrowser.SetWindowText(L"./media/archeblade/");
-	m_weaponBrowser.SetWindowText(L"./media/archeblade/");
-	m_animationBrowser.SetWindowText(L"./media/archeblade/");
+	m_modelBrowser.SetWindowText(L"../media/archeblade/");
+	m_weaponBrowser.SetWindowText(L"../media/archeblade/");
+	m_animationBrowser.SetWindowText(L"../media/archeblade/");
 
 	UpdateModelTree();
 	UpdateWeaponTree();
@@ -157,7 +157,7 @@ void CArchebladePanel::OnSelchangedTreeModel(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 
 	const string fileName = m_modelTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 	
 	ShowLoadingDialog();
@@ -175,10 +175,10 @@ void CArchebladePanel::OnSelchangedTreeWeapone(NMHDR *pNMHDR, LRESULT *pResult)
 		dynamic_cast<graphic::cArchebladeCharacter*>(cController::Get()->GetCharacter()))
 	{
 		const string fileName = m_weaponTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-		if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+		if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 			return;
 
-		character->LoadWeapon(fileName);
+		character->LoadWeapon(*g_renderer, fileName);
 	}
 
 }
@@ -191,7 +191,7 @@ void CArchebladePanel::OnSelchangedTreeAnimation(NMHDR *pNMHDR, LRESULT *pResult
 	*pResult = 0;
 
 	const string fileName = m_animationTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	ShowLoadingDialog();

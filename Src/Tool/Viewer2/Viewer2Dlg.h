@@ -36,6 +36,7 @@ protected:
 	bool m_dxInit;
 	DISP_MODE::TYPE m_dispMode;
 
+
 	// 생성된 메시지 맵 함수
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);

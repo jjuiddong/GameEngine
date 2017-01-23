@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "Viewer2.h"
 #include "TeraPanel.h"
-#include "../../Common/Graphic/character/teracharacter.h"
+#include "../../../../Common/Graphic/character/teracharacter.h"
 
 
 // CTeraPanel 대화 상자입니다.
@@ -87,7 +87,7 @@ void CTeraPanel::UpdateModelTree()
 {
 	list<string> extList;
 	extList.push_back( "dat" );
-	m_fileTree.Update( "./media/tera/", extList );
+	m_fileTree.Update( "../media/tera/", extList );
 	m_fileTree.ExpandAll();
 }
 
@@ -96,7 +96,7 @@ void CTeraPanel::UpdateAnimationTree()
 {
 	list<string> extList;
 	extList.push_back( "ani" );
-	m_animationTree.Update( "./media/tera/", extList );
+	m_animationTree.Update( "../media/tera/", extList );
 	m_animationTree.ExpandAll();
 }
 
@@ -158,7 +158,7 @@ void CTeraPanel::OnSelchangedTreeFile(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 
 	const string fileName = m_fileTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	ShowLoadingDialog();
@@ -168,12 +168,12 @@ void CTeraPanel::OnSelchangedTreeFile(NMHDR *pNMHDR, LRESULT *pResult)
 	{
 		switch (m_selectModelType)
 		{
-		case 0: character->SetBodyModel(fileName); break;
-		case 1: character->SetHandModel(fileName); break;
-		case 2: character->SetLegModel(fileName); break;
-		case 3: character->SetFaceModel(fileName); break;
-		case 4: character->SetHairModel(fileName); break;
-		case 5: character->SetTailModel(fileName); break;
+		case 0: character->SetBodyModel(*g_renderer, fileName); break;
+		case 1: character->SetHandModel(*g_renderer, fileName); break;
+		case 2: character->SetLegModel(*g_renderer, fileName); break;
+		case 3: character->SetFaceModel(*g_renderer, fileName); break;
+		case 4: character->SetHairModel(*g_renderer, fileName); break;
+		case 5: character->SetTailModel(*g_renderer, fileName); break;
 		}
 	}
 
@@ -199,7 +199,7 @@ void CTeraPanel::OnSelchangedTreeAnimation(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 
 	const string fileName = m_animationTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	ShowLoadingDialog();

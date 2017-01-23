@@ -55,8 +55,8 @@ BOOL CSc2Panel::OnInitDialog()
 {
 	__super::OnInitDialog();
 
-	m_modelBrowser.SetWindowText(L"./media/sc2/");
-	m_animationBrowser.SetWindowText(L"./media/sc2/");
+	m_modelBrowser.SetWindowText(L"../media/sc2/");
+	m_animationBrowser.SetWindowText(L"../media/sc2/");
 
 	UpdateModelTree();
 	UpdateAnimationTree();
@@ -112,7 +112,7 @@ void CSc2Panel::OnTvnSelchangedTreeSc2Files(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 
 	const string fileName = m_modelFileTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	ShowLoadingDialog();
@@ -128,7 +128,7 @@ void CSc2Panel::OnTvnSelchangedTreeSc2aniFiles(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 
 	const string fileName = m_aniFileTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	ShowLoadingDialog();

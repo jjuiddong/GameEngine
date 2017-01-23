@@ -27,7 +27,7 @@ protected:
 	graphic::cGrid2 m_grid;
 	graphic::cText m_msg;
 	graphic::cSphere m_lightSphere;
-	graphic::cLine m_lightLine;
+	graphic::cLine2 m_lightLine;
 	graphic::cSprite *m_sprite;
 
 	LPD3DXSPRITE m_dxSprite;

@@ -68,7 +68,7 @@ BOOL CBrushPanel::OnInitDialog()
 	m_textureBrowser.EnableFileBrowseButton(_T("Texture"), 
 		_T("Image files|*.jpg;*.png;*.bmp|All files|*.*||"));
 
-	UpdateTextureFiles("./media/terrain/");
+	UpdateTextureFiles("../media/terrain/");
 
 	graphic::cTerrainCursor &cursor = cMapController::Get()->GetTerrainCursor();
 	m_innerRadius = cursor.GetInnerBrushRadius();
@@ -266,7 +266,7 @@ void CBrushPanel::OnDeleteLayer()
 
 void CBrushPanel::OnBnClickedButtonRefresh()
 {
-	UpdateTextureFiles("./media/terrain/");
+	UpdateTextureFiles("../media/terrain/");
 }
 
 

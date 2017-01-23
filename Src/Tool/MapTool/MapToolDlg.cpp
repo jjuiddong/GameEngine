@@ -81,7 +81,7 @@ BOOL CMapToolDlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	Gdiplus::GdiplusStartup(&m_gdiplusToken, &m_gdiplusStartupInput, NULL); 
 
-	graphic::cResourceManager::Get()->SetMediaDirectory( "./media/");
+	graphic::cResourceManager::Get()->SetMediaDirectory( "../media/");
 
 	MoveWindow(CRect(0,0,REAL_WINDOW_WIDTH,REAL_WINDOW_HEIGHT));
 

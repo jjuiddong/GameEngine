@@ -73,7 +73,7 @@ void CFilePanel::UpdateModelFiles()
 	// 파일 찾기.
 	list<string> extList;
 	extList.push_back("dat");
-	m_modelTree.Update( "./media/", extList );
+	m_modelTree.Update( "../media/", extList );
 
 	m_textModelFile.Format( L"Model Files : %d", m_modelTree.GetFileCount());
 	UpdateData(FALSE);
@@ -86,7 +86,7 @@ void CFilePanel::UpdateAnimationFiles()
 	// 파일 찾기.
 	list<string> extList;
 	extList.push_back("ani");
-	m_animationTree.Update( "./media/", extList);
+	m_animationTree.Update( "../media/", extList);
 
 	m_textAnimationFiles.Format( L"Animation Files : %d", m_animationTree.GetFileCount());
 	UpdateData(FALSE);
@@ -117,7 +117,7 @@ void CFilePanel::OnSelchangedTreeModel(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 
 	const string fileName = m_modelTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	ShowLoadingDialog();
@@ -131,7 +131,7 @@ void CFilePanel::OnSelchangedTreeAnimation(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 
 	const string fileName = m_modelTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	ShowLoadingDialog();

@@ -140,7 +140,7 @@ void CHeightMapPanel::UpdateHeightMapList()
 	extList.push_back("png");
 	extList.push_back("bmp");
 
-	m_heightmapTree.Update( "./media/terrain/", extList, "");
+	m_heightmapTree.Update( "../media/terrain/", extList, "");
 	m_heightmapTree.ExpandAll();
 }
 
@@ -154,7 +154,7 @@ void CHeightMapPanel::UpdateTextureList()
 	extList.push_back("png");
 	extList.push_back("bmp");
 
-	m_textureTree.Update( "./media/terrain/", extList, "");
+	m_textureTree.Update( "../media/terrain/", extList, "");
 	m_textureTree.ExpandAll();
 }
 
@@ -220,7 +220,7 @@ void CHeightMapPanel::OnTvnSelchangedTreeHeightmap(NMHDR *pNMHDR, LRESULT *pResu
 	*pResult = 0;
 
 	const string fileName = m_heightmapTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	SAFE_DELETE(m_heightMap);
@@ -238,7 +238,7 @@ void CHeightMapPanel::OnTvnSelchangedTreeTexture(NMHDR *pNMHDR, LRESULT *pResult
 	*pResult = 0;
 
 	const string fileName = m_textureTree.GetSelectFilePath(pNMTreeView->itemNew.hItem);
-	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == "."))
+	if (common::GetFileExt(fileName).empty() || (fileName == "./media") || (fileName == ".") || (fileName == ".."))
 		return;
 
 	SAFE_DELETE(m_texture);

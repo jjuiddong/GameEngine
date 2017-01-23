@@ -74,7 +74,7 @@ bool cMapController::SaveTRNFile(const string &fileName)
 bool cMapController::CreateDefaultTerrain()
 {
 	m_terrain.CreateTerrain(64, 64, 50.f, 8.f);
-	m_terrain.CreateTerrainTexture( "./media/terrain/모래1.jpg" );
+	m_terrain.CreateTerrainTexture( "../media/terrain/모래1.jpg" );
 
 	NotifyObserver();
 	return true;

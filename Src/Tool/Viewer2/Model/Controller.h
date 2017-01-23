@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../Common/Graphic/character/character.h"
-#include "../../Common/Graphic/character/archebladecharacter.h"
-#include "../../Common/Graphic/character/teracharacter.h"
-#include "../../Common/Graphic/character/sc2character.h"
-#include "../../Common/Graphic/character/characteranalyzer.h"
+#include "../../../../Common/Graphic/character/character.h"
+#include "../../../../Common/Graphic/character/archebladecharacter.h"
+#include "../../../../Common/Graphic/character/teracharacter.h"
+#include "../../../../Common/Graphic/character/sc2character.h"
+#include "../../../../Common/Graphic/character/characteranalyzer.h"
 
 
 class CViewer2Dlg;
@@ -37,7 +37,9 @@ public:
 	CViewer2Dlg* GetViewerDlg();
 
 
-private:
+public:
+	graphic::cRenderer m_renderer;
+
 	graphic::cCharacterAnalyzer *m_analyzer;
 	graphic::cArchebladeCharacter m_archeCharacter; // 아키블래이드 캐릭터.
 	graphic::cTeraCharacter m_teraCharacter; // 테라 캐릭터.

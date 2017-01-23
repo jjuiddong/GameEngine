@@ -11,6 +11,7 @@
 #include "BoneDialog.h"
 #include "AnimationController2.h"
 
+graphic::cRenderer *g_renderer = NULL;
 
 #pragma comment( lib, "winmm.lib" )
 
@@ -38,6 +39,7 @@ CViewer2Dlg::CViewer2Dlg(CWnd* pParent /*=NULL*/)
 {
 //	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	g_viewerDlg = this;
+	g_renderer = &cController::Get()->m_renderer;
 }
 
 CViewer2Dlg::~CViewer2Dlg()
@@ -120,7 +122,7 @@ BOOL CViewer2Dlg::OnInitDialog()
 		CRect(0,25, WINDOW_WIDTH, WINDOW_HEIGHT+25), this, 0);
 
 	// Create Direct
-	graphic::cRenderer::Get()->CreateDirectX(
+	cController::Get()->m_renderer.CreateDirectX(
 		m_modelView->GetSafeHwnd(), WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	m_dxInit = true;
@@ -321,8 +323,8 @@ void CViewer2Dlg::OnDropFiles(HDROP hDropInfo)
 void CViewer2Dlg::OnBnClickedCheckWireframe()
 {
 	UpdateData();
-	graphic::GetDevice()->SetRenderState(D3DRS_CULLMODE, !m_WireFrame? D3DCULL_CCW : D3DCULL_NONE);
-	graphic::GetDevice()->SetRenderState(D3DRS_FILLMODE, !m_WireFrame? D3DFILL_SOLID : D3DFILL_WIREFRAME);
+	cController::Get()->m_renderer.GetDevice()->SetRenderState(D3DRS_CULLMODE, !m_WireFrame? D3DCULL_CCW : D3DCULL_NONE);
+	cController::Get()->m_renderer.GetDevice()->SetRenderState(D3DRS_FILLMODE, !m_WireFrame? D3DFILL_SOLID : D3DFILL_WIREFRAME);
 }
 
 

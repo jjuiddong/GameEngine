@@ -59,8 +59,8 @@
 
 #pragma comment( lib, "winmm.lib" )
 
-#include "../../Common/Common/common.h"
-#include "../../Common/Graphic/graphic.h"
+#include "../../../../Common/Common/common.h"
+#include "../../../../Common/Graphic/graphic.h"
 //#include "../../Common/wxMemMonitorLib/wxMemMonitor.h"
 using namespace common;
 

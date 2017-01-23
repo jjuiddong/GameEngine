@@ -63,42 +63,43 @@ void CModelView::Init()
 {
 	const int WINSIZE_X = 1024;		//초기 윈도우 가로 크기
 	const int WINSIZE_Y = 768;	//초기 윈도우 세로 크기
+	GetMainCamera()->Init(g_renderer);
 	GetMainCamera()->SetCamera(Vector3(100,300,-500), Vector3(0,0,0), Vector3(0,1,0));
 	GetMainCamera()->SetProjection( D3DX_PI / 4.f, (float)WINSIZE_X / (float) WINSIZE_Y, 1.f, 10000.0f) ;
 
 
-	GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
+	g_renderer->GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 
-	GetDevice()->LightEnable (
+	g_renderer->GetDevice()->LightEnable (
 		0, // 활성화/ 비활성화 하려는 광원 리스트 내의 요소
 		true); // true = 활성화 ， false = 비활성화
 
 	// 주 광원 초기화.
-	cLightManager::Get()->GetMainLight().Bind(0);
+	cLightManager::Get()->GetMainLight().Bind(*g_renderer, 0);
 
 
 	//m_shader.Create( "./media/shader/hlsl_skinning_using_color.fx", "TShader" );
 	//m_shader.Create( "./media/shader/hlsl_skinning_using_texcoord.fx", "TShader" );
-	m_shader.Create( "./media/shader/hlsl_rigid_phong.fx", "TShader" );
-	m_skybox.Create( "./media/skybox" );
+	m_shader.Create(*g_renderer,  "../media/shader/hlsl_rigid_phong.fx", "TShader" );
+	m_skybox.Create(*g_renderer, "../media/skybox" );
 	
-	m_grid.Create(64, 64, 50, 1);
-	m_grid.GetTexture().Create( "./media/texture/emptyTexture2.png" );
+	m_grid.Create(*g_renderer, 64, 64, 50, 1);
+	m_grid.GetTexture().Create(*g_renderer, "../media/texture/emptyTexture2.png" );
 	m_grid.GetMaterial().Init(Vector4(0.4f,0.4f,0.4f,1), Vector4(0.7f,0.7f,0.7f,1),
 		Vector4(1,1,1,1));
 
-	m_msg.Create();
+	m_msg.Create(*g_renderer);
 	m_msg.SetText(10, 740, "press 'F' to focus model" );
 
 	m_lightLine.GetMaterial().InitBlack();
 	m_lightLine.GetMaterial().GetMtrl().Emissive = *(D3DXCOLOR*)&Vector4(1,1,0,1);
 
-	m_lightSphere.Create(5, 10, 10);
-	m_lightSphere.GetMaterial().InitBlack();
-	m_lightSphere.GetMaterial().GetMtrl().Emissive = *(D3DCOLORVALUE*)&Vector4(1,1,0,1);
+	m_lightSphere.Create(*g_renderer, 5, 10, 10);
+	m_lightSphere.m_mtrl.InitBlack();
+	m_lightSphere.m_mtrl.GetMtrl().Emissive = *(D3DCOLORVALUE*)&Vector4(1,1,0,1);
 
 
-	D3DXCreateSprite(GetDevice(), &m_dxSprite);
+	D3DXCreateSprite(g_renderer->GetDevice(), &m_dxSprite);
 	m_sprite = new cSprite(m_dxSprite, 0);
 
 
@@ -108,7 +109,7 @@ void CModelView::Init()
 
 void CModelView::Update(const float elapseT)
 {
-	GetRenderer()->Update(elapseT);
+	g_renderer->Update(elapseT);
 	cController::Get()->Update(elapseT);
 }
 
@@ -116,7 +117,7 @@ void CModelView::Update(const float elapseT)
 void CModelView::Render()
 {
 	//화면 청소
-	if (SUCCEEDED(GetDevice()->Clear( 
+	if (SUCCEEDED(g_renderer->GetDevice()->Clear(
 		0,			//청소할 영역의 D3DRECT 배열 갯수		( 전체 클리어 0 )
 		NULL,		//청소할 영역의 D3DRECT 배열 포인터		( 전체 클리어 NULL )
 		D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,	//청소될 버퍼 플레그 ( D3DCLEAR_TARGET 컬러버퍼, D3DCLEAR_ZBUFFER 깊이버퍼, D3DCLEAR_STENCIL 스텐실버퍼
@@ -128,20 +129,20 @@ void CModelView::Render()
 
 		if (cCharacter *character = cController::Get()->GetCharacter())
 		{
-			character->UpdateShadow();
+			character->UpdateShadow(*g_renderer);
 		}
 
 
 		//화면 청소가 성공적으로 이루어 졌다면... 랜더링 시작
-		GetDevice()->BeginScene();
+		g_renderer->GetDevice()->BeginScene();
 
-		cLightManager::Get()->GetMainLight().Bind(0);
+		cLightManager::Get()->GetMainLight().Bind(*g_renderer, 0);
 
 
-		GetDevice()->SetTransform(D3DTS_WORLD, ToDxM(Matrix44::Identity) );
+		g_renderer->GetDevice()->SetTransform(D3DTS_WORLD, ToDxM(Matrix44::Identity) );
 
 		if (m_showSkybox)
-			m_skybox.Render();
+			m_skybox.Render(*g_renderer);
 
 		if (cCharacter *character = cController::Get()->GetCharacter())
 		{
@@ -167,12 +168,12 @@ void CModelView::Render()
 		m_shader.SetVector( "vFog", Vector3(1.f, 10000.f, 0)); // near, far
 
 		// 바닥 출력. 
-		m_grid.RenderShader(m_shader);
+		m_grid.RenderShader(*g_renderer, m_shader);
 
 		// 백그라운드 그리드, 축 출력.
-		GetRenderer()->RenderGrid();
-		GetRenderer()->RenderAxis();
-		GetRenderer()->RenderFPS();
+		g_renderer->RenderGrid();
+		g_renderer->RenderAxis();
+		g_renderer->RenderFPS();
 		m_msg.Render();
 
 		// 캐릭터 출력.
@@ -186,22 +187,22 @@ void CModelView::Render()
 			Matrix44 lightTm;
 			lightTm.SetTranslate( lightPos );
 			m_lightSphere.SetTransform(lightTm);
-			m_lightSphere.Render(Matrix44::Identity);
+			m_lightSphere.Render(*g_renderer, Matrix44::Identity);
 
 			if (m_LButtonDown 
 				&& g_lightPanel->m_EditDirection)
 			{
-				m_lightLine.Render();
+				m_lightLine.Render(*g_renderer);
 			}
 		}
 
 		if (m_sprite)
-			m_sprite->Render(Matrix44::Identity);
+			m_sprite->Render(*g_renderer, Matrix44::Identity);
 
 		//랜더링 끝
-		GetDevice()->EndScene();
+		g_renderer->GetDevice()->EndScene();
 		//랜더링이 끝났으면 랜더링된 내용 화면으로 전송
-		GetDevice()->Present( NULL, NULL, NULL, NULL );
+		g_renderer->GetDevice()->Present( NULL, NULL, NULL, NULL );
 	}
 }
 
@@ -258,7 +259,7 @@ void CModelView::OnMouseMove(UINT nFlags, CPoint point)
 				const Vector3 lightPos = cLightManager::Get()->GetMainLight().GetPosition();
 				Vector3 dir = pickPos - lightPos;
 				dir.Normalize();
-				m_lightLine.SetLine(lightPos, pickPos, 1);
+				m_lightLine.SetLine(*g_renderer, lightPos, pickPos, 1);
 
 				// 광원 위치 조정
 				Matrix44 lightTm;
@@ -380,7 +381,7 @@ void CModelView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		// 모델이 화면에 잘 보이게 자동으로 조절한다.
 		if (cCharacter *character = cController::Get()->GetCharacter())
 		{
-			if (cBoundingBox *box = character->GetCollisionBox())
+			if (cBoundingBox *box = character->GetCollisionBox(*g_renderer))
 			{
 				const float len = box->Length();
 				if (len <= 0)
@@ -406,7 +407,7 @@ void CModelView::ShowTexture(const string &fileName)
 {
 	if (m_sprite)
 	{
-		m_sprite->SetTexture(fileName);
+		m_sprite->SetTexture(*g_renderer, fileName);
 
 		// 300 X 300 사이즈로 스캐일링한다.
 		const float w = m_sprite->GetRect().Width();
