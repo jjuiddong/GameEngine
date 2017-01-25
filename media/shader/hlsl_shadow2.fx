@@ -81,27 +81,6 @@ struct VS_OUTPUT
 
 
 
-void VS_Ambient( float4 vPos : POSITION
-		,float2 Tex : TEXCOORD0
-                , out float4 oPos : POSITION
-		, out float2 oTex : TEXCOORD1 )
-{
-	float4x4 mWVP = mul(mWorld, mVP);
-	oPos = mul( vPos, mWVP );
-	oTex = Tex;
-}
-
-
-float4 PS_Ambient(float2 Tex : TEXCOORD1) : COLOR0
-{
-	float4 Out = light.ambient * material.diffuse;
-	Out = Out * tex2D(colorMap, Tex);
-	return Out;
-}
-
-
-
-
 VS_OUTPUT VS_pass0(
 	float4 Pos    : POSITION
 	,float3 Normal : NORMAL
@@ -139,54 +118,6 @@ float4 PS_pass0(VS_OUTPUT In) : COLOR
 
 
 
-
-void VS_Shadow(
-	float4 vPos    : POSITION,
-	float3 vNormal : NORMAL,
-	out float4 oPos : POSITION )
-{
-	float4x4 mWV = mul(mWorld, g_mView);
-	float4x4 mWVP = mul(mWorld, mVP);
-	float3 N = mul( vNormal, (float3x3)mWV );
-	float4 PosView = mul( vPos, mWV );
-	float3 LightVecView = PosView - g_vLightView;
-        if( dot( N, -LightVecView ) < 0.0f )
-	{
-	        if( PosView.z > g_vLightView.z )
-        	    PosView.xyz += LightVecView * ( g_fFarClip - PosView.z ) / LightVecView.z;
-	        else
-	            PosView = float4( LightVecView, 0.0f );
-
-        	oPos = mul( PosView, g_mProj );
-	} 
-	else
-	{
-        	oPos = mul( vPos, mWVP );
-	}
-}
-
-
-
-float4 PS_Shadow() : COLOR0
-{
-	return float4( g_vShadowColor.xyz, 0.1f );
-}
-
-
-
-technique Ambient
-{
-    pass P0
-    {
-        VertexShader = compile vs_2_0 VS_Ambient();
-	PixelShader  = compile ps_2_0 PS_Ambient();
-        StencilEnable = false;
-        ZFunc = LessEqual;
-    }
-}
-
-
-
 technique Scene
 {
     pass P0
@@ -204,77 +135,6 @@ technique Scene
         StencilRef = 1;
         StencilFunc = Greater;
         StencilPass = Keep;
-    }
-}
-
-
-technique Shadow
-{
-    pass P0
-    {
-        VertexShader = compile vs_2_0 VS_Shadow();
-	PixelShader  = compile ps_2_0 PS_Shadow();
-
-        CullMode = None;
-    
-	// Disable writing to the frame buffer
-        AlphaBlendEnable = true;
-      	SrcBlend = Zero;
-        DestBlend = One;
-        
-	// Disable writing to depth buffer
-        ZEnable = true;
-        ZWriteEnable = false;
-        ZFunc = Less;
-        
-	// Setup stencil states
-        TwoSidedStencilMode = true;
-        StencilEnable = true;
-        StencilRef = 1;
-        StencilMask = 0xFFFFFFFF;
-        StencilWriteMask = 0xFFFFFFFF;
-        Ccw_StencilFunc = Always;
-        Ccw_StencilZFail = Keep;
-        Ccw_StencilPass = Decr;
-        StencilFunc = Always;
-        StencilZFail = Keep;
-        StencilPass = Incr;
-    }
-}
-
-
-
-technique ShowShadow
-{
-    pass P0
-    {
-        VertexShader = compile vs_2_0 VS_Shadow();
-	PixelShader  = compile ps_2_0 PS_Shadow();
-
-        CullMode = None;
-    
-	// Disable writing to the frame buffer
-        AlphaBlendEnable = true;
-        SrcBlend = SrcAlpha;
-        DestBlend = InvSrcAlpha;
-        
-	// Disable writing to depth buffer
-        ZEnable = true;
-        ZWriteEnable = false;
-        ZFunc = Less;
-        
-	// Setup stencil states
-        TwoSidedStencilMode = true;
-        StencilEnable = true;
-        StencilRef = 1;
-        StencilMask = 0xFFFFFFFF;
-        StencilWriteMask = 0xFFFFFFFF;
-        Ccw_StencilFunc = Always;
-        Ccw_StencilZFail = Keep;
-        Ccw_StencilPass = Decr;
-        StencilFunc = Always;
-        StencilZFail = Keep;
-        StencilPass = Incr;
     }
 }
 

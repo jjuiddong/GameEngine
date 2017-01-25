@@ -25,14 +25,12 @@ protected:
 
 
 private:
-	cCharacter m_character;
 	cCube3 m_cube2;
 	cCube3 m_cube3;
-	ID3DXMesh *m_mesh;
+	ID3DXMesh *m_shadowMesh;
+	cXFileMesh m_srcMesh;
 	cShader m_shader;
-	cShader m_zealotAmbientShader;
-	cShader m_zealotSceneShader;
-	cCamera m_lightCamera;
+	cShader m_terrainShader;
 	bool m_isShowShadow;
 	bool m_isPause;
 
@@ -48,11 +46,11 @@ INIT_FRAMEWORK(cViewer);
 
 
 cViewer::cViewer()
-	: m_mesh(NULL)
+	: m_shadowMesh(NULL)
 	, m_isShowShadow(false)
-	 , m_isPause(false)
+	, m_isPause(false)
 {
-	m_windowName = L"Shadow Volume 2";
+	m_windowName = L"Shadow Volume X";
 	const RECT r = { 0, 0, 1024, 768 };
 	m_windowRect = r;
 	m_LButtonDown = false;
@@ -62,13 +60,15 @@ cViewer::cViewer()
 
 cViewer::~cViewer()
 {
-	SAFE_RELEASE(m_mesh);
+	SAFE_RELEASE(m_shadowMesh);
 	graphic::ReleaseRenderer();
 }
 
 
 bool cViewer::OnInit()
 {
+	DragAcceptFiles(m_hWnd, TRUE);
+
 	cResourceManager::Get()->SetMediaDirectory("../media/");
 
 	const int WINSIZE_X = 1024;		//초기 윈도우 가로 크기
@@ -79,45 +79,25 @@ bool cViewer::OnInit()
 
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
-		Vector4(0.1f, 0.1f, 0.1f, 1));
-	GetMainLight().SetPosition(Vector3(-30, 30, -30));
+		Vector4(0.2f, 0.2f, 0.2f, 1));
+	GetMainLight().SetPosition(Vector3(-30000, 30000, -30000));
 	GetMainLight().SetDirection(Vector3(1, -1, 1).Normal());
-	m_lightCamera.Init(&m_renderer);
-	m_lightCamera.SetCamera(Vector3(30, 30, 30), Vector3(0, 0, 0), Vector3(0, 1, 0));
 
 	m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	m_renderer.GetDevice()->LightEnable(0, true);
 
-	// Load Zealot
-	{
-		vector<sActionData> actions;
-		actions.reserve(16);
-		actions.push_back(sActionData(CHARACTER_ACTION::RUN, "zealot_walk.ani"));
-		actions.push_back(sActionData(CHARACTER_ACTION::ATTACK, "zealot_attack.ani"));
-
-		m_character.Create(m_renderer, "zealot.dat");
-		if (graphic::cMesh* mesh = m_character.GetMesh("Sphere001"))
-			mesh->SetRender(false);
-		m_character.SetShader(graphic::cResourceManager::Get()->LoadShader(
-			m_renderer, "hlsl_skinning_using_texcoord_sc2.fx"));
-		m_character.SetRenderShadow(true);
-		m_character.SetActionData(actions);
-		//m_character.Action(CHARACTER_ACTION::RUN);
-
-		m_zealotAmbientShader.Create(m_renderer, "../media/shader/hlsl_skinning_using_texcoord_volumeshadow_ambient.fx", "TShader");
-		m_zealotSceneShader.Create(m_renderer, "../media/shader/hlsl_skinning_using_texcoord_volumeshadow_scene.fx", "TShader");
-	}
-
 	if (!m_shader.Create(m_renderer, "../media/shader/hlsl_shadow.fx", "Shadow"))
+		return false;
+	if (!m_terrainShader.Create(m_renderer, "../media/shader/hlsl_shadow2.fx", "Shadow"))
 		return false;
 
 	m_cube2.InitCube(m_renderer);
 	m_cube2.m_tm.SetTranslate(Vector3(3.5f, -2, 2));
 	m_cube2.m_mtrl.InitBlue();
 
-	m_cube3.SetCube(m_renderer, Vector3(-100, -5, -100), Vector3(100, -4, 100));
-
-	GenerateShadowMesh();
+	m_cube3.SetCube(m_renderer, Vector3(-1000, -5, -1000), Vector3(1000, -4, 1000));
+	m_cube3.m_mtrl.InitGray();
+	m_cube3.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "whitetex.dds");
 
 	return true;
 }
@@ -185,57 +165,15 @@ int FindEdgeInMappingTable(int nV1, int nV2, CEdgeMapping* pMapping, int nCount)
 // Direct3D9 Shadow Volume Sample
 bool cViewer::GenerateShadowMesh()
 {
+	RETV(!m_srcMesh.m_mesh, false);
+
 	HRESULT hr = S_OK;
 	ID3DXMesh *pInputMesh = NULL;
 
-	//--------------------------------------------------------------------------------------------//
-	// Copy Cube to Mesh
-	sShadowVertex *pvtx = NULL;
-	DWORD *pidx = NULL;
-
-	for each (cMesh *mesh in m_character.m_meshes)
-	{
-		cMeshBuffer *meshBuff = mesh->GetMeshBuffer();
-		if (!meshBuff)
-			continue;
-
-		hr = D3DXCreateMesh(meshBuff->m_idxBuff.GetFaceCount(), 
-			meshBuff->m_vtxBuff.GetVertexCount(), D3DXMESH_32BIT, sShadowVertex::Decl, m_renderer.GetDevice(), &pInputMesh);
-		if (FAILED(hr))
-			return false;
-
-		pInputMesh->LockVertexBuffer(0, (LPVOID*)&pvtx);
-		pInputMesh->LockIndexBuffer(0, (LPVOID*)&pidx);
-		if (!pvtx || !pidx)
-			return false;
-
-		BYTE *psrcVtx = (BYTE*)meshBuff->m_vtxBuff.Lock();
-		WORD *psrcIdx = (WORD*)meshBuff->m_idxBuff.Lock();
-
-		const int pos_offset = meshBuff->m_vtxBuff.GetOffset(D3DDECLUSAGE_POSITION);
-		const int normal_offset = meshBuff->m_vtxBuff.GetOffset(D3DDECLUSAGE_NORMAL);
-		const int stride = meshBuff->m_vtxBuff.GetSizeOfVertex();
-
-		for (int i = 0; i < meshBuff->m_vtxBuff.GetVertexCount(); ++i)
-		{
-			pvtx->Position = *(Vector3*)(psrcVtx + pos_offset);
-			pvtx->Normal = *(Vector3*)(psrcVtx + normal_offset);
-			psrcVtx += stride;
-			++pvtx;
-		}
-
-		for (int i = 0; i < meshBuff->m_idxBuff.GetFaceCount() * 3; ++i)
-			*pidx++ = *psrcIdx++;
-
-		meshBuff->m_vtxBuff.Unlock();
-		meshBuff->m_idxBuff.Unlock();
-
-		pInputMesh->UnlockIndexBuffer();
-		pInputMesh->UnlockVertexBuffer();
-		break;
-	}
-	//--------------------------------------------------------------------------------------------//
-
+	// Convert the input mesh to a format same as the output mesh using 32-bit index.
+	hr = m_srcMesh.m_mesh->CloneMesh(D3DXMESH_32BIT, sShadowVertex::Decl, m_renderer.GetDevice(), &pInputMesh);
+	if (FAILED(hr))
+		return false;
 
 	//--------------------------------------------------------------------------------------------//
 	//https://www.gamedev.net/topic/146017-convertadjacencytopointreps/
@@ -256,6 +194,9 @@ bool cViewer::GenerateShadowMesh()
 
 	pInputMesh->ConvertAdjacencyToPointReps(pdwAdj, pdwPtRep);
 	delete[] pdwAdj;
+
+	sShadowVertex *pvtx = NULL;
+	DWORD *pidx = NULL;
 
 	pInputMesh->LockVertexBuffer(0, (LPVOID*)&pvtx);
 	pInputMesh->LockIndexBuffer(0, (LPVOID*)&pidx);
@@ -751,7 +692,7 @@ cleanup:
 			pNewMesh = pFinalMesh;
 		}
 
-		m_mesh = pNewMesh;
+		m_shadowMesh = pNewMesh;
 	}
 	else
 		pNewMesh->Release();
@@ -769,9 +710,6 @@ cleanup:
 
 void cViewer::OnUpdate(const float elapseT)
 {
-	if (!m_isPause)
-		m_character.Update(elapseT);
-
 	// keyboard
 	const float vel = 10 * elapseT;
 	if (GetAsyncKeyState('W'))
@@ -793,47 +731,41 @@ void cViewer::OnUpdate(const float elapseT)
 
 void cViewer::RenderShadow()
 {
-	 // Ambient
+	RET(!m_shadowMesh);
+
+	// Ambient
 	if (1)
 	{
 		m_shader.SetTechnique("Ambient");
 
-		// box2
-		m_shader.SetMatrix("mWorld", m_cube2.m_tm);
-		m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
-		m_shader.SetVector("g_vAmbient", Vector4(0.2f, 0.2f, 0.2f, 1.f));
-		m_shader.SetVector("g_vMatColor", Vector4(0, 0, 1, 1));
+		//// box2
+		//m_shader.SetMatrix("mWorld", m_cube2.m_tm);
+		//m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
+		//m_shader.SetVector("g_vAmbient", Vector4(0.2f, 0.2f, 0.2f, 1.f));
+		//m_shader.SetVector("g_vMatColor", Vector4(0, 0, 1, 1));
 
-		int passCount = m_shader.Begin();
-		for (int i = 0; i < passCount; ++i)
-		{
-			m_shader.BeginPass(i);
-			m_shader.CommitChanges();
-			m_cube2.Render(m_renderer);
-			m_shader.EndPass();
-		}
-		m_shader.End();
+		//int passCount = m_shader.Begin();
+		//for (int i = 0; i < passCount; ++i)
+		//{
+		//	m_shader.BeginPass(i);
+		//	m_shader.CommitChanges();
+		//	m_cube2.Render(m_renderer);
+		//	m_shader.EndPass();
+		//}
+		//m_shader.End();
 
-
-		m_character.SetShader(&m_zealotAmbientShader);
-		m_character.Render(m_renderer, m_rotateTm);
-
-
-		// box3
-		m_shader.SetMatrix("mWorld", m_cube3.m_tm);
+		m_shader.SetMatrix("g_mView", GetMainCamera()->GetViewMatrix());
+		m_shader.SetMatrix("g_mProj", GetMainCamera()->GetProjectionMatrix());
 		m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
 		m_shader.SetVector("g_vAmbient", Vector4(0.2f, 0.2f, 0.2f, 1.f));
 		m_shader.SetVector("g_vMatColor", Vector4(1, 1, 1, 1));
 
-		passCount = m_shader.Begin();
-		for (int i = 0; i < passCount; ++i)
-		{
-			m_shader.BeginPass(i);
-			m_shader.CommitChanges();
-			m_cube3.Render(m_renderer);
-			m_shader.EndPass();
-		}
-		m_shader.End();
+		m_srcMesh.m_tm = m_rotateTm;
+		m_srcMesh.SetShader(&m_shader);
+		m_srcMesh.Render(m_renderer);
+
+		// box3
+		m_cube3.RenderShader(m_renderer, m_shader);
 	}
 
 
@@ -847,10 +779,10 @@ void cViewer::RenderShadow()
 		else
 			m_shader.SetTechnique("Shadow");
 
-		Matrix44 mWorldView = m_rotateTm *  GetMainCamera()->GetViewMatrix();
-		m_shader.SetMatrix("g_mWorldView", mWorldView);
+		m_shader.SetMatrix("mWorld", m_rotateTm);
+		m_shader.SetMatrix("g_mView", GetMainCamera()->GetViewMatrix());
 		m_shader.SetMatrix("g_mProj", GetMainCamera()->GetProjectionMatrix());
-		m_shader.SetMatrix("g_mWorldViewProjection", mWorldView * GetMainCamera()->GetProjectionMatrix());
+		m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
 		m_shader.SetVector("g_vLightView", GetMainLight().GetPosition() * GetMainCamera()->GetViewMatrix());
 		m_shader.SetVector("g_vShadowColor", Vector4(0, 1, 0, 0.2f));
 		m_shader.SetFloat("g_fFarClip", 10000.0f);
@@ -860,7 +792,7 @@ void cViewer::RenderShadow()
 		{
 			m_shader.BeginPass(i);
 			m_shader.CommitChanges();
-			m_mesh->DrawSubset(0);
+			m_shadowMesh->DrawSubset(0);
 			m_shader.EndPass();
 		}
 		m_shader.End();
@@ -873,47 +805,52 @@ void cViewer::RenderShadow()
 		// box2
 		m_shader.SetTechnique("Scene");
 
-		m_shader.SetMatrix("mWorld", m_cube2.m_tm);
-		Matrix44 mWorldView = m_cube2.m_tm *  GetMainCamera()->GetViewMatrix();
-		m_shader.SetMatrix("g_mWorldView", mWorldView);
-		m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
-		Matrix44 wit = m_cube2.m_tm.Inverse();
-		wit.Transpose();
-		m_shader.SetMatrix("mWIT", wit);
-		m_shader.SetVector("K_d", Vector4(0, 0, 0.7f, 0));
+		//m_shader.SetMatrix("mWorld", m_cube2.m_tm);
+		//m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
+		//Matrix44 wit = m_cube2.m_tm.Inverse();
+		//wit.Transpose();
+		//m_shader.SetMatrix("mWIT", wit);
+		//m_shader.SetVector("K_d", Vector4(0, 0, 0.7f, 0));
 
-		int passCount = m_shader.Begin();
-		for (int i = 0; i < passCount; ++i)
-		{
-			m_shader.BeginPass(i);
-			m_shader.CommitChanges();
-			m_cube2.Render(m_renderer);
-			m_shader.EndPass();
-		}
-		m_shader.End();
+		//int passCount = m_shader.Begin();
+		//for (int i = 0; i < passCount; ++i)
+		//{
+		//	m_shader.BeginPass(i);
+		//	m_shader.CommitChanges();
+		//	m_cube2.Render(m_renderer);
+		//	m_shader.EndPass();
+		//}
+		//m_shader.End();
 
 		// box3
-		{
-			m_shader.SetMatrix("mWorld", m_cube3.m_tm);
-			Matrix44 mWorldView = m_cube3.m_tm *  GetMainCamera()->GetViewMatrix();
-			m_shader.SetMatrix("g_mWorldView", mWorldView);
-			m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
-			m_shader.SetVector("K_d", Vector4(0.7f, .7f, .7f, 0));
+		m_terrainShader.SetTechnique("Scene");
+		m_cube3.RenderShader(m_renderer, m_terrainShader);
 
-			int passCount = m_shader.Begin();
-			for (int i = 0; i < passCount; ++i)
-			{
-				m_shader.BeginPass(i);
-				m_shader.CommitChanges();
-				m_cube3.Render(m_renderer, m_rotateTm);
-				m_shader.EndPass();
-			}
-			m_shader.End();
-		}
+		//{
+		//	m_shader.SetMatrix("mWorld", m_cube3.m_tm);
+		//	m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
+		//	m_cube3.m_mtrl.Bind(m_shader);
+		//	m_cube3.m_tex->Bind(m_shader, "colorMapTexture");
+		//	m_shader.SetVector("K_d", Vector4(1.f, 1.f, 1.f, 0));
 
-		m_character.SetShader(&m_zealotSceneShader);
-		m_character.Render(m_renderer, m_rotateTm);
+		//	int passCount = m_shader.Begin();
+		//	for (int i = 0; i < passCount; ++i)
+		//	{
+		//		m_shader.BeginPass(i);
+		//		m_shader.CommitChanges();
+		//		m_cube3.Render(m_renderer, m_rotateTm);
+		//		m_shader.EndPass();
+		//	}
+		//	m_shader.End();
+		//}
 
+		m_shader.SetMatrix("g_mView", GetMainCamera()->GetViewMatrix());
+		m_shader.SetMatrix("g_mProj", GetMainCamera()->GetProjectionMatrix());
+		m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
+
+		m_srcMesh.m_tm = m_rotateTm;
+		m_srcMesh.SetShader(&m_shader);
+		m_srcMesh.Render(m_renderer);
 	}
 }
 
@@ -948,11 +885,24 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
+	case WM_DROPFILES:
+	{
+		HDROP hdrop = (HDROP)wParam;
+		char filePath[MAX_PATH];
+		const UINT size = DragQueryFileA(hdrop, 0, filePath, MAX_PATH);
+		if (size == 0)
+			return;// handle error...
+
+		m_srcMesh.Create(m_renderer, filePath);
+		GenerateShadowMesh();
+	}
+	break;
+
 	case WM_MOUSEWHEEL:
 	{
 		int fwKeys = GET_KEYSTATE_WPARAM(wParam);
 		int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-		dbg::Print("%d %d", fwKeys, zDelta);
+		//dbg::Print("%d %d", fwKeys, zDelta);
 
 		const float len = graphic::GetMainCamera()->GetDistance();
 		float zoomLen = (len > 100) ? 50 : (len / 4.f);

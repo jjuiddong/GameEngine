@@ -165,7 +165,7 @@ VS_OUTPUT VS_pass0(
 
 
 // -------------------------------------------------------------
-// 0패스:픽셀셰더
+// 0패스:픽셀셰이더
 // -------------------------------------------------------------
 float4 PS_pass0(VS_OUTPUT In) : COLOR
 {
@@ -251,6 +251,8 @@ VS_BUMP_OUTPUT VS_pass4(
 	n += mul(float4(Normal,0), mPalette[ BoneIndices.z]).xyz * Weights.z;
 	n += mul(float4(Normal,0), mPalette[ BoneIndices.w]).xyz * Weights.w;
 
+	float4x4 mWVP = mul(mWorld, mVP);
+
 	float3 worldPos = mul(float4(p,1), mWorld).xyz;
 	float3 lightDir = -light.dir;
 	float3 viewDir = vEyePos - worldPos;
@@ -263,7 +265,7 @@ VS_BUMP_OUTPUT VS_pass4(
 	                              t.y, b.y, n.y,
 	                              t.z, b.z, n.z);
 
-	Out.Pos = mul( float4(worldPos,1), mVP );
+	Out.Pos = mul( float4(p,1), mWVP );
 	Out.Tex = Tex;
 	Out.HalfVector = mul(halfVector, tbnMatrix);
 	Out.LightDir = mul(lightDir, tbnMatrix);    
@@ -309,12 +311,14 @@ float4 PS_pass4(VS_BUMP_OUTPUT In) : COLOR
 // -------------------------------------------------------------
 technique TShader
 {
-    pass P0
-    {
-        // 기본 조명 스키닝 애니메이션
-        VertexShader = compile vs_3_0 VS_pass0();
+
+	pass P0
+	{
+		// 기본 조명 스키닝 애니메이션
+        	VertexShader = compile vs_3_0 VS_pass0();
 		PixelShader  = compile ps_3_0 PS_pass0();
-    }
+	}
+
 
     pass P1
     {
@@ -336,8 +340,20 @@ technique TShader
     pass P4
     {
 		// 스키닝 애니메이션 + 범프 맵.
-        VertexShader = compile vs_3_0 VS_pass4();
+        	VertexShader = compile vs_3_0 VS_pass4();
 		PixelShader  = compile ps_3_0 PS_pass4();
+
+
+		ZEnable = true;
+	        ZFunc = LessEqual;
+	        StencilEnable = true;
+	        AlphaBlendEnable = true;
+	        BlendOp = Add;
+	        SrcBlend = One;
+	        DestBlend = One;
+	        StencilRef = 1;
+	        StencilFunc = Greater;
+	        StencilPass = Keep;
     }
 
 }
