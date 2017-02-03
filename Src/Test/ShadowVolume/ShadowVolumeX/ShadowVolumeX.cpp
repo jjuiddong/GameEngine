@@ -1,5 +1,5 @@
 //
-// Zealot Volume Shadow
+// XFile Volume Shadow Test
 //
 
 #include "stdafx.h"
