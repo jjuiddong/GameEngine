@@ -3,8 +3,10 @@
   <ItemGroup>
     <ClCompile Include="ShadowVolume2.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="ShadowVolume.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ShadowVolume.h" />
   </ItemGroup>
 </Project>
