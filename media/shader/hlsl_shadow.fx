@@ -1,8 +1,9 @@
-float4x4 mWorld;
-float4x4 mVP;		// 로컬에서 투영공간으로의 좌표변환
-float4x4 mWIT;
-float3 vLightDir = {1, -1, 1};
-float3 vEyePos;
+
+float4x4 g_mWorld;
+float4x4 g_mVP;
+float4x4 g_mWIT;
+float3 g_vLightDir = {1, -1, 1};
+float3 g_vEyePos;
 float shininess = 32;
 
 float4   g_vAmbient;                // Ambient light color
@@ -86,7 +87,8 @@ void VS_Ambient( float4 vPos : POSITION
                 , out float4 oPos : POSITION
 		, out float2 oTex : TEXCOORD1 )
 {
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
 	oPos = mul( vPos, mWVP );
 	oTex = Tex;
 }
@@ -110,13 +112,14 @@ VS_OUTPUT VS_pass0(
 {
 	VS_OUTPUT Out = (VS_OUTPUT)0;
 
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
 	Out.Pos = mul( Pos, mWVP );
 
-	float3 N = normalize( mul( Normal, (float3x3)mWorld ) );
+	float3 N = normalize( mul( Normal, (float3x3)g_mWorld ) );
 	
 	Out.N = N;
-	Out.Eye = vEyePos - mul(Pos, mWorld).xyz;
+	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
 	Out.Tex = Tex;
 
 	return Out;
@@ -145,12 +148,16 @@ void VS_Shadow(
 	float3 vNormal : NORMAL,
 	out float4 oPos : POSITION )
 {
-	float4x4 mWV = mul(mWorld, g_mView);
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWV = mul(g_mWorld, g_mView);
+	float4x4 mWVP = mul(g_mWorld, mVP);
 	float3 N = mul( vNormal, (float3x3)mWV );
 	float4 PosView = mul( vPos, mWV );
 	float3 LightVecView = PosView - g_vLightView;
-        if( dot( N, -LightVecView ) < 0.0f )
+	//oPos = mul( vPos, mWVP );
+	//return;
+
+        if (dot(N, -LightVecView) > 0.0f)
 	{
 	        if( PosView.z > g_vLightView.z )
         	    PosView.xyz += LightVecView * ( g_fFarClip - PosView.z ) / LightVecView.z;
@@ -178,8 +185,8 @@ technique Ambient
 {
     pass P0
     {
-        VertexShader = compile vs_2_0 VS_Ambient();
-	PixelShader  = compile ps_2_0 PS_Ambient();
+        VertexShader = compile vs_3_0 VS_Ambient();
+	PixelShader  = compile ps_3_0 PS_Ambient();
         StencilEnable = false;
         ZFunc = LessEqual;
     }
@@ -191,8 +198,8 @@ technique Scene
 {
     pass P0
     {
-        VertexShader = compile vs_2_0 VS_pass0();
-	PixelShader  = compile ps_2_0 PS_pass0();
+        VertexShader = compile vs_3_0 VS_pass0();
+	PixelShader  = compile ps_3_0 PS_pass0();
 
         ZEnable = true;
         ZFunc = LessEqual;
@@ -212,8 +219,8 @@ technique Shadow
 {
     pass P0
     {
-        VertexShader = compile vs_2_0 VS_Shadow();
-	PixelShader  = compile ps_2_0 PS_Shadow();
+        VertexShader = compile vs_3_0 VS_Shadow();
+	PixelShader  = compile ps_3_0 PS_Shadow();
 
         CullMode = None;
     
@@ -248,8 +255,8 @@ technique ShowShadow
 {
     pass P0
     {
-        VertexShader = compile vs_2_0 VS_Shadow();
-	PixelShader  = compile ps_2_0 PS_Shadow();
+        VertexShader = compile vs_3_0 VS_Shadow();
+	PixelShader  = compile ps_3_0 PS_Shadow();
 
         CullMode = None;
     

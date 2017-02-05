@@ -1,11 +1,10 @@
 
-// -------------------------------------------------------------
-// 전역변수
-// -------------------------------------------------------------
-float4x4 mWorld;
-float4x4 mVP;		// 로컬에서 투영공간으로의 좌표변환
-float4x4 mWIT;
-float3 vEyePos;
+float4x4 g_mWorld;
+float4x4 g_mProj;
+float4x4 g_mView;
+float4x4 g_mVP;
+float4x4 g_mWIT;
+float3 g_vEyePos;
 float shininess = 90;
 float4 globalAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
 
@@ -132,19 +131,18 @@ VS_OUTPUT VS_pass0(
 	float4 BoneIndices : TEXCOORD2 // 본 인덱스 (4개 저장)
 )
 {
-	VS_OUTPUT Out = (VS_OUTPUT)0; // 출력데이터
-    
-	// 좌표변환
-	float4x4 mWVP = mul(mWorld, mVP);
+	VS_OUTPUT Out = (VS_OUTPUT)0;
+
+	float4x4 mVP = mul(g_mView, g_mProj);    
+	float4x4 mWVP = mul(g_mWorld, mVP);
 
 	float3 p = {0,0,0};
-
 	p += mul(Pos, mPalette[ BoneIndices.x]).xyz * Weights.x;
 	p += mul(Pos, mPalette[ BoneIndices.y]).xyz * Weights.y;
 	p += mul(Pos, mPalette[ BoneIndices.z]).xyz * Weights.z;
 	p += mul(Pos, mPalette[ BoneIndices.w]).xyz * Weights.w;
-
 	Out.Pos = mul( float4(p,1), mWVP );
+
 	Out.Tex = Tex;
 	    
     return Out;
@@ -156,7 +154,12 @@ VS_OUTPUT VS_pass0(
 // -------------------------------------------------------------
 float4 PS_pass0(VS_OUTPUT In) : COLOR
 {
-	return globalAmbient * tex2D(colorMap, In.Tex);
+//	return globalAmbient * tex2D(colorMap, In.Tex);
+
+	float4 albedo = tex2D(colorMap, In.Tex);
+
+	float3 ambient = material.ambient.rgb * light.ambient.rgb * albedo.rgb;
+	return float4(ambient, 1);
 }
 
 
@@ -174,7 +177,7 @@ VS_SHADOW_OUTPUT VS_pass1(
 	VS_SHADOW_OUTPUT Out = (VS_SHADOW_OUTPUT)0; // 출력데이터
     
 	// 좌표변환
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mWVP = mul(g_mWorld, g_mVP);
 
 	float3 p = {0,0,0};
 
@@ -223,19 +226,19 @@ VS_BUMP_OUTPUT VS_pass4(
 	//Out.Pos = mul( float4(p,1), mWVP );
 	//n = normalize(n);
 
-	float3 worldPos = mul(float4(p,1), mWorld).xyz;
+	float3 worldPos = mul(float4(p,1), g_mWorld).xyz;
 	float3 lightDir = -light.dir;
-	float3 viewDir = vEyePos - worldPos;
+	float3 viewDir = g_vEyePos - worldPos;
 	float3 halfVector = normalize(normalize(lightDir) + normalize(viewDir));
 
-			  n = normalize( mul(n, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
-	float3 t = normalize( mul(tangent, (float3x3)mWIT) ); // 월드 좌표계에서의 탄젠트
-	float3 b = normalize( mul(binormal, (float3x3)mWIT) ); // 월드 좌표계에서의 바이노멀
+			  n = normalize( mul(n, (float3x3)g_mWIT) ); // 월드 좌표계에서의 법선.
+	float3 t = normalize( mul(tangent, (float3x3)g_mWIT) ); // 월드 좌표계에서의 탄젠트
+	float3 b = normalize( mul(binormal, (float3x3)g_mWIT) ); // 월드 좌표계에서의 바이노멀
 	float3x3 tbnMatrix = float3x3(t.x, b.x, n.x,
 	                              t.y, b.y, n.y,
 	                              t.z, b.z, n.z);
 
-	Out.Pos = mul( float4(worldPos,1), mVP );
+	Out.Pos = mul( float4(worldPos,1), g_mVP );
 	Out.Tex = Tex;
 	Out.HalfVector = mul(halfVector, tbnMatrix);
 	Out.LightDir = mul(lightDir, tbnMatrix);    

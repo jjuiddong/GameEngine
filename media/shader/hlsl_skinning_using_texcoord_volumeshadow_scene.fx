@@ -1,11 +1,10 @@
 
-// -------------------------------------------------------------
-// 전역변수
-// -------------------------------------------------------------
-float4x4 mWorld;
-float4x4 mVP;		// 로컬에서 투영공간으로의 좌표변환
-float4x4 mWIT;
-float3 vEyePos;
+float4x4 g_mWorld;
+float4x4 g_mProj;
+float4x4 g_mView;
+float4x4 g_mVP;
+float4x4 g_mWIT;
+float3 g_vEyePos;
 float shininess = 32;
 float4 globalAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
 
@@ -134,8 +133,8 @@ VS_OUTPUT VS_pass0(
 {
 	VS_OUTPUT Out = (VS_OUTPUT)0; // 출력데이터
     
-	// 좌표변환
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
 
 	float3 p = {0,0,0};
 	float3 n = {0,0,0};
@@ -154,10 +153,10 @@ VS_OUTPUT VS_pass0(
 	n = normalize(n);
 
 	// 법선 벡터 계산.
-	float3 N = normalize( mul(n, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float3 N = normalize( mul(n, (float3x3)g_mWIT) ); // 월드 좌표계에서의 법선.
 	
 	Out.N = N;
-	Out.Eye = vEyePos - mul(Pos, mWorld).xyz;
+	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
 	Out.Tex = Tex;
     
     return Out;
@@ -196,7 +195,7 @@ VS_SHADOW_OUTPUT VS_pass1(
 	VS_SHADOW_OUTPUT Out = (VS_SHADOW_OUTPUT)0; // 출력데이터
     
 	// 좌표변환
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mWVP = mul(g_mWorld, g_mVP);
 
 	float3 p = {0,0,0};
 
@@ -251,16 +250,17 @@ VS_BUMP_OUTPUT VS_pass4(
 	n += mul(float4(Normal,0), mPalette[ BoneIndices.z]).xyz * Weights.z;
 	n += mul(float4(Normal,0), mPalette[ BoneIndices.w]).xyz * Weights.w;
 
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
 
-	float3 worldPos = mul(float4(p,1), mWorld).xyz;
+	float3 worldPos = mul(float4(p,1), g_mWorld).xyz;
 	float3 lightDir = -light.dir;
-	float3 viewDir = vEyePos - worldPos;
+	float3 viewDir = g_vEyePos - worldPos;
 	float3 halfVector = normalize(normalize(lightDir) + normalize(viewDir));
 
-	n = normalize( mul(n, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
-	float3 t = normalize( mul(tangent, (float3x3)mWIT) ); // 월드 좌표계에서의 탄젠트
-	float3 b = normalize( mul(binormal, (float3x3)mWIT) ); // 월드 좌표계에서의 바이노멀
+	n = normalize( mul(n, (float3x3)g_mWIT) ); // 월드 좌표계에서의 법선.
+	float3 t = normalize( mul(tangent, (float3x3)g_mWIT) ); // 월드 좌표계에서의 탄젠트
+	float3 b = normalize( mul(binormal, (float3x3)g_mWIT) ); // 월드 좌표계에서의 바이노멀
 	float3x3 tbnMatrix = float3x3(t.x, b.x, n.x,
 	                              t.y, b.y, n.y,
 	                              t.z, b.z, n.z);
@@ -302,7 +302,7 @@ float4 PS_pass4(VS_BUMP_OUTPUT In) : COLOR
 
 	float3 ambient = material.ambient.rgb * light.ambient.rgb * albedo.rgb;
 
-	return  float4(ambient + color, 1);
+	return  float4(color, 1);
 }
 
 
