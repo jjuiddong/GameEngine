@@ -3,7 +3,6 @@
 //
 
 #include "stdafx.h"
-#include "ShadowVolume.h"
 
 using namespace graphic;
 
