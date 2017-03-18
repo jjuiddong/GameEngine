@@ -119,8 +119,11 @@ bool cViewer::OnInit()
 	m_cube2.InitCube(m_renderer);
 	m_cube2.m_tm.SetTranslate(Vector3(3.5f, -2, 2));
 	m_cube2.m_mtrl.InitBlue();
+	m_cube2.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "whitetex.dds");
 
 	m_cube3.SetCube(m_renderer, Vector3(-100, -5, -100), Vector3(100, -4, 100));
+	m_cube3.m_mtrl.InitGray2();
+	m_cube3.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "whitetex.dds");
 
 	GenerateShadowMesh();
 
@@ -136,9 +139,6 @@ bool cViewer::GenerateShadowMesh()
 
 	//--------------------------------------------------------------------------------------------//
 	// Copy Cube to Mesh
-	cShadowVolume::sVertex *pvtx = NULL;
-	DWORD *pidx = NULL;
-
 	for each (cMesh *mesh in m_character.m_meshes)
 	{
 		cMeshBuffer *meshBuff = mesh->GetMeshBuffer();
@@ -150,6 +150,8 @@ bool cViewer::GenerateShadowMesh()
 		if (FAILED(hr))
 			return false;
 
+		cShadowVolume::sVertex *pvtx = NULL;
+		DWORD *pidx = NULL;
 		pInputMesh->LockVertexBuffer(0, (LPVOID*)&pvtx);
 		pInputMesh->LockIndexBuffer(0, (LPVOID*)&pidx);
 		if (!pvtx || !pidx)
@@ -211,56 +213,30 @@ void cViewer::OnUpdate(const float elapseT)
 		else if (GetAsyncKeyState('C'))
 			GetMainCamera()->MoveUp(-vel);
 
-		GetMainCamera()->Update();
+		GetMainCamera()->Update(elapseT);
 	}
 }
 
 
 void cViewer::RenderShadow()
 {
+	GetMainCamera()->Bind(m_shader);
+	GetMainLight().Bind(m_shader);
+	GetMainCamera()->Bind(m_zealotAmbientShader);
+	GetMainLight().Bind(m_zealotAmbientShader);
+	GetMainCamera()->Bind(m_zealotSceneShader);
+	GetMainLight().Bind(m_zealotSceneShader);
+
 	 // Ambient
 	if (m_isRenderAmbient)
 	{
 		m_shader.SetTechnique("Ambient");
-
-		// box2
-		//m_shader.SetMatrix("mWorld", m_cube2.m_tm);
-		//m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
-		//m_shader.SetVector("g_vAmbient", Vector4(0.2f, 0.2f, 0.2f, 1.f));
-		//m_shader.SetVector("g_vMatColor", Vector4(0, 0, 1, 1));
-
-		//int passCount = m_shader.Begin();
-		//for (int i = 0; i < passCount; ++i)
-		//{
-		//	m_shader.BeginPass(i);
-		//	m_shader.CommitChanges();
-		//	m_cube2.Render(m_renderer);
-		//	m_shader.EndPass();
-		//}
-		//m_shader.End();
-
+		m_cube2.RenderShader(m_renderer, m_shader);
+		m_cube3.RenderShader(m_renderer, m_shader);
 
 		m_character.SetShader(&m_zealotAmbientShader);
 		m_character.Render(m_renderer, m_rotateTm);
-
-
-		// box3
-		//m_shader.SetMatrix("mWorld", m_cube3.m_tm);
-		//m_shader.SetMatrix("mVP", GetMainCamera()->GetViewProjectionMatrix());
-		//m_shader.SetVector("g_vAmbient", Vector4(0.2f, 0.2f, 0.2f, 1.f));
-		//m_shader.SetVector("g_vMatColor", Vector4(1, 1, 1, 1));
-
-		//passCount = m_shader.Begin();
-		//for (int i = 0; i < passCount; ++i)
-		//{
-		//	m_shader.BeginPass(i);
-		//	m_shader.CommitChanges();
-		//	m_cube3.Render(m_renderer);
-		//	m_shader.EndPass();
-		//}
-		//m_shader.End();
 	}
-
 
 	m_renderer.GetDevice()->Clear(0, NULL, D3DCLEAR_STENCIL, D3DCOLOR_ARGB(0, 170, 170, 170), 1.0f, 0);
 
@@ -272,11 +248,7 @@ void cViewer::RenderShadow()
 		else
 			m_shader.SetTechnique("Shadow");
 
-		Matrix44 mWorldView = m_rotateTm *  GetMainCamera()->GetViewMatrix();
 		m_shader.SetMatrix("g_mWorld", m_rotateTm);
-		m_shader.SetMatrix("g_mView", GetMainCamera()->GetViewMatrix());		
-		m_shader.SetMatrix("g_mVP", GetMainCamera()->GetViewProjectionMatrix());
-		m_shader.SetMatrix("g_mProj", GetMainCamera()->GetProjectionMatrix());
 		m_shader.SetVector("g_vLightView", GetMainLight().GetPosition() * GetMainCamera()->GetViewMatrix());
 		m_shader.SetVector("g_vShadowColor", Vector4(0, 1, 0, 0.2f));
 		m_shader.SetFloat("g_fFarClip", 10000.0f);
@@ -296,59 +268,20 @@ void cViewer::RenderShadow()
 	// Scene
 	if (m_isRenderScene)
 	{
-		// box2
 		m_shader.SetTechnique("Scene");
-
-		m_shader.SetMatrix("g_mWorld", m_cube2.m_tm);
-		Matrix44 mWorldView = m_cube2.m_tm *  GetMainCamera()->GetViewMatrix();
-		m_shader.SetMatrix("g_mVP", GetMainCamera()->GetViewProjectionMatrix());
-		Matrix44 wit = m_cube2.m_tm.Inverse();
-		wit.Transpose();
-		m_shader.SetMatrix("g_mWIT", wit);
-		m_shader.SetVector("K_d", Vector4(0, 0, 0.7f, 0));
-
-		int passCount = m_shader.Begin();
-		for (int i = 0; i < passCount; ++i)
-		{
-			m_shader.BeginPass(i);
-			m_shader.CommitChanges();
-			m_cube2.Render(m_renderer);
-			m_shader.EndPass();
-		}
-		m_shader.End();
-
-		// box3
-		{
-			m_shader.SetMatrix("g_mWorld", m_cube3.m_tm);
-			Matrix44 mWorldView = m_cube3.m_tm *  GetMainCamera()->GetViewMatrix();
-			m_shader.SetMatrix("g_mWorldView", mWorldView);
-			m_shader.SetMatrix("g_mVP", GetMainCamera()->GetViewProjectionMatrix());
-			m_shader.SetVector("K_d", Vector4(0.7f, .7f, .7f, 0));
-
-			int passCount = m_shader.Begin();
-			for (int i = 0; i < passCount; ++i)
-			{
-				m_shader.BeginPass(i);
-				m_shader.CommitChanges();
-				m_cube3.Render(m_renderer, m_rotateTm);
-				m_shader.EndPass();
-			}
-			m_shader.End();
-		}
-
 		m_character.SetShader(&m_zealotSceneShader);
 		m_character.Render(m_renderer, m_rotateTm);
 
+		m_cube2.RenderShader(m_renderer, m_shader);
+		m_cube3.RenderShader(m_renderer, m_shader);
 	}
 }
 
 
 void cViewer::OnRender(const float elapseT)
 {
-	GetMainLight().Bind(m_renderer, 0);
-
-	//if (m_renderer.ClearScene())
-	m_renderer.GetDevice()->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(0, 66, 75, 121), 1.0f, 0);
+	if (m_renderer.ClearScene())
+	//m_renderer.GetDevice()->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(0, 66, 75, 121), 1.0f, 0);
 	{
 		m_renderer.BeginScene();
 

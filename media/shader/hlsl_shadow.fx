@@ -1,33 +1,17 @@
 
 float4x4 g_mWorld;
 float4x4 g_mVP;
-float4x4 g_mWIT;
-float3 g_vLightDir = {1, -1, 1};
+float4x4 g_mView;
+float4x4 g_mProj;                   // Projection matrix
+
 float3 g_vEyePos;
 float shininess = 32;
 
-float4   g_vAmbient;                // Ambient light color
 float3   g_vLightView;              // View space light position/direction
 float4   g_vLightColor;             // Light color
 float4   g_vShadowColor;            // Shadow volume color (for visualization)
-float4   g_vMatColor;               // Color of the material
-
-float4x4 g_mWorldView;              // World * View matrix
-float4x4 g_mView;
-float4x4 g_mProj;                   // Projection matrix
-float4x4 g_mWorldViewProjection;    // World * View * Projection matrix
 
 float    g_fFarClip;                // Z of far clip plane
-
-
-// ±¤¿ø ¹à±â.
-float4 I_a = {0.0f, 0.0f, 0.0f, 0.0f}; // ambient
-float4 I_d = {1.f, 1.f, 1.f, 0.0f}; // diffuse
-float4 I_s = {1.f, 1.f, 1.f, 0.0f}; // diffuse
-
-// ¹Ý»çÀ²
-float4 K_a = {1.0f, 1.0f, 1.0f, 1.0f}; // ambient 
-float4 K_d = {1.0f, 1.0f, 1.0f, 1.0f}; // diffuse
 
 
 struct Light
@@ -52,16 +36,16 @@ struct Material
 };
 
 
-Light light;
-Material material;
+Light g_light;
+Material g_material;
 
 
 
 
-texture colorMapTexture;
+texture g_colorMapTexture;
 sampler colorMap = sampler_state
 {
-    Texture = <colorMapTexture>;
+    Texture = <g_colorMapTexture>;
     MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = NONE;
@@ -96,7 +80,7 @@ void VS_Ambient( float4 vPos : POSITION
 
 float4 PS_Ambient(float2 Tex : TEXCOORD1) : COLOR0
 {
-	float4 Out = light.ambient * material.diffuse;
+	float4 Out = g_light.ambient * g_material.diffuse;
 	Out = Out * tex2D(colorMap, Tex);
 	return Out;
 }
@@ -128,13 +112,13 @@ VS_OUTPUT VS_pass0(
 
 float4 PS_pass0(VS_OUTPUT In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 Out = 	light.ambient * material.ambient
-			+ light.diffuse * material.diffuse * max(0, dot(N,L));
-			+ light.specular * pow( max(0, dot(N,H)), shininess);
+	float4 Out = 	g_light.ambient * g_material.ambient
+			+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+			+ g_light.specular * pow( max(0, dot(N,H)), shininess);
 
 	Out = Out * tex2D(colorMap, In.Tex);
 	return Out;
@@ -240,6 +224,7 @@ technique Shadow
         StencilRef = 1;
         StencilMask = 0xFFFFFFFF;
         StencilWriteMask = 0xFFFFFFFF;
+
         Ccw_StencilFunc = Always;
         Ccw_StencilZFail = Keep;
         Ccw_StencilPass = Decr;

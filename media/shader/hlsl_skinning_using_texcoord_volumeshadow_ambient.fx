@@ -11,9 +11,6 @@ float4 globalAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
 // 팔레트
 float4x3 mPalette[ 64];
 
-// 이 셰이더에서는 라이팅을 사용하지 않지만, 코드의 일반화를 위해서
-// 변수가 선언 되었다. 
-// light, material 변수는 선언되었지만 사용되지는 않는다.
 struct Light
 {
 	float3 dir;				// world space direction
@@ -35,8 +32,8 @@ struct Material
 	float shininess;
 };
 
-Light light;
-Material material;
+Light g_light;
+Material g_material;
 
 
 // ------------------------------------------------------------
@@ -158,7 +155,7 @@ float4 PS_pass0(VS_OUTPUT In) : COLOR
 
 	float4 albedo = tex2D(colorMap, In.Tex);
 
-	float3 ambient = material.ambient.rgb * light.ambient.rgb * albedo.rgb;
+	float3 ambient = g_material.ambient.rgb * g_light.ambient.rgb * albedo.rgb;
 	return float4(ambient, 1);
 }
 
@@ -227,11 +224,11 @@ VS_BUMP_OUTPUT VS_pass4(
 	//n = normalize(n);
 
 	float3 worldPos = mul(float4(p,1), g_mWorld).xyz;
-	float3 lightDir = -light.dir;
+	float3 g_lightDir = -g_light.dir;
 	float3 viewDir = g_vEyePos - worldPos;
-	float3 halfVector = normalize(normalize(lightDir) + normalize(viewDir));
+	float3 halfVector = normalize(normalize(g_lightDir) + normalize(viewDir));
 
-			  n = normalize( mul(n, (float3x3)g_mWIT) ); // 월드 좌표계에서의 법선.
+	n = normalize( mul(n, (float3x3)g_mWIT) ); // 월드 좌표계에서의 법선.
 	float3 t = normalize( mul(tangent, (float3x3)g_mWIT) ); // 월드 좌표계에서의 탄젠트
 	float3 b = normalize( mul(binormal, (float3x3)g_mWIT) ); // 월드 좌표계에서의 바이노멀
 	float3x3 tbnMatrix = float3x3(t.x, b.x, n.x,
@@ -241,9 +238,9 @@ VS_BUMP_OUTPUT VS_pass4(
 	Out.Pos = mul( float4(worldPos,1), g_mVP );
 	Out.Tex = Tex;
 	Out.HalfVector = mul(halfVector, tbnMatrix);
-	Out.LightDir = mul(lightDir, tbnMatrix);    
-	Out.Diffuse = material.diffuse * light.diffuse;
-	Out.Specular = material.specular * light.specular;
+	Out.LightDir = mul(g_lightDir, tbnMatrix);    
+	Out.Diffuse = g_material.diffuse * g_light.diffuse;
+	Out.Specular = g_material.specular * g_light.specular;
 
     return Out;
 }
@@ -262,7 +259,7 @@ float4 PS_pass4(VS_BUMP_OUTPUT In) : COLOR
     float nDotH = saturate(dot(n, h));
     float power = (nDotL == 0.0f) ? 0.0f : pow(nDotH, shininess);
 
-    float4 color = material.ambient * (globalAmbient + light.ambient) 
+    float4 color = g_material.ambient * (globalAmbient + g_light.ambient) 
 						+ (In.Diffuse * nDotL) 
 						+ (In.Specular * power);
 

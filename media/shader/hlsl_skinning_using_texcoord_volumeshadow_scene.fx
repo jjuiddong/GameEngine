@@ -32,8 +32,8 @@ struct Material
 	float shininess;
 };
 
-Light light;
-Material material;
+Light g_light;
+Material g_material;
 
 
 // ------------------------------------------------------------
@@ -153,7 +153,7 @@ VS_OUTPUT VS_pass0(
 	n = normalize(n);
 
 	// 법선 벡터 계산.
-	float3 N = normalize( mul(n, (float3x3)g_mWIT) ); // 월드 좌표계에서의 법선.
+	float3 N = normalize( mul(n, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 	
 	Out.N = N;
 	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
@@ -168,13 +168,13 @@ VS_OUTPUT VS_pass0(
 // -------------------------------------------------------------
 float4 PS_pass0(VS_OUTPUT In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 Out = 	light.ambient * material.ambient
-						+ light.diffuse * material.diffuse * max(0, dot(N,L));
-						+ light.specular * pow( max(0, dot(N,H)), shininess);
+	float4 Out = 	g_light.ambient * g_material.ambient
+						+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+						+ g_light.specular * pow( max(0, dot(N,H)), shininess);
 
 	Out = Out * tex2D(colorMap, In.Tex);
     return Out;
@@ -254,13 +254,13 @@ VS_BUMP_OUTPUT VS_pass4(
 	float4x4 mWVP = mul(g_mWorld, mVP);
 
 	float3 worldPos = mul(float4(p,1), g_mWorld).xyz;
-	float3 lightDir = -light.dir;
+	float3 g_lightDir = -g_light.dir;
 	float3 viewDir = g_vEyePos - worldPos;
-	float3 halfVector = normalize(normalize(lightDir) + normalize(viewDir));
+	float3 halfVector = normalize(normalize(g_lightDir) + normalize(viewDir));
 
-	n = normalize( mul(n, (float3x3)g_mWIT) ); // 월드 좌표계에서의 법선.
-	float3 t = normalize( mul(tangent, (float3x3)g_mWIT) ); // 월드 좌표계에서의 탄젠트
-	float3 b = normalize( mul(binormal, (float3x3)g_mWIT) ); // 월드 좌표계에서의 바이노멀
+	n = normalize( mul(n, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
+	float3 t = normalize( mul(tangent, (float3x3)g_mWorld) ); // 월드 좌표계에서의 탄젠트
+	float3 b = normalize( mul(binormal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 바이노멀
 	float3x3 tbnMatrix = float3x3(t.x, b.x, n.x,
 	                              t.y, b.y, n.y,
 	                              t.z, b.z, n.z);
@@ -268,9 +268,9 @@ VS_BUMP_OUTPUT VS_pass4(
 	Out.Pos = mul( float4(p,1), mWVP );
 	Out.Tex = Tex;
 	Out.HalfVector = mul(halfVector, tbnMatrix);
-	Out.LightDir = mul(lightDir, tbnMatrix);    
-	Out.Diffuse = material.diffuse * light.diffuse;
-	Out.Specular = material.specular * light.specular;
+	Out.LightDir = mul(g_lightDir, tbnMatrix);    
+	Out.Diffuse = g_material.diffuse * g_light.diffuse;
+	Out.Specular = g_material.specular * g_light.specular;
 
     return Out;
 }
@@ -297,10 +297,10 @@ float4 PS_pass4(VS_BUMP_OUTPUT In) : COLOR
 	float nDotH = saturate(dot(n, h));
 	float power = (nDotL == 0.0f) ? 0.0f : pow(nDotH, shininess);
 
-	float3 color = (light.diffuse.rgb * albedo.rgb * nDotL) 
-			+ (light.specular.rgb * specular.rgb *  power);
+	float3 color = (g_light.diffuse.rgb * albedo.rgb * nDotL) 
+			+ (g_light.specular.rgb * specular.rgb *  power);
 
-	float3 ambient = material.ambient.rgb * light.ambient.rgb * albedo.rgb;
+	float3 ambient = g_material.ambient.rgb * g_light.ambient.rgb * albedo.rgb;
 
 	return  float4(color, 1);
 }
