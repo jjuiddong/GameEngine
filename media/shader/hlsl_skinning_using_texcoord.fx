@@ -2,12 +2,12 @@
 // -------------------------------------------------------------
 // 전역변수
 // -------------------------------------------------------------
-float4x4 mWorld;
-float4x4 mVP;		// 로컬에서 투영공간으로의 좌표변환
-float4x4 mWIT;
-float3 vEyePos;
-float shininess = 90;
-float4 globalAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
+float4x4 g_mWorld;
+float4x4 g_mView;
+float4x4 g_mProj;                   // Projection matrix
+float3 g_vEyePos;
+float g_shininess = 90;
+//float4 globalAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
 
 // 팔레트
 float4x3 mPalette[ 64];
@@ -33,17 +33,17 @@ struct Material
 	float shininess;
 };
 
-Light light;
-Material material;
+Light g_light;
+Material g_material;
 
 
 // ------------------------------------------------------------
 // 텍스처
 // ------------------------------------------------------------
-texture colorMapTexture;
+texture g_colorMapTexture;
 sampler colorMap = sampler_state
 {
-    Texture = <colorMapTexture>;
+    Texture = <g_colorMapTexture>;
     MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = NONE;
@@ -53,10 +53,10 @@ sampler colorMap = sampler_state
 // ------------------------------------------------------------
 // 노멀맵
 // ------------------------------------------------------------
-texture normalMapTexture;
+texture g_normalMapTexture;
 sampler2D normalMap = sampler_state
 {
-    Texture = <normalMapTexture>;
+    Texture = <g_normalMapTexture>;
     MagFilter = Linear;
     MinFilter = Anisotropic;
     MipFilter = Linear;
@@ -67,10 +67,10 @@ sampler2D normalMap = sampler_state
 // ------------------------------------------------------------
 // 정반사맵
 // ------------------------------------------------------------
-texture specularMapTexture;
+texture g_specularMapTexture;
 sampler2D specularMap = sampler_state
 {
-    Texture = <specularMapTexture>;
+    Texture = <g_specularMapTexture>;
     MagFilter = Linear;
     MinFilter = Anisotropic;
     MipFilter = Linear;
@@ -81,10 +81,10 @@ sampler2D specularMap = sampler_state
 // ------------------------------------------------------------
 // Self Illumination 맵
 // ------------------------------------------------------------
-texture selfIllumMapTexture;
+texture g_selfIllumMapTexture;
 sampler2D selfIllumMap = sampler_state
 {
-    Texture = <selfIllumMapTexture>;
+    Texture = <g_selfIllumMapTexture>;
     MagFilter = Linear;
     MinFilter = Anisotropic;
     MipFilter = Linear;
@@ -135,7 +135,8 @@ VS_OUTPUT VS_pass0(
 	VS_OUTPUT Out = (VS_OUTPUT)0; // 출력데이터
     
 	// 좌표변환
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
 
 	float3 p = {0,0,0};
 	float3 n = {0,0,0};
@@ -154,10 +155,10 @@ VS_OUTPUT VS_pass0(
 	n = normalize(n);
 
 	// 법선 벡터 계산.
-	float3 N = normalize( mul(n, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float3 N = normalize( mul(n, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 	
 	Out.N = N;
-	Out.Eye = vEyePos - mul(Pos, mWorld).xyz;
+	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
 	Out.Tex = Tex;
     
     return Out;
@@ -169,13 +170,13 @@ VS_OUTPUT VS_pass0(
 // -------------------------------------------------------------
 float4 PS_pass0(VS_OUTPUT In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 Out = 	light.ambient * material.ambient
-						+ light.diffuse * material.diffuse * max(0, dot(N,L));
-						+ light.specular * pow( max(0, dot(N,H)), shininess);
+	float4 Out = g_light.ambient * g_material.ambient
+						+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+						+g_light.specular * pow( max(0, dot(N,H)), g_shininess);
 
 	Out = Out * tex2D(colorMap, In.Tex);
     return Out;
@@ -196,7 +197,8 @@ VS_SHADOW_OUTPUT VS_pass1(
 	VS_SHADOW_OUTPUT Out = (VS_SHADOW_OUTPUT)0; // 출력데이터
     
 	// 좌표변환
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
 
 	float3 p = {0,0,0};
 
@@ -243,24 +245,25 @@ VS_BUMP_OUTPUT VS_pass4(
 	n += mul(float4(Normal,0), mPalette[ BoneIndices.z]).xyz * Weights.z;
 	n += mul(float4(Normal,0), mPalette[ BoneIndices.w]).xyz * Weights.w;
 
-	float3 worldPos = mul(float4(p,1), mWorld).xyz;
-	float3 lightDir = -light.dir;
-	float3 viewDir = vEyePos - worldPos;
+	float3 worldPos = mul(float4(p,1), g_mWorld).xyz;
+	float3 lightDir = -g_light.dir;
+	float3 viewDir = g_vEyePos - worldPos;
 	float3 halfVector = normalize(normalize(lightDir) + normalize(viewDir));
 
-			  n = normalize( mul(n, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
-	float3 t = normalize( mul(tangent, (float3x3)mWIT) ); // 월드 좌표계에서의 탄젠트
-	float3 b = normalize( mul(binormal, (float3x3)mWIT) ); // 월드 좌표계에서의 바이노멀
+    n = normalize( mul(n, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
+	float3 t = normalize( mul(tangent, (float3x3)g_mWorld) ); // 월드 좌표계에서의 탄젠트
+	float3 b = normalize( mul(binormal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 바이노멀
 	float3x3 tbnMatrix = float3x3(t.x, b.x, n.x,
 	                              t.y, b.y, n.y,
 	                              t.z, b.z, n.z);
 
+	float4x4 mVP = mul(g_mView, g_mProj);
 	Out.Pos = mul( float4(worldPos,1), mVP );
 	Out.Tex = Tex;
 	Out.HalfVector = mul(halfVector, tbnMatrix);
 	Out.LightDir = mul(lightDir, tbnMatrix);    
-	Out.Diffuse = material.diffuse * light.diffuse;
-	Out.Specular = material.specular * light.specular;
+	Out.Diffuse = g_material.diffuse * g_light.diffuse;
+	Out.Specular = g_material.specular * g_light.specular;
 
     return Out;
 }
@@ -277,9 +280,9 @@ float4 PS_pass4(VS_BUMP_OUTPUT In) : COLOR
 
     float nDotL = saturate(dot(n, l));
     float nDotH = saturate(dot(n, h));
-    float power = (nDotL == 0.0f) ? 0.0f : pow(nDotH, shininess);
+    float power = (nDotL == 0.0f) ? 0.0f : pow(nDotH, g_shininess);
 
-    float4 color = material.ambient * (globalAmbient + light.ambient) 
+    float4 color = (g_material.ambient * g_light.ambient)
 						+ (In.Diffuse * nDotL) 
 						+ (In.Specular * power);
 

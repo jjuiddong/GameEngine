@@ -23,14 +23,15 @@ public:
 protected:
 	Matrix44 m_rotateTm;
 	graphic::cSkyBox m_skybox;
-	graphic::cShader m_shader;
+	graphic::cShader *m_shader;
 	graphic::cGrid2 m_grid;
 	graphic::cText m_msg;
 	graphic::cSphere m_lightSphere;
 	graphic::cLine2 m_lightLine;
-	graphic::cSprite *m_sprite;
+	graphic::cSprite *m_spr;
+	graphic::cSprite2 *m_sprite;
 
-	LPD3DXSPRITE m_dxSprite;
+	//LPD3DXSPRITE m_dxSprite;
 
 	bool m_LButtonDown;
 	bool m_RButtonDown;

@@ -3,15 +3,16 @@
 // -------------------------------------------------------------
 // 전역변수
 // -------------------------------------------------------------
-float4x4 mWorld;
-float4x4 mVP;		// 로컬에서 투영공간으로의 좌표변환
-float4x4 mWIT;
-float4x4 mWVPT;
-float3 vEyePos;
-float4 vFog;
-float4 fogColor = {0.58823f, 0.58823f, 0.58823f, 1}; // RGB(150,150,150)
-float shininess = 90;
-float4 globalAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
+float4x4 g_mWorld;
+//float4x4 g_mVP;		// 로컬에서 투영공간으로의 좌표변환
+float4x4 g_mWVPT;
+float4x4 g_mView;
+float4x4 g_mProj;                   // Projection matrix
+float3 g_vEyePos;
+float4 g_vFog;
+float4 g_fogColor = {0.58823f, 0.58823f, 0.58823f, 1}; // RGB(150,150,150)
+float g_shininess = 90;
+float4 g_globalAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
 
 
 struct Light
@@ -35,18 +36,18 @@ struct Material
 	float shininess;
 };
 
-Light light;
-Material material;
+Light g_light;
+Material g_material;
 
 
 
 // ------------------------------------------------------------
 // 텍스처
 // ------------------------------------------------------------
-texture colorMapTexture;
+texture g_colorMapTexture;
 sampler colorMap = sampler_state
 {
-    Texture = <colorMapTexture>;
+    Texture = <g_colorMapTexture>;
     MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = NONE;
@@ -59,10 +60,10 @@ sampler colorMap = sampler_state
 // ------------------------------------------------------------
 // 그림자맵
 // ------------------------------------------------------------
-texture ShadowMap;
+texture g_ShadowMap;
 sampler ShadowMapSamp = sampler_state
 {
-    Texture = <ShadowMap>;
+    Texture = <g_ShadowMap>;
     MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = NONE;
@@ -75,10 +76,10 @@ sampler ShadowMapSamp = sampler_state
 // ------------------------------------------------------------
 // 노멀맵
 // ------------------------------------------------------------
-texture normalMapTexture;
+texture g_normalMapTexture;
 sampler2D normalMap = sampler_state
 {
-    Texture = <normalMapTexture>;
+    Texture = <g_normalMapTexture>;
     MagFilter = Linear;
     MinFilter = Anisotropic;
     MipFilter = Linear;
@@ -137,12 +138,13 @@ VS_OUTPUT VS_pass0(
 {
     VS_OUTPUT Out = (VS_OUTPUT)0;        // 출력데이터
     
-	float4 worldPos = mul(Pos, mWorld);
-	float3 N = normalize( mul(Normal, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4 worldPos = mul(Pos, g_mWorld);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 
 	Out.Pos = mul(worldPos, mVP);
 	Out.N = N;
-	Out.Eye = vEyePos - worldPos.xyz;
+	Out.Eye = g_vEyePos - worldPos.xyz;
 	Out.Tex = Tex;
     
     return Out;
@@ -154,13 +156,13 @@ VS_OUTPUT VS_pass0(
 // -------------------------------------------------------------
 float4 PS_pass0(VS_OUTPUT In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 color = light.ambient * material.ambient
-				+ light.diffuse * material.diffuse * max(0, dot(N,L));
-				+ light.specular * pow( max(0, dot(N,H)), 16);
+	float4 color = g_light.ambient * g_material.ambient
+				+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+				+ g_light.specular * pow( max(0, dot(N,H)), 16);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
     return Out;
@@ -179,7 +181,8 @@ VS_SHADOW_OUTPUT VS_pass1(
 {
     VS_SHADOW_OUTPUT Out = (VS_SHADOW_OUTPUT)0;  // 출력데이터
     
-	float4x4 mWVP = mul(mWorld, mVP);
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
 	Out.Pos = mul( Pos, mWVP );
 	Out.Diffuse = float4(1,1,1,1);
 
@@ -199,12 +202,13 @@ VS_OUTPUT VS_pass2(
 {
     VS_OUTPUT Out = (VS_OUTPUT)0;        // 출력데이터
     
-	float4 worldPos = mul(Pos, mWorld);
-	float3 N = normalize( mul(Normal, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float4 worldPos = mul(Pos, g_mWorld);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 
+	float4x4 mVP = mul(g_mView, g_mProj);
 	Out.Pos = mul(worldPos, mVP);
 	Out.N = N;
-	Out.Eye = vEyePos - worldPos.xyz;
+	Out.Eye = g_vEyePos - worldPos.xyz;
 	Out.Tex = Tex;
     
     return Out;
@@ -216,19 +220,19 @@ VS_OUTPUT VS_pass2(
 // -------------------------------------------------------------
 float4 PS_pass2(VS_OUTPUT In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 color = light.ambient * material.ambient
-				+ light.diffuse * material.diffuse * max(0, dot(N,L));
-				+ light.specular * pow( max(0, dot(N,H)), 16);
+	float4 color = g_light.ambient * g_material.ambient
+				+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+				+g_light.specular * pow( max(0, dot(N,H)), 16);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
 
 	float distance = length(In.Eye);
-	float l = saturate((distance-vFog.x) / (vFog.y - vFog.x));
-	Out = lerp(Out, fogColor, l);
+	float l = saturate((distance-g_vFog.x) / (g_vFog.y - g_vFog.x));
+	Out = lerp(Out, g_fogColor, l);
 
     return Out;
 }
@@ -246,14 +250,15 @@ VS_OUTPUT_SHADOW VS_pass3(
 {
     VS_OUTPUT_SHADOW Out = (VS_OUTPUT_SHADOW)0;        // 출력데이터
     
-	float4 worldPos = mul(Pos, mWorld);
-	float3 N = normalize( mul(Normal, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4 worldPos = mul(Pos, g_mWorld);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 
 	Out.Pos = mul(worldPos, mVP);
 	Out.N = N;
-	Out.Eye = vEyePos - worldPos.xyz;
+	Out.Eye = g_vEyePos - worldPos.xyz;
 	Out.Tex = Tex;
-	Out.TexShadow = mul( Pos, mWVPT );
+	Out.TexShadow = mul( Pos, g_mWVPT );
     
     return Out;
 }
@@ -263,13 +268,13 @@ VS_OUTPUT_SHADOW VS_pass3(
 // -------------------------------------------------------------
 float4 PS_pass3(VS_OUTPUT_SHADOW In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 color = 	light.ambient * material.ambient
-				+ light.diffuse * material.diffuse * max(0, dot(N,L));
-				+ light.specular * pow( max(0, dot(N,H)), 16);
+	float4 color = g_light.ambient * g_material.ambient
+				+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+				+g_light.specular * pow( max(0, dot(N,H)), 16);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
 
@@ -277,8 +282,8 @@ float4 PS_pass3(VS_OUTPUT_SHADOW In) : COLOR
 	Out = Out * saturate(color - (0.8f*shadow));
 
 	float distance = length(In.Eye);
-	float l = saturate((distance-vFog.x) / (vFog.y - vFog.x));
-	Out = lerp(Out, fogColor, l);
+	float l = saturate((distance- g_vFog.x) / (g_vFog.y - g_vFog.x));
+	Out = lerp(Out, g_fogColor, l);
 
     return Out;
 }
@@ -300,24 +305,25 @@ VS_BUMP_OUTPUT VS_pass4(
 {
     VS_BUMP_OUTPUT Out = (VS_BUMP_OUTPUT)0;
 
-	float3 worldPos = mul(Pos, mWorld).xyz;
-	float3 lightDir = -light.dir;
-	float3 viewDir = vEyePos - worldPos;
+	float3 worldPos = mul(Pos, g_mWorld).xyz;
+	float3 lightDir = -g_light.dir;
+	float3 viewDir = g_vEyePos - worldPos;
 	float3 halfVector = normalize(normalize(lightDir) + normalize(viewDir));
 	
-	float3 n = normalize( mul(Normal, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
-	float3 t = normalize( mul(tangent, (float3x3)mWIT) ); // 월드 좌표계에서의 탄젠트
-	float3 b = normalize( mul(binormal, (float3x3)mWIT) ); // 월드 좌표계에서의 바이노멀
+	float3 n = normalize( mul(Normal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
+	float3 t = normalize( mul(tangent, (float3x3)g_mWorld) ); // 월드 좌표계에서의 탄젠트
+	float3 b = normalize( mul(binormal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 바이노멀
 	float3x3 tbnMatrix = float3x3(t.x, b.x, n.x,
 	                              t.y, b.y, n.y,
 	                              t.z, b.z, n.z);
     
+	float4x4 mVP = mul(g_mView, g_mProj);
 	Out.Pos = mul(float4(worldPos,1), mVP);
 	Out.Tex = Tex;
 	Out.HalfVector = mul(halfVector, tbnMatrix);
 	Out.LightDir = mul(lightDir, tbnMatrix);
-	Out.Diffuse = material.diffuse * light.diffuse;
-	Out.Specular = material.specular * light.specular;
+	Out.Diffuse = g_material.diffuse * g_light.diffuse;
+	Out.Specular = g_material.specular * g_light.specular;
     
     return Out;
 }
@@ -334,9 +340,9 @@ float4 PS_pass4(VS_BUMP_OUTPUT In) : COLOR
 
     float nDotL = saturate(dot(n, l));
     float nDotH = saturate(dot(n, h));
-    float power = (nDotL == 0.0f) ? 0.0f : pow(nDotH, shininess);
+    float power = (nDotL == 0.0f) ? 0.0f : pow(nDotH, g_shininess);
 
-    float4 color = material.ambient * (globalAmbient + light.ambient) 
+    float4 color = g_material.ambient * g_light.ambient
 						+ (In.Diffuse * nDotL) 
 						+ (In.Specular * power);
 
@@ -344,10 +350,17 @@ float4 PS_pass4(VS_BUMP_OUTPUT In) : COLOR
 }
 
 
+
+technique Scene
+{
+	pass P0
+	{
+		VertexShader = compile vs_3_0 VS_pass3();
+		PixelShader = compile ps_3_0 PS_pass3();
+	}
+}
+
 	
-// -------------------------------------------------------------
-// 테크닉
-// -------------------------------------------------------------
 technique TShader
 {
 
