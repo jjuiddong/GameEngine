@@ -2,14 +2,16 @@
 // -------------------------------------------------------------
 // 전역변수
 // -------------------------------------------------------------
-float4x4 mWorld;
-float4x4 mVP;		// 로컬에서 투영공간으로의 좌표변환
-float4x4 mWIT;
-float4x4 mWVPT;
-float3 vEyePos; // 카메라 위치.
-float4 vFog;
-float4 fogColor = {0.58823f, 0.58823f, 0.58823f, 1}; // RGB(150,150,150)
-float alphaUVFactor = 8.f;
+float4x4 g_mWorld;
+float4x4 g_mVP;		// 로컬에서 투영공간으로의 좌표변환
+float4x4 g_mView;
+float4x4 g_mProj;
+//float4x4 g_mWIT;
+float4x4 g_mWVPT;
+float3 g_vEyePos; // 카메라 위치.
+float4 g_vFog;
+float4 g_fogColor = {0.58823f, 0.58823f, 0.58823f, 1}; // RGB(150,150,150)
+float g_alphaUVFactor = 8.f;
 
 
 struct Light
@@ -33,18 +35,18 @@ struct Material
 	float shininess;
 };
 
-Light light;
-Material material;
+Light g_light;
+Material g_material;
 
 
 
 // ------------------------------------------------------------
 // 텍스처
 // ------------------------------------------------------------
-texture colorMapTexture;
+texture g_colorMapTexture;
 sampler colorMap = sampler_state
 {
-    Texture = <colorMapTexture>;
+    Texture = <g_colorMapTexture>;
     MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = LINEAR;
@@ -57,10 +59,10 @@ sampler colorMap = sampler_state
 // ------------------------------------------------------------
 // 그림자맵
 // ------------------------------------------------------------
-texture ShadowMap;
+texture g_ShadowMap;
 sampler ShadowMapSamp = sampler_state
 {
-    Texture = <ShadowMap>;
+    Texture = <g_ShadowMap>;
     MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = LINEAR;
@@ -73,10 +75,10 @@ sampler ShadowMapSamp = sampler_state
 // ------------------------------------------------------------
 // 스플래팅 알파 텍스쳐
 // ------------------------------------------------------------
-texture SplattingAlphaMap;
+texture g_SplattingAlphaMap;
 sampler SplattingMapSamp = sampler_state
 {
-    Texture = <SplattingAlphaMap>;
+    Texture = <g_SplattingAlphaMap>;
     MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = LINEAR;
@@ -170,12 +172,12 @@ VS_OUTPUT VS_pass0(
 {
     VS_OUTPUT Out = (VS_OUTPUT)0;        // 출력데이터
 
-	float4 worldPos = mul(Pos, mWorld);
-	float3 N = normalize( mul(Normal, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float4 worldPos = mul(Pos, g_mWorld);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 
-	Out.Pos = mul(worldPos, mVP);
+	Out.Pos = mul(worldPos, g_mVP);
 	Out.N = N;
-	Out.Eye = vEyePos - worldPos.xyz;
+	Out.Eye = g_vEyePos - worldPos.xyz;
 	Out.Tex = Tex;
     
     return Out;
@@ -186,13 +188,13 @@ VS_OUTPUT VS_pass0(
 // -------------------------------------------------------------
 float4 PS_pass0(VS_OUTPUT In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 color = light.ambient * material.ambient
-				+ light.diffuse * material.diffuse * max(0, dot(N,L));
-				+ light.specular * pow( max(0, dot(N,H)), 16);
+	float4 color = g_light.ambient * g_material.ambient
+				+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+				+g_light.specular * pow( max(0, dot(N,H)), 16);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
     return Out;
@@ -211,12 +213,12 @@ VS_OUTPUT VS_pass1(
 {
     VS_OUTPUT Out = (VS_OUTPUT)0;        // 출력데이터
     
-	float4 worldPos = mul(Pos, mWorld);
-	float3 N = normalize( mul(Normal, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float4 worldPos = mul(Pos, g_mWorld);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 
-	Out.Pos = mul(worldPos, mVP);
+	Out.Pos = mul(worldPos, g_mVP);
 	Out.N = N;
-	Out.Eye = vEyePos - worldPos.xyz;
+	Out.Eye = g_vEyePos - worldPos.xyz;
 	Out.Tex = Tex;
     
     return Out;
@@ -227,19 +229,19 @@ VS_OUTPUT VS_pass1(
 // -------------------------------------------------------------
 float4 PS_pass1(VS_OUTPUT In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 color = light.ambient * material.ambient
-				+ light.diffuse * material.diffuse * max(0, dot(N,L));
-				+ light.specular * pow( max(0, dot(N,H)), 16);
+	float4 color = g_light.ambient * g_material.ambient
+				+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+				+g_light.specular * pow( max(0, dot(N,H)), 16);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
 
 	float distance = length(In.Eye);
-	float l = saturate((distance-vFog.x) / (vFog.y - vFog.x));
-	Out = lerp(Out, fogColor, l);
+	float l = saturate((distance- g_vFog.x) / (g_vFog.y - g_vFog.x));
+	Out = lerp(Out, g_fogColor, l);
 
     return Out;
 }
@@ -257,14 +259,14 @@ VS_OUTPUT_SHADOW VS_pass2(
 {
     VS_OUTPUT_SHADOW Out = (VS_OUTPUT_SHADOW)0;        // 출력데이터
     
-	float4 worldPos = mul(Pos, mWorld);
-	float3 N = normalize( mul(Normal, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float4 worldPos = mul(Pos, g_mWorld);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 
-	Out.Pos = mul(worldPos, mVP);
+	Out.Pos = mul(worldPos, g_mVP);
 	Out.N = N;
-	Out.Eye = vEyePos - worldPos.xyz;
+	Out.Eye = g_vEyePos - worldPos.xyz;
 	Out.Tex = Tex;
-	Out.TexShadow = mul( Pos, mWVPT );
+	Out.TexShadow = mul( Pos, g_mWVPT);
     
     return Out;
 }
@@ -275,13 +277,13 @@ VS_OUTPUT_SHADOW VS_pass2(
 // -------------------------------------------------------------
 float4 PS_pass2(VS_OUTPUT_SHADOW In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 color = 	light.ambient * material.ambient
-				+ light.diffuse * material.diffuse * max(0, dot(N,L));
-				+ light.specular * pow( max(0, dot(N,H)), 16);
+	float4 color = g_light.ambient * g_material.ambient
+				+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+				+g_light.specular * pow( max(0, dot(N,H)), 16);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
 
@@ -289,8 +291,8 @@ float4 PS_pass2(VS_OUTPUT_SHADOW In) : COLOR
 	Out = Out * saturate(1.3f - shadow);
 
 	float distance = length(In.Eye);
-	float l = saturate((distance-vFog.x) / (vFog.y - vFog.x));
-	Out = lerp(Out, fogColor, l);
+	float l = saturate((distance- g_vFog.x) / (g_vFog.y - g_vFog.x));
+	Out = lerp(Out, g_fogColor, l);
 
     return Out;
 }
@@ -307,12 +309,12 @@ VS_OUTPUT_SHADOW VS_pass3(
 {
     VS_OUTPUT_SHADOW Out = (VS_OUTPUT_SHADOW)0;        // 출력데이터
     
-	float4 worldPos = mul(Pos, mWorld);
-	float3 N = normalize( mul(Normal, (float3x3)mWIT) ); // 월드 좌표계에서의 법선.
+	float4 worldPos = mul(Pos, g_mWorld);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) ); // 월드 좌표계에서의 법선.
 
-	Out.Pos = mul(worldPos, mVP);
+	Out.Pos = mul(worldPos, g_mVP);
 	Out.N = N;
-	Out.Eye = vEyePos - worldPos.xyz;
+	Out.Eye = g_vEyePos - worldPos.xyz;
 	Out.Tex = Tex;
     
     return Out;
@@ -324,25 +326,25 @@ VS_OUTPUT_SHADOW VS_pass3(
 // -------------------------------------------------------------
 float4 PS_pass3(VS_OUTPUT_SHADOW In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 color = 	light.ambient * material.ambient
-				+ light.diffuse * material.diffuse * max(0, dot(N,L));
-				+ light.specular * pow( max(0, dot(N,H)), 16);
+	float4 color = g_light.ambient * g_material.ambient
+				+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+				+g_light.specular * pow( max(0, dot(N,H)), 16);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
 
-	float4 alpha = tex2D(SplattingMapSamp, (In.Tex / alphaUVFactor));
+	float4 alpha = tex2D(SplattingMapSamp, (In.Tex / g_alphaUVFactor));
 	Out = (alpha.a * (color * tex2D(Samp1, In.Tex))) + ((1 - alpha.a) * Out);
 	Out = (alpha.r * (color * tex2D(Samp2, In.Tex))) + ((1 - alpha.r) * Out);
 	Out = (alpha.g * (color * tex2D(Samp3, In.Tex))) + ((1 - alpha.g) * Out);
 	Out = (alpha.b * (color * tex2D(Samp4, In.Tex))) + ((1 - alpha.b) * Out);
 
 	float distance = length(In.Eye);
-	float l = saturate((distance-vFog.x) / (vFog.y - vFog.x));
-	Out = lerp(Out, fogColor, l);
+	float l = saturate((distance- g_vFog.x) / (g_vFog.y - g_vFog.x));
+	Out = lerp(Out, g_fogColor, l);
 
     return Out;
 }
@@ -356,7 +358,7 @@ float4 PS_pass4(VS_OUTPUT In) : COLOR
 {
 	float4 Out = tex2D(colorMap, In.Tex);
 
-	float4 alpha = tex2D(SplattingMapSamp, (In.Tex / alphaUVFactor));
+	float4 alpha = tex2D(SplattingMapSamp, (In.Tex / g_alphaUVFactor));
 	Out = (alpha.a * (tex2D(Samp1, In.Tex))) + ((1 - alpha.a) * Out);
 	Out = (alpha.r * (tex2D(Samp2, In.Tex))) + ((1 - alpha.r) * Out);
 	Out = (alpha.g * (tex2D(Samp3, In.Tex))) + ((1 - alpha.g) * Out);
@@ -372,17 +374,17 @@ float4 PS_pass4(VS_OUTPUT In) : COLOR
 // -------------------------------------------------------------
 float4 PS_pass5(VS_OUTPUT_SHADOW In) : COLOR
 {
-	float3 L = -light.dir;
+	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.N);
 
-	float4 color = 	light.ambient * material.ambient
-				+ light.diffuse * material.diffuse * max(0, dot(N,L));
-				+ light.specular * pow( max(0, dot(N,H)), 16);
+	float4 color = g_light.ambient * g_material.ambient
+				+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L));
+				+g_light.specular * pow( max(0, dot(N,H)), 16);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
 
-	float4 alpha = tex2D(SplattingMapSamp, (In.Tex / alphaUVFactor));
+	float4 alpha = tex2D(SplattingMapSamp, (In.Tex / g_alphaUVFactor));
 	Out = (alpha.a * (color * tex2D(Samp1, In.Tex))) + ((1 - alpha.a) * Out);
 	Out = (alpha.r * (color * tex2D(Samp2, In.Tex))) + ((1 - alpha.r) * Out);
 	Out = (alpha.g * (color * tex2D(Samp3, In.Tex))) + ((1 - alpha.g) * Out);
@@ -392,8 +394,8 @@ float4 PS_pass5(VS_OUTPUT_SHADOW In) : COLOR
 	Out = Out * saturate(color - (0.8f*shadow));
 
 	float distance = length(In.Eye);
-	float l = saturate((distance-vFog.x) / (vFog.y - vFog.x));
-	Out = lerp(Out, fogColor, l);
+	float l = saturate((distance- g_vFog.x) / (g_vFog.y - g_vFog.x));
+	Out = lerp(Out, g_fogColor, l);
 
     return Out;
 }

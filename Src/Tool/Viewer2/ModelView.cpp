@@ -150,7 +150,6 @@ void CModelView::Render()
 
 		// 바닥 그림자 출력.
 		// 셰이더 변수 초기화.
-		//cLightManager::Get()->GetMainLight().Bind(*m_shader);
 		m_shader->SetVector( "g_vFog", Vector3(1.f, 10000.f, 0)); // near, far
 
 		// 바닥 출력. 

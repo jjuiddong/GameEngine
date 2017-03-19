@@ -198,7 +198,8 @@ void CModelPanel::OnTvnSelchangedTreeModel(NMHDR *pNMHDR, LRESULT *pResult)
 		return;
 
 	ShowLoadingDialog();
-	cMapController::Get()->GetTerrainCursor().SelectModel( fileName);
+
+	cMapController::Get()->GetTerrainCursor().SelectModel(*g_renderer, fileName);
 	HideLoadingDialog();
 }
 

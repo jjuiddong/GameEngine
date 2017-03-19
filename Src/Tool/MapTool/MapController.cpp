@@ -7,8 +7,8 @@ using namespace graphic;
 cMapController::cMapController(void) :
 	m_editMode(EDIT_MODE::MODE_HEIGHTMAP)
 {
-	cMainCamera::Get()->SetCamera(Vector3(100,100,-500), Vector3(0,0,0), Vector3(0,1,0));
-	cMainCamera::Get()->SetProjection( D3DX_PI / 4.f, (float)VIEW_WIDTH / (float) VIEW_HEIGHT, 1.f, 10000.0f);
+	//cMainCamera::Get()->SetCamera(Vector3(100,100,-500), Vector3(0,0,0), Vector3(0,1,0));
+	//cMainCamera::Get()->SetProjection( D3DX_PI / 4.f, (float)VIEW_WIDTH / (float) VIEW_HEIGHT, 1.f, 10000.0f);
 
 }
 
@@ -18,10 +18,19 @@ cMapController::~cMapController(void)
 }
 
 
-// 높이맵 파일을 읽어서 지형에 적용한다.
-bool cMapController::LoadHeightMap(const string &fileName)
+bool cMapController::Init(graphic::cRenderer &renderer)
 {
-	const bool result = m_terrain.CreateFromHeightMap(fileName, "empty" );
+	m_terrain.Init(renderer);
+	m_cursor.Init(renderer);
+
+	return true;
+}
+
+
+// 높이맵 파일을 읽어서 지형에 적용한다.
+bool cMapController::LoadHeightMap(graphic::cRenderer &renderer, const string &fileName)
+{
+	const bool result = m_terrain.CreateFromHeightMap(renderer, fileName, "empty" );
 
 	NotifyObserver();
 	return result;
@@ -29,10 +38,10 @@ bool cMapController::LoadHeightMap(const string &fileName)
 
 
 // 지형 전체를 덮어 씌울 텍스쳐를 로딩한다.
-bool cMapController::LoadHeightMapTexture(const string &fileName)
+bool cMapController::LoadHeightMapTexture(graphic::cRenderer &renderer, const string &fileName)
 {
 	m_textFileName = fileName;
-	const bool result = m_terrain.CreateTerrainTexture(fileName);
+	const bool result = m_terrain.CreateTerrainTexture(renderer, fileName);
 
 	NotifyObserver();
 	return result;
@@ -40,9 +49,9 @@ bool cMapController::LoadHeightMapTexture(const string &fileName)
 
 
 // 지형 파일 열기. (*.TRN 파일을 읽는다.)
-bool cMapController::LoadTRNFile(const string &fileName)
+bool cMapController::LoadTRNFile(graphic::cRenderer &renderer, const string &fileName)
 {
-	if (!m_terrain.CreateFromTRNFile(fileName))
+	if (!m_terrain.CreateFromTRNFile(renderer, fileName))
 	{
 		return false;
 	}
@@ -71,10 +80,10 @@ bool cMapController::SaveTRNFile(const string &fileName)
 
 
 // 지형 생성.
-bool cMapController::CreateDefaultTerrain()
+bool cMapController::CreateDefaultTerrain(graphic::cRenderer &renderer)
 {
-	m_terrain.CreateTerrain(64, 64, 50.f, 8.f);
-	m_terrain.CreateTerrainTexture( "../media/terrain/모래1.jpg" );
+	m_terrain.CreateTerrain(renderer, 64, 64, 50.f, 8.f);
+	m_terrain.CreateTerrainTexture(renderer, "../media/terrain/모래1.jpg" );
 
 	NotifyObserver();
 	return true;

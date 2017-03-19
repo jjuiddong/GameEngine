@@ -8,10 +8,11 @@ public:
 	cMapController(void);
 	~cMapController(void);
 
-	bool CreateDefaultTerrain();
-	bool LoadTRNFile(const string &fileName);
-	bool LoadHeightMap(const string &fileName);
-	bool LoadHeightMapTexture(const string &fileName);
+	bool Init(graphic::cRenderer &renderer);
+	bool CreateDefaultTerrain(graphic::cRenderer &renderer);
+	bool LoadTRNFile(graphic::cRenderer &renderer, const string &fileName);
+	bool LoadHeightMap(graphic::cRenderer &renderer, const string &fileName);
+	bool LoadHeightMapTexture(graphic::cRenderer &renderer, const string &fileName);
 	bool SaveTRNFile(const string &fileName);
 
 	graphic::cTerrainEditor& GetTerrain();

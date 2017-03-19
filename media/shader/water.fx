@@ -31,8 +31,8 @@ struct DirLight
 uniform extern float4x4 gWorld;
 uniform extern float4x4 gWorldInv;
 uniform extern float4x4 gWVP;
-uniform extern Mtrl     material;
-uniform extern DirLight light;
+uniform extern Mtrl     g_material;
+uniform extern DirLight g_light;
 uniform extern float3   gEyePosW;
 uniform extern float2   gWaveMapOffset0;
 uniform extern float2   gWaveMapOffset1;
@@ -45,10 +45,10 @@ uniform extern texture  gReflectMap;
 uniform extern texture  gRefractMap;
 
 
-uniform extern float4x4 mVP;
-uniform extern float4x4 mWIT;
-uniform extern float4x4 mWorld;
-texture colorMapTexture;
+uniform extern float4x4 g_mVP;
+uniform extern float4x4 g_mWIT;
+uniform extern float4x4 g_mWorld;
+texture g_colorMapTexture;
 
 
 
@@ -136,7 +136,7 @@ OutputVS WaterVS(
 	outVS.toEyeT = mul(toEyeL, toTangentSpace);
 	
 	// Transform light direction to tangent space.
-	float3 lightDirL = mul(float4(light.dirW, 0.0f), gWorldInv).xyz;
+	float3 lightDirL = mul(float4(g_light.dirW, 0.0f), gWorldInv).xyz;
 	outVS.lightDirT  = mul(lightDirL, toTangentSpace);
 	
 	// Transform to homogeneous clip space.
@@ -186,7 +186,7 @@ float4 WaterPS(float3 toEyeT      : TEXCOORD0,
 	float3 r = reflect(-lightVecT, normalT);
 	
 	// Determine how much (if any) specular light makes it into the eye.
-	float t  = pow(max(dot(r, toEyeT), 0.0f), material.shininess);
+	float t  = pow(max(dot(r, toEyeT), 0.0f), g_material.shininess);
 	
 	// Determine the diffuse light intensity that strikes the vertex.
 	float s = max(dot(lightVecT, normalT), 0.0f);
@@ -221,18 +221,18 @@ float4 WaterPS(float3 toEyeT      : TEXCOORD0,
 	
 	// Weighted average between the reflected color and refracted color, modulated
 	// with the material.
-	float3 ambientMtrl = material.ambient*lerp(reflectCol, refractCol, refractWt);
-	float3 diffuseMtrl = material.diffuse*lerp(reflectCol, refractCol, refractWt);
+	float3 ambientMtrl = g_material.ambient*lerp(reflectCol, refractCol, refractWt);
+	float3 diffuseMtrl = g_material.diffuse*lerp(reflectCol, refractCol, refractWt);
 	
 	// Compute the ambient, diffuse and specular terms separatly. 
-	float3 spec = t*(material.specular*light.specular).rgb;
-	float3 diffuse = (diffuseMtrl*light.diffuse.rgb);
-	float3 ambient = ambientMtrl*light.ambient;
+	float3 spec = t*(g_material.specular*g_light.specular).rgb;
+	float3 diffuse = (diffuseMtrl*g_light.diffuse.rgb);
+	float3 ambient = ambientMtrl*g_light.ambient;
 	
 	float3 final = diffuse + spec;
 	
 	// Output the color and the alpha.
-    return float4(final, material.diffuse.a);
+    return float4(final, g_material.diffuse.a);
 }
 
 technique WaterTech

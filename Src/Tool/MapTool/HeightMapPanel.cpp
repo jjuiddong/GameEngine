@@ -184,7 +184,7 @@ void CHeightMapPanel::OnNMCustomdrawSliderHeightFactor(NMHDR *pNMHDR, LRESULT *p
 void CHeightMapPanel::OnEnChangeEditHeightFactor()
 {
 	UpdateData();
-	m_heightSlider.SetPos( m_heightFactor * 100.f );
+	m_heightSlider.SetPos( (int)(m_heightFactor * 100.f) );
 	cMapController::Get()->UpdateHeightFactor(m_heightFactor);
 }
 
@@ -202,7 +202,7 @@ void CHeightMapPanel::OnNMCustomdrawSliderUvFactor(NMHDR *pNMHDR, LRESULT *pResu
 void CHeightMapPanel::OnEnChangeEditUvFactor()
 {
 	UpdateData();
-	m_uvSlider.SetPos( m_uvFactor * 100.f );
+	m_uvSlider.SetPos( (int)(m_uvFactor * 100.f) );
 	cMapController::Get()->GetTerrain().SetTextureUVFactor(m_uvFactor);
 }
 
@@ -227,7 +227,7 @@ void CHeightMapPanel::OnTvnSelchangedTreeHeightmap(NMHDR *pNMHDR, LRESULT *pResu
 	m_heightMap = Image::FromFile(str2wstr(fileName).c_str());
 	InvalidateRect(NULL, FALSE);
 
-	cMapController::Get()->LoadHeightMap(fileName);
+	cMapController::Get()->LoadHeightMap(*g_renderer, fileName);
 	m_heightmapBrowser.SetWindowText(str2wstr(fileName).c_str());
 }
 
@@ -245,7 +245,7 @@ void CHeightMapPanel::OnTvnSelchangedTreeTexture(NMHDR *pNMHDR, LRESULT *pResult
 	m_texture = Image::FromFile(str2wstr(fileName).c_str());
 	InvalidateRect(NULL, FALSE);
 
-	cMapController::Get()->LoadHeightMapTexture(fileName);
+	cMapController::Get()->LoadHeightMapTexture(*g_renderer, fileName);
 	m_textureBrowser.SetWindowText(str2wstr(fileName).c_str());
 }
 
@@ -261,7 +261,7 @@ void CHeightMapPanel::OnEnChangeMfceditbrowseHeightmap()
 	m_heightMap = Image::FromFile(str2wstr(fileName).c_str());
 	InvalidateRect(NULL, FALSE);
 
-	cMapController::Get()->LoadHeightMap(fileName);
+	cMapController::Get()->LoadHeightMap(*g_renderer, fileName);
 }
 
 
@@ -276,7 +276,7 @@ void CHeightMapPanel::OnEnChangeMfceditbrowseTexture()
 	m_texture = Image::FromFile(str2wstr(fileName).c_str());
 	InvalidateRect(NULL, FALSE);
 
-	cMapController::Get()->LoadHeightMapTexture(fileName);
+	cMapController::Get()->LoadHeightMapTexture(*g_renderer, fileName);
 }
 
 

@@ -1,16 +1,11 @@
-// MapView.cpp : 구현 파일입니다.
-//
 
 #include "stdafx.h"
 #include "MapTool.h"
 #include "MapView.h"
 #include "LightPanel.h"
 
-
 using namespace graphic;
-
 CMapView *g_mapView = NULL;
-
 
 // CMapView
 CMapView::CMapView() :
@@ -23,8 +18,7 @@ CMapView::CMapView() :
 }
 
 CMapView::~CMapView()
-{
-	
+{	
 }
 
 BEGIN_MESSAGE_MAP(CMapView, CView)
@@ -40,16 +34,11 @@ BEGIN_MESSAGE_MAP(CMapView, CView)
 END_MESSAGE_MAP()
 
 
-// CMapView 그리기입니다.
-
 void CMapView::OnDraw(CDC* pDC)
 {
 	CDocument* pDoc = GetDocument();
-	// TODO: 여기에 그리기 코드를 추가합니다.
 }
 
-
-// CMapView 진단입니다.
 
 #ifdef _DEBUG
 void CMapView::AssertValid() const
@@ -66,16 +55,21 @@ void CMapView::Dump(CDumpContext& dc) const
 #endif //_DEBUG
 
 
-// CMapView 메시지 처리기입니다.
-
 bool CMapView::Init()
 {
-	graphic::GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
+	g_renderer = &m_renderer;
+	if (!m_renderer.CreateDirectX(m_hWnd, VIEW_WIDTH, VIEW_HEIGHT))
+		return false;
 
-	graphic::GetDevice()->LightEnable (
-		0, // 활성화/ 비활성화 하려는 광원 리스트 내의 요소
-		true); // true = 활성화 ， false = 비활성화
+	GetMainCamera()->Init(&m_renderer);
+	GetMainCamera()->SetCamera(Vector3(100, 100, -500), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)VIEW_WIDTH / (float)VIEW_HEIGHT, 1.f, 10000.0f);
 
+	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL);
+	m_renderer.SetNormalizeNormals(true);
+	m_renderer.GetDevice()->LightEnable(0,true);
+
+	cMapController::Get()->Init(m_renderer);
 
 	//m_grid.Create(64,64,50.f);
 	//m_cube.SetCube(Vector3(-10,-10,-10), Vector3(10,10,10));
@@ -85,9 +79,9 @@ bool CMapView::Init()
 	m_lightLine.GetMaterial().InitBlack();
 	m_lightLine.GetMaterial().GetMtrl().Emissive = *(D3DXCOLOR*)&Vector4(1,1,0,1);
 
-	m_lightSphere.Create(5, 10, 10);
-	m_lightSphere.GetMaterial().InitBlack();
-	m_lightSphere.GetMaterial().GetMtrl().Emissive = *(D3DCOLORVALUE*)&Vector4(1,1,0,1);
+	m_lightSphere.Create(m_renderer, 5, 10, 10);
+	m_lightSphere.m_mtrl.InitBlack();
+	m_lightSphere.m_mtrl.GetMtrl().Emissive = *(D3DCOLORVALUE*)&Vector4(1,1,0,1);
 
 	return true;
 }
@@ -98,35 +92,38 @@ void CMapView::Render()
 	if (!m_dxInit)
 		return;
 
-	cMapController::Get()->GetTerrain().PreRender();
-
-	//화면 청소
-	if (SUCCEEDED(graphic::GetDevice()->Clear( 
-		0,			//청소할 영역의 D3DRECT 배열 갯수		( 전체 클리어 0 )
-		NULL,		//청소할 영역의 D3DRECT 배열 포인터		( 전체 클리어 NULL )
-		D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,	//청소될 버퍼 플레그 ( D3DCLEAR_TARGET 컬러버퍼, D3DCLEAR_ZBUFFER 깊이버퍼, D3DCLEAR_STENCIL 스텐실버퍼
-		D3DCOLOR_XRGB(150, 150, 150),			//컬러버퍼를 청소하고 채워질 색상( 0xAARRGGBB )
-		1.0f,				//깊이버퍼를 청소할값 ( 0 ~ 1 0 이 카메라에서 제일가까운 1 이 카메라에서 제일 먼 )
-		0					//스텐실 버퍼를 채울값
-		)))
+	if (cShader *shader = cMapController::Get()->GetTerrain().m_shader)
 	{
-		//화면 청소가 성공적으로 이루어 졌다면... 랜더링 시작
-		graphic::GetDevice()->BeginScene();
-		//graphic::GetRenderer()->RenderFPS();
-		//graphic::GetRenderer()->RenderGrid();
+		GetMainCamera()->Bind(*shader);
+		GetMainLight().Bind(*shader);
+	}
 
-		cMapController::Get()->GetTerrain().Render();
+	cMapController::Get()->GetTerrain().PreRender(m_renderer);
+
+	if (m_renderer.ClearScene())
+	{
+		m_renderer.BeginScene();
+
+		if (cShader *shader = cMapController::Get()->GetTerrain().m_shader)
+		{
+			GetMainCamera()->Bind(*shader);
+			GetMainLight().Bind(*shader);
+		}
+
+		//m_renderer.RenderGrid();
+
+		cMapController::Get()->GetTerrain().Render(m_renderer);
 
 		switch (cMapController::Get()->GetEditMode())
 		{
 		case EDIT_MODE::MODE_TERRAIN:
-			cMapController::Get()->GetTerrainCursor().RenderTerrainBrush();
+			cMapController::Get()->GetTerrainCursor().RenderTerrainBrush(m_renderer);
 			break;
 		case EDIT_MODE::MODE_BRUSH:
-			cMapController::Get()->GetTerrainCursor().RenderBrush();
+			cMapController::Get()->GetTerrainCursor().RenderBrush(m_renderer);
 			break;
 		case EDIT_MODE::MODE_MODEL:
-			cMapController::Get()->GetTerrainCursor().RenderModel();
+			cMapController::Get()->GetTerrainCursor().RenderModel(m_renderer);
 			break;
 		}
 
@@ -138,30 +135,27 @@ void CMapView::Render()
 			Matrix44 lightTm;
 			lightTm.SetTranslate( lightPos );
 			m_lightSphere.SetTransform(lightTm);
-			m_lightSphere.Render(Matrix44::Identity);
+			m_lightSphere.Render(m_renderer, Matrix44::Identity);
 
 			if (m_LButtonDown 
 				&& g_lightPanel->m_EditDirection)
 			{
-				m_lightLine.Render();
+				m_lightLine.Render(m_renderer);
 			}
 		}
 
-		graphic::GetRenderer()->RenderAxis();
-		graphic::GetRenderer()->RenderFPS();
+		m_renderer.RenderAxis();
+		m_renderer.RenderFPS();
 
-		//랜더링 끝
-		graphic::GetDevice()->EndScene();
-
-		//랜더링이 끝났으면 랜더링된 내용 화면으로 전송
-		graphic::GetDevice()->Present( NULL, NULL, NULL, NULL );
+		m_renderer.EndScene();
+		m_renderer.Present();
 	}
 }
 
 
 void CMapView::Update(float elapseT)
 {
-	graphic::GetRenderer()->Update(elapseT);
+	m_renderer.Update(elapseT);
 	cMapController::Get()->GetTerrain().Move(elapseT);
 
 	// 지형 높낮이 편집.
@@ -198,7 +192,7 @@ void CMapView::OnLButtonUp(UINT nFlags, CPoint point)
 		{
 			if (const graphic::cModel *model = cMapController::Get()->GetTerrainCursor().GetSelectModel())
 			{
-				graphic::cModel *cloneModel = cMapController::Get()->GetTerrain().AddRigidModel(*model);
+				graphic::cModel *cloneModel = cMapController::Get()->GetTerrain().AddRigidModel(m_renderer, *model);
 
 				// 툴에서 쓰이는 변환 정보 초기화.
 				sTransform tm;
@@ -282,7 +276,7 @@ void CMapView::OnMouseMove(UINT nFlags, CPoint point)
 				const Vector3 lightPos = cLightManager::Get()->GetMainLight().GetPosition();
 				Vector3 dir = pickPos - lightPos;
 				dir.Normalize();
-				m_lightLine.SetLine(lightPos, pickPos, 1);
+				m_lightLine.SetLine(m_renderer, lightPos, pickPos, 1);
 
 				// 광원 위치 조정
 				Matrix44 lightTm;
@@ -381,8 +375,8 @@ void CMapView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case VK_TAB:
 		{
 			static bool flag = false;
-			graphic::GetDevice()->SetRenderState(D3DRS_CULLMODE, flag? D3DCULL_CCW : D3DCULL_NONE);
-			graphic::GetDevice()->SetRenderState(D3DRS_FILLMODE, flag? D3DFILL_SOLID : D3DFILL_WIREFRAME);
+			m_renderer.SetCullMode(flag ? D3DCULL_CCW : D3DCULL_NONE);
+			m_renderer.SetFillMode(flag ? D3DFILL_SOLID : D3DFILL_WIREFRAME);
 			flag = !flag;
 		}
 		break;

@@ -86,3 +86,5 @@ extern CBrushPanel *g_brushPanel;
 extern CModelPanel *g_modelPanel;
 extern CLightPanel *g_lightPanel;
 extern CMapView *g_mapView;
+
+extern graphic::cRenderer *g_renderer;

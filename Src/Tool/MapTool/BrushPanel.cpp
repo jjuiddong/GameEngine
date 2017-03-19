@@ -71,8 +71,8 @@ BOOL CBrushPanel::OnInitDialog()
 	UpdateTextureFiles("../media/terrain/");
 
 	graphic::cTerrainCursor &cursor = cMapController::Get()->GetTerrainCursor();
-	m_innerRadius = cursor.GetInnerBrushRadius();
-	m_outerRadius = cursor.GetOuterBrushRadius();
+	m_innerRadius = (float)cursor.GetInnerBrushRadius();
+	m_outerRadius = (float)cursor.GetOuterBrushRadius();
 
 	m_innerRSlider.SetRange(0, 300);
 	m_outerRSlider.SetRange(0, 300);
@@ -157,7 +157,7 @@ void CBrushPanel::OnChangeMfceditbrowseTexture()
 	SAFE_DELETE(m_texture);
 	m_texture = Image::FromFile(wfileName);
 
-	cMapController::Get()->GetTerrainCursor().SelectBrushTexture(fileName);
+	cMapController::Get()->GetTerrainCursor().SelectBrushTexture(*g_renderer, fileName);
 
 	InvalidateRect(NULL, FALSE);
 }
@@ -184,8 +184,8 @@ void CBrushPanel::OnNMCustomdrawSliderInnerRadius(NMHDR *pNMHDR, LRESULT *pResul
 {
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
 
-	m_innerRadius = m_innerRSlider.GetPos();
-	cMapController::Get()->GetTerrainCursor().SetInnerBrushRadius(m_innerRadius);
+	m_innerRadius = (float)m_innerRSlider.GetPos();
+	cMapController::Get()->GetTerrainCursor().SetInnerBrushRadius((int)m_innerRadius);
 	cMapController::Get()->UpdateBrush();
 	UpdateData(FALSE);
 	*pResult = 0;
@@ -196,8 +196,8 @@ void CBrushPanel::OnNMCustomdrawSliderOuterRadius(NMHDR *pNMHDR, LRESULT *pResul
 {
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
 	
-	m_outerRadius = m_outerRSlider.GetPos();
-	cMapController::Get()->GetTerrainCursor().SetOuterBrushRadius(m_outerRadius);
+	m_outerRadius = (float)m_outerRSlider.GetPos();
+	cMapController::Get()->GetTerrainCursor().SetOuterBrushRadius((int)m_outerRadius);
 	cMapController::Get()->UpdateBrush();
 	UpdateData(FALSE);
 	*pResult = 0;
@@ -207,8 +207,8 @@ void CBrushPanel::OnNMCustomdrawSliderOuterRadius(NMHDR *pNMHDR, LRESULT *pResul
 void CBrushPanel::OnEnChangeEditInnerRadius()
 {
 	UpdateData();
-	m_innerRSlider.SetPos(m_innerRadius);
-	cMapController::Get()->GetTerrainCursor().SetInnerBrushRadius(m_innerRadius);
+	m_innerRSlider.SetPos((int)m_innerRadius);
+	cMapController::Get()->GetTerrainCursor().SetInnerBrushRadius((int)m_innerRadius);
 	cMapController::Get()->UpdateBrush();
 }
 
@@ -216,8 +216,8 @@ void CBrushPanel::OnEnChangeEditInnerRadius()
 void CBrushPanel::OnEnChangeEditOuterRadius2()
 {
 	UpdateData();
-	m_outerRSlider.SetPos(m_outerRadius);
-	cMapController::Get()->GetTerrainCursor().SetOuterBrushRadius(m_outerRadius);
+	m_outerRSlider.SetPos((int)m_outerRadius);
+	cMapController::Get()->GetTerrainCursor().SetOuterBrushRadius((int)m_outerRadius);
 	cMapController::Get()->UpdateBrush();
 }
 
@@ -282,7 +282,7 @@ void CBrushPanel::OnTvnSelchangedTreeBrush(NMHDR *pNMHDR, LRESULT *pResult)
 	SAFE_DELETE(m_texture);
 	m_texture = Image::FromFile(str2wstr(fileName).c_str());
 
-	cMapController::Get()->GetTerrainCursor().SelectBrushTexture(fileName);
+	cMapController::Get()->GetTerrainCursor().SelectBrushTexture(*g_renderer, fileName);
 	m_textureBrowser.SetWindowText(str2wstr(fileName).c_str());
 
 	InvalidateRect(NULL, FALSE);

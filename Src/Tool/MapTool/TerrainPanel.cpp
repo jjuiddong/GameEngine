@@ -77,11 +77,11 @@ BOOL CTerrainPanel::OnInitDialog()
 
 	m_Speed = cMapController::Get()->GetTerrainCursor().GetBrushSpeed();
 	m_SliderSpeed.SetRange(10, 300);
-	m_SliderSpeed.SetPos(m_Speed);
+	m_SliderSpeed.SetPos((int)m_Speed);
 
-	m_Radius = cMapController::Get()->GetTerrainCursor().GetOuterBrushRadius();
+	m_Radius = (float)cMapController::Get()->GetTerrainCursor().GetOuterBrushRadius();
 	m_SliderRadius.SetRange(0, 300);
-	m_SliderRadius.SetPos(m_Radius);
+	m_SliderRadius.SetPos((int)m_Radius);
 
 	m_sliderUVFactor.SetRange(0, 100000);
 
@@ -136,7 +136,7 @@ void CTerrainPanel::OnBnClickedButtonLoadTerrain()
 		ShowLoadingDialog();
 		const CString strPathName = dlg.GetPathName();
 		const string fileName = wstr2str((wstring)strPathName);
-		cMapController::Get()->LoadTRNFile(fileName);
+		cMapController::Get()->LoadTRNFile(*g_renderer, fileName);
 		HideLoadingDialog();
 	}
 }
@@ -167,7 +167,7 @@ void CTerrainPanel::OnBnClickedButtonCrterrain()
 	}
 
 	ShowLoadingDialog();
-	cMapController::Get()->CreateDefaultTerrain();
+	cMapController::Get()->CreateDefaultTerrain(*g_renderer);
 	HideLoadingDialog();
 
 }
@@ -198,7 +198,7 @@ void CTerrainPanel::OnBnClickedButtonSaveTerrainTexture()
 		{
 			const CString strPathName = dlg.GetPathName();
 			const string fileName = wstr2str((wstring)strPathName);
-			if (cMapController::Get()->GetTerrain().WriteTerrainTextureToPNGFile(fileName))
+			if (cMapController::Get()->GetTerrain().WriteTerrainTextureToPNGFile(*g_renderer, fileName))
 			{
 				AfxMessageBox( L"저장 성공" );
 			}
@@ -222,7 +222,7 @@ void CTerrainPanel::OnChangeMfceditbrowseTexture()
 	{
 		ShowLoadingDialog();
 		const string strFileName = wstr2str((wstring)fileName);
-		cMapController::Get()->GetTerrain().CreateTerrainTexture(strFileName);
+		cMapController::Get()->GetTerrain().CreateTerrainTexture(*g_renderer, strFileName);
 		HideLoadingDialog();
 
 		UpdateData(FALSE);
@@ -242,8 +242,8 @@ void CTerrainPanel::OnCbnSelchangeComboTerrainEdit()
 void CTerrainPanel::OnNMCustomdrawSliderOuterRadius(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
-	m_Radius = m_SliderRadius.GetPos();
-	cMapController::Get()->GetTerrainCursor().SetOuterBrushRadius(m_Radius);
+	m_Radius = (float)m_SliderRadius.GetPos();
+	cMapController::Get()->GetTerrainCursor().SetOuterBrushRadius((int)m_Radius);
 	cMapController::Get()->UpdateBrush();
 	UpdateData(FALSE);
 	*pResult = 0;
@@ -253,8 +253,8 @@ void CTerrainPanel::OnNMCustomdrawSliderOuterRadius(NMHDR *pNMHDR, LRESULT *pRes
 void CTerrainPanel::OnEnChangeEditOuterRadius2()
 {
 	UpdateData();
-	m_SliderRadius.SetPos(m_Radius);
-	cMapController::Get()->GetTerrainCursor().SetOuterBrushRadius(m_Radius);
+	m_SliderRadius.SetPos((int)m_Radius);
+	cMapController::Get()->GetTerrainCursor().SetOuterBrushRadius((int)m_Radius);
 	cMapController::Get()->UpdateBrush();
 }
 
@@ -262,7 +262,7 @@ void CTerrainPanel::OnEnChangeEditOuterRadius2()
 void CTerrainPanel::OnNMCustomdrawSliderSpeed(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
-	m_Speed = m_SliderSpeed.GetPos();
+	m_Speed = (float)m_SliderSpeed.GetPos();
 	cMapController::Get()->GetTerrainCursor().SetBrushSpeed(m_Speed);
 	UpdateData(FALSE);
 	*pResult = 0;
@@ -275,7 +275,7 @@ void CTerrainPanel::OnEnChangeEditSpeed()
 	if ((m_Speed < 10) || (m_Speed > 300))
 		return;
 
-	m_SliderSpeed.SetPos(m_Speed);
+	m_SliderSpeed.SetPos((int)m_Speed);
 	cMapController::Get()->GetTerrainCursor().SetBrushSpeed(m_Speed);
 }
 
@@ -301,6 +301,6 @@ void CTerrainPanel::OnNMCustomdrawSliderUvFactor(NMHDR *pNMHDR, LRESULT *pResult
 void CTerrainPanel::OnEnChangeEditUvFactor()
 {
 	UpdateData();
-	m_sliderUVFactor.SetPos( m_uvFactor * 100.f );
+	m_sliderUVFactor.SetPos( (int)(m_uvFactor * 100.f) );
 	cMapController::Get()->GetTerrain().SetTextureUVFactor(m_uvFactor);
 }

@@ -1,13 +1,11 @@
 #pragma once
 
 
-// CMapView 뷰입니다.
-
 class cTerrainCursor;
 class CMapView : public CView
 {
 public:
-	CMapView();           // 동적 만들기에 사용되는 protected 생성자입니다.
+	CMapView();
 	virtual ~CMapView();
 
 	bool Init();
@@ -19,14 +17,13 @@ public:
 
 protected:
 	bool m_dxInit;
+	graphic::cRenderer m_renderer;
+
 	string m_filePath;
 	common::Ray m_ray;
-
 	graphic::cModel *m_focusModel; // refenrece
-
 	graphic::cSphere m_lightSphere;
-	graphic::cLine m_lightLine;
-
+	graphic::cLine2 m_lightLine;
 	CPoint m_curPos;
 	bool m_LButtonDown;
 	bool m_RButtonDown;
@@ -34,7 +31,7 @@ protected:
 
 
 public:
-	virtual void OnDraw(CDC* pDC);      // 이 뷰를 그리기 위해 재정의되었습니다.
+	virtual void OnDraw(CDC* pDC);
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 #ifndef _WIN32_WCE
