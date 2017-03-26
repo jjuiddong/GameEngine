@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="viewer3.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="displaycontrol.cpp" />
+    <ClCompile Include="root.cpp" />
+    <ClCompile Include="modelcontrol.cpp" />
+    <ClCompile Include="skeletoncontrol.cpp" />
+    <ClCompile Include="animationcontrol.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="displaycontrol.h" />
+    <ClInclude Include="root.h" />
+    <ClInclude Include="modelcontrol.h" />
+    <ClInclude Include="skeletoncontrol.h" />
+    <ClInclude Include="animationcontrol.h" />
+  </ItemGroup>
+</Project>

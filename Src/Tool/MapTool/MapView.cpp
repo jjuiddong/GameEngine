@@ -65,7 +65,16 @@ bool CMapView::Init()
 	GetMainCamera()->SetCamera(Vector3(100, 100, -500), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)VIEW_WIDTH / (float)VIEW_HEIGHT, 1.f, 10000.0f);
 
-	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL);
+	const float ambient = 0.2f;
+	const float diffuse = 0.8f;
+	const float specular = 0.2f;
+	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
+		Vector4(1, 1, 1, 1)*ambient,
+		Vector4(1, 1, 1, 1)*diffuse,
+		Vector4(1, 1, 1, 1)*specular);
+	GetMainLight().SetPosition(Vector3(0, 1000, 0));
+	GetMainLight().SetDirection(Vector3(1, -1, 1).Normal());
+
 	m_renderer.SetNormalizeNormals(true);
 	m_renderer.GetDevice()->LightEnable(0,true);
 
@@ -92,19 +101,21 @@ void CMapView::Render()
 	if (!m_dxInit)
 		return;
 
-	if (cShader *shader = cMapController::Get()->GetTerrain().m_shader)
+	cTerrainEditor &terrain = cMapController::Get()->GetTerrain();
+
+	if (cShader *shader = terrain.m_shader)
 	{
 		GetMainCamera()->Bind(*shader);
 		GetMainLight().Bind(*shader);
 	}
 
-	cMapController::Get()->GetTerrain().PreRender(m_renderer);
+	terrain.PreRender(m_renderer);
 
 	if (m_renderer.ClearScene())
 	{
 		m_renderer.BeginScene();
 
-		if (cShader *shader = cMapController::Get()->GetTerrain().m_shader)
+		if (cShader *shader = terrain.m_shader)
 		{
 			GetMainCamera()->Bind(*shader);
 			GetMainLight().Bind(*shader);
@@ -112,19 +123,15 @@ void CMapView::Render()
 
 		//m_renderer.RenderGrid();
 
-		cMapController::Get()->GetTerrain().Render(m_renderer);
+		terrain.Render(m_renderer);
+
+		graphic::cTerrainCursor &tcusror = cMapController::Get()->GetTerrainCursor();
 
 		switch (cMapController::Get()->GetEditMode())
 		{
-		case EDIT_MODE::MODE_TERRAIN:
-			cMapController::Get()->GetTerrainCursor().RenderTerrainBrush(m_renderer);
-			break;
-		case EDIT_MODE::MODE_BRUSH:
-			cMapController::Get()->GetTerrainCursor().RenderBrush(m_renderer);
-			break;
-		case EDIT_MODE::MODE_MODEL:
-			cMapController::Get()->GetTerrainCursor().RenderModel(m_renderer);
-			break;
+		case EDIT_MODE::MODE_TERRAIN: tcusror.RenderTerrainBrush(m_renderer); break;
+		case EDIT_MODE::MODE_BRUSH: tcusror.RenderBrush(m_renderer); break;
+		case EDIT_MODE::MODE_MODEL: tcusror.RenderModel(m_renderer); break;
 		}
 
 		// 조명 방향 선 출력.
@@ -380,6 +387,13 @@ void CMapView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			flag = !flag;
 		}
 		break;
+
+	case VK_RETURN:
+	{
+		cTerrainEditor &terrain = cMapController::Get()->GetTerrain();
+		terrain.m_shader->Reload(m_renderer);
+	}
+	break;
 
 	case VK_ESCAPE:
 		{

@@ -80,7 +80,8 @@ BOOL CMapToolDlg::OnInitDialog()
 	// Create Main Model View
 	m_mapView = new CMapView();
 	m_mapView->Create(NULL, _T("CView"), WS_CHILDWINDOW, 
-		CRect(0,25, VIEW_WIDTH, VIEW_HEIGHT+25), this, 0);
+		CRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT), this, 0);
+		//CRect(0,25, VIEW_WIDTH, VIEW_HEIGHT+25), this, 0);
 
 	m_mapView->Init();
 	m_mapView->ShowWindow(SW_SHOW);
