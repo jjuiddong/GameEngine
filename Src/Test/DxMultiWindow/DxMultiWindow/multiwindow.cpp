@@ -11,9 +11,9 @@
 
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "d3d9.lib")
-#pragma comment(lib, "sfml-system.lib")
-#pragma comment(lib, "sfml-window.lib")
-#pragma comment(lib, "sfml-graphics.lib")
+#pragma comment(lib, "sfml-system-d.lib")
+#pragma comment(lib, "sfml-window-d.lib")
+#pragma comment(lib, "sfml-graphics-d.lib")
 
 
 struct sWnd
