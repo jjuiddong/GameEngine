@@ -35,8 +35,6 @@ void cRoot::Update(const float deltaSeconds)
 
 void cRoot::Render(cRenderer &renderer, const float deltaSeconds)
 {
-	ImGui_ImplDX9_NewFrame();
-
 	ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
 	if (!ImGui::Begin("Control"))
 	{
@@ -54,7 +52,7 @@ void cRoot::Render(cRenderer &renderer, const float deltaSeconds)
 
 	renderer.SetCullMode(m_dispControl.m_backfaceCulling ? D3DCULL_CCW : D3DCULL_NONE);
 	renderer.SetFillMode(m_dispControl.m_wireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
-	m_model.Render(renderer);
+	m_model.RenderShader(renderer);
 	renderer.SetFillMode(D3DFILL_SOLID);
 	renderer.SetCullMode(D3DCULL_CCW);
 }

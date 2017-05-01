@@ -15,5 +15,7 @@ public:
 	void Clear();
 
 
-public:
+protected:
+	void RenderCollada(graphic::cRenderer &renderer, graphic::cColladaModel *model, const float deltaSeconds);
+	void RenderXFile(graphic::cRenderer &renderer, graphic::cXFileMesh *model,	const float deltaSeconds);
 };

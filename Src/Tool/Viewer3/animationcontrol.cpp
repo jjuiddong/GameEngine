@@ -24,13 +24,17 @@ void cAnimationControl::Render(cRenderer &renderer, const float deltaSeconds)
 	ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_FirstUseEver);
 	if (ImGui::CollapsingHeader("Animation"))
 	{
-		ImGui::Text("Animation Name : %s", g_root.m_model.m_storedAnimationName.c_str());
-		ImGui::Text("Start : %f (seconds)", g_root.m_model.m_animation.m_start);
-		ImGui::Text("End : %f (seconds)", g_root.m_model.m_animation.m_end);
+		cColladaModel *model = g_root.m_model.m_colladaModel;
+		if (!model)
+			return;
 
-		const float t = g_root.m_model.m_animation.m_incTime;
-		const float s = g_root.m_model.m_animation.m_start;
-		const float e = g_root.m_model.m_animation.m_end;
+		ImGui::Text("Animation Name : %s", model->m_storedAnimationName.c_str());
+		ImGui::Text("Start : %f (seconds)", model->m_animation.m_start);
+		ImGui::Text("End : %f (seconds)", model->m_animation.m_end);
+
+		const float t = model->m_animation.m_incTime;
+		const float s = model->m_animation.m_start;
+		const float e = model->m_animation.m_end;
 		const float d = e - s;
 		const float progress = t / d;
 		float progress_saturated = (progress < 0.0f) ? 0.0f : (progress > 1.0f) ? 1.0f : progress;
@@ -40,14 +44,14 @@ void cAnimationControl::Render(cRenderer &renderer, const float deltaSeconds)
 
 		if (ImGui::Button("Play"))
 		{
-			g_root.m_model.m_animation.Play();
+			model->m_animation.Play();
 		}
 
 		ImGui::SameLine(); 
 
 		if (ImGui::Button("Stop"))
 		{
-			g_root.m_model.m_animation.Stop();
+			model->m_animation.Stop();
 		}
 	}
 }
