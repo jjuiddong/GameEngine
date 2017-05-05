@@ -39,10 +39,10 @@ Material g_material;
 // ------------------------------------------------------------
 // ≈ÿΩ∫√≥
 // ------------------------------------------------------------
-texture colorMapTexture;
+texture g_colorMapTexture;
 sampler colorMap = sampler_state
 {
-    Texture = <colorMapTexture>;
+    Texture = <g_colorMapTexture>;
     MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = NONE;
@@ -52,10 +52,10 @@ sampler colorMap = sampler_state
 // ------------------------------------------------------------
 // ≥Î∏÷∏ 
 // ------------------------------------------------------------
-texture normalMapTexture;
+texture g_normalMapTexture;
 sampler2D normalMap = sampler_state
 {
-    Texture = <normalMapTexture>;
+    Texture = <g_normalMapTexture>;
     MagFilter = Linear;
     MinFilter = Anisotropic;
     MipFilter = Linear;
@@ -65,10 +65,10 @@ sampler2D normalMap = sampler_state
 // ------------------------------------------------------------
 // ¡§π›ªÁ∏ 
 // ------------------------------------------------------------
-texture specularMapTexture;
+texture g_specularMapTexture;
 sampler2D specularMap = sampler_state
 {
-    Texture = <specularMapTexture>;
+    Texture = <g_specularMapTexture>;
     MagFilter = Linear;
     MinFilter = Anisotropic;
     MipFilter = Linear;
@@ -79,10 +79,10 @@ sampler2D specularMap = sampler_state
 // ------------------------------------------------------------
 // Self Illumination ∏ 
 // ------------------------------------------------------------
-texture selfIllumMapTexture;
+texture g_selfIllumMapTexture;
 sampler2D selfIllumMap = sampler_state
 {
-    Texture = <selfIllumMapTexture>;
+    Texture = <g_selfIllumMapTexture>;
     MagFilter = Linear;
     MinFilter = Anisotropic;
     MipFilter = Linear;

@@ -114,7 +114,7 @@ OutputVS WaterVS(
 	float2 tex0 : TEXCOORD0
 	)
 {
-    // Zero out our output.
+    	// Zero out our output.
 	OutputVS outVS = (OutputVS)0;
 	
 	// Build TBN-basis.  For flat water grid in the xz-plane in 

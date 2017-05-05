@@ -740,9 +740,9 @@ void cViewer::RenderShadow()
 	{
 		m_shader.SetTechnique("Ambient");
 
-		m_srcMesh.m_tm = m_rotateTm;
-		m_srcMesh.SetShader(&m_shader);
-		m_srcMesh.Render(m_renderer);
+		//m_srcMesh.m_tm = m_rotateTm;
+		//m_srcMesh.SetShader(&m_shader);
+		m_srcMesh.RenderShader(m_renderer, m_shader, m_rotateTm);
 
 		m_cube3.RenderShader(m_renderer, m_shader);
 	}
@@ -781,9 +781,9 @@ void cViewer::RenderShadow()
 		m_shader.SetTechnique("Scene");
 
 		m_cube3.RenderShader(m_renderer, m_shader);
-		m_srcMesh.m_tm = m_rotateTm;
-		m_srcMesh.SetShader(&m_shader);
-		m_srcMesh.Render(m_renderer);
+		//m_srcMesh.m_tm = m_rotateTm;
+		//m_srcMesh.SetShader(&m_shader);
+		m_srcMesh.RenderShader(m_renderer, m_shader, m_rotateTm);
 	}
 }
 

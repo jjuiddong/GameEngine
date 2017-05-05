@@ -78,7 +78,7 @@ void CModelPanel::UpdateMeshInfo()
 {
 	m_MeshTree.DeleteAllItems();
 
-	const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadModel( 
+	const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadRawMesh( 
 		cController::Get()->GetCurrentMeshFileName() );
 	RET (!rawMeshses);
 
@@ -133,7 +133,7 @@ void CModelPanel::UpdateMaterialInfo()
 {
 	m_MaterialTree.DeleteAllItems();
 
-	const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadModel( 
+	const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadRawMesh( 
 		cController::Get()->GetCurrentMeshFileName() );
 	RET (!rawMeshses);
 
@@ -188,7 +188,7 @@ void CModelPanel::UpdateRawBoneInfo()
 {
 	m_RawBoneTree.DeleteAllItems();
 
-	const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadModel( 
+	const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadRawMesh( 
 		cController::Get()->GetCurrentMeshFileName() );
 	RET (!rawMeshses);
 
@@ -219,7 +219,7 @@ void CModelPanel::UpdateBoneInfo()
 {
 	m_BoneTree.DeleteAllItems();
 
-	const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadModel( 
+	const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadRawMesh( 
 		cController::Get()->GetCurrentMeshFileName() );
 	RET (!rawMeshses);
 
@@ -310,7 +310,7 @@ void CModelPanel::OnPanelShowhideMesh()
 	{
 		if (cMesh *mesh = cController::Get()->GetCharacter()->GetMesh(meshIndex))
 		{
-			const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadModel( 
+			const sRawMeshGroup *rawMeshses = cResourceManager::Get()->LoadRawMesh( 
 				cController::Get()->GetCurrentMeshFileName() );
 			RET (!rawMeshses);
 

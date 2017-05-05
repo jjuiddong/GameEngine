@@ -184,6 +184,26 @@ VS_OUTPUT VS_Rigid(
 }
 
 
+VS_OUTPUT VS_Rigid_Ambient(
+	float4 Pos : POSITION,
+	float3 Normal : NORMAL,
+	float2 Tex : TEXCOORD0
+)
+{
+	VS_OUTPUT Out = (VS_OUTPUT)0;
+
+   	float4x4 mVP = mul(g_mView, g_mProj);
+	float4 worldPos = mul(Pos, g_mWorld);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
+
+	Out.Pos = mul(worldPos, mVP);
+	Out.N = N;
+	Out.Eye = g_vEyePos - worldPos.xyz;
+	Out.Tex = Tex;
+   
+	return Out;
+}
+
 
 // -------------------------------------------------------------
 // 2패스:정점셰이더, 그림자 맵 출력.
@@ -312,6 +332,43 @@ technique Rigid
 		PixelShader  = compile ps_3_0 PS_Skinning();
 	}
 }
+
+
+technique Rigid_Ambient
+{
+	pass P0
+	{
+	        VertexShader = compile vs_3_0 VS_Rigid_Ambient();
+		PixelShader  = compile ps_3_0 PS_Skinning_Ambient();
+
+		CullMode = CCW;
+		AlphaBlendEnable = false;
+	}
+}
+
+
+technique Rigid_Scene
+{
+	pass P0
+	{
+	        VertexShader = compile vs_3_0 VS_Rigid();
+		PixelShader  = compile ps_3_0 PS_Skinning();
+
+		CullMode = CCW;
+		//FillMode = solid;
+        	ZEnable = true;
+	        ZFunc = LessEqual;
+	        StencilEnable = true;
+	        AlphaBlendEnable = true;
+	        BlendOp = Add;
+	        SrcBlend = One;
+	        DestBlend = One;
+	        StencilRef = 1;
+	        StencilFunc = Greater;
+	        StencilPass = Keep;
+	}
+}
+
 
 
 

@@ -16,6 +16,10 @@ public:
 
 
 public:
-	bool m_wireFrame = false;
-	bool m_backfaceCulling = true;
+	bool m_isWireFrame = false;
+	bool m_isBackfaceCulling = true;
+	bool m_isGround = true;
+	bool m_isShadow = true;
+	bool m_isWater = true;
+	bool m_isSkybox = true;
 };

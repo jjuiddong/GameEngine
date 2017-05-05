@@ -1,6 +1,7 @@
 //
 // 2017-05-01, jjuiddong
-// xfile shader
+// cube shader
+// position + normal + diffuse
 //
 
 
@@ -8,7 +9,7 @@ float4x4 g_mView;
 float4x4 g_mProj;
 float4x4 g_mWorld;
 float4x4 g_mWIT;
-float4x4 g_mVP;
+//float4x4 g_mVP;
 float3 g_vEyePos;
 float g_shininess = 90;
 float g_fFarClip = 10000;
@@ -55,7 +56,7 @@ struct VS_AMBIENT_OUTPUT
 {
 	float4 Pos : POSITION;
 	float3 Normal : NORMAL;
-	float2 Tex : TEXCOORD0;
+	float4 Color : COLOR0;
 	float3 Eye : TEXCOORD1;
 };
 
@@ -64,7 +65,7 @@ struct VS_SCENE_OUTPUT
 {
 	float4 Pos : POSITION;
 	float3 Normal : NORMAL;
-	float2 Tex : TEXCOORD0;
+	float4 Color : COLOR0;
 	float3 Eye : TEXCOORD1;
 };
 
@@ -78,8 +79,9 @@ void VS_Wire(
 	out float4 oPos : POSITION
 )
 {
+	float4x4 mVP = mul(g_mView, g_mProj);
 	float3 worldPos = mul(Pos, g_mWorld).xyz;
-	oPos = mul( float4(worldPos,1), g_mVP );
+	oPos = mul( float4(worldPos,1), mVP );
 }
 
 
@@ -95,20 +97,21 @@ float4 PS_Wire() : COLOR
 // Ambient
 
 VS_AMBIENT_OUTPUT VS_Ambient(
-	float4 Pos : POSITION,
-	float3 Normal : NORMAL,
-	float2 Tex : TEXCOORD0
+	float4 Pos : POSITION
+	, float3 Normal : NORMAL
+	, float4 inDiffuse : COLOR0 
 )
 {
 	VS_AMBIENT_OUTPUT Out = (VS_AMBIENT_OUTPUT)0;
     
+	float4x4 mVP = mul(g_mView, g_mProj);
 	float3 worldPos = mul(Pos, g_mWorld).xyz;
 	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
 
-	Out.Pos = mul( float4(worldPos,1), g_mVP );
+	Out.Pos = mul( float4(worldPos,1), mVP );
 	Out.Normal = N;
 	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
-	Out.Tex = Tex;
+	Out.Color = inDiffuse;
 
 	return Out;
 }
@@ -120,10 +123,10 @@ float4 PS_Ambient(VS_AMBIENT_OUTPUT In) : COLOR
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.Normal);
 
-	float4 color = 	g_light.ambient * g_material.ambient
-			+ (g_light.diffuse * g_material.diffuse * max(0, dot(N,L))) * 0.1f;
+	float4 color = 	g_light.ambient * In.Color
+			+ (g_light.diffuse * In.Color * max(0, dot(N,L))) * 0.1f;
 
-	float4 Out = color * tex2D(colorMap, In.Tex);
+	float4 Out = color;
 	return Out;
 }
 
@@ -175,13 +178,13 @@ float4 PS_Shadow() : COLOR
 // Scene
 
 VS_SCENE_OUTPUT VS_Scene(
-	float4 Pos : POSITION,
-	float3 Normal : NORMAL,
-	float2 Tex : TEXCOORD0
+	float4 Pos : POSITION
+	, float3 Normal : NORMAL
+	, float4 inDiffuse : COLOR0 
 )
 {
 	VS_SCENE_OUTPUT Out = (VS_SCENE_OUTPUT)0;
-    
+
 	float4x4 mVP = mul(g_mView, g_mProj);
 	float3 worldPos = mul(Pos, g_mWorld).xyz;
 	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
@@ -189,7 +192,7 @@ VS_SCENE_OUTPUT VS_Scene(
 	Out.Pos = mul( float4(worldPos,1), mVP );
 	Out.Normal = N;
 	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
-	Out.Tex = Tex;
+	Out.Color = inDiffuse;
 
 	return Out;
 }
@@ -201,14 +204,12 @@ float4 PS_Scene(VS_SCENE_OUTPUT In) : COLOR
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.Normal);
 
-
-	float4 color  = g_light.diffuse * g_material.diffuse * max(0, dot(N,L))
+	float4 color  = g_light.diffuse * In.Color * max(0, dot(N,L))
 			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
 
-	float4 Out = color * tex2D(colorMap, In.Tex);
+	float4 Out = color;
 	return Out;
 }
-
 
 
 

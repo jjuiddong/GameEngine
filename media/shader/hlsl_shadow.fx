@@ -3,6 +3,7 @@ float4x4 g_mWorld;
 float4x4 g_mVP;
 float4x4 g_mView;
 float4x4 g_mProj;                   // Projection matrix
+float4x4 g_mWIT;
 
 float3 g_vEyePos;
 float shininess = 32;
