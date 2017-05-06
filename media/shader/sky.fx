@@ -21,10 +21,10 @@ void SkyVS(float3 posL : POSITION0,
            out float3 oEnvTex : TEXCOORD0)
 {
 	// Set z = w so that z/w = 1 (i.e., skydome always on far plane).
-    oPosH = mul(float4(posL, 1.0f), gWVP).xyww; 
+	oPosH = mul(float4(posL, 1.0f), gWVP).xyww; 
     
-    // Use skymesh vertex position, in local space, as index into cubemap. 
-    oEnvTex = posL;
+	// Use skymesh vertex position, in local space, as index into cubemap. 
+	oEnvTex = posL;
 }
 
 float4 SkyPS(float3 envTex : TEXCOORD0) : COLOR

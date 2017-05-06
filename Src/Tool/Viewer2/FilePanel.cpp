@@ -107,7 +107,6 @@ void CFilePanel::OnBnClickedButtonRefresh()
 {
 	UpdateModelFiles();
 	UpdateAnimationFiles();
-	graphic::cResourceManager::Get()->ReloadFile();
 }
 
 

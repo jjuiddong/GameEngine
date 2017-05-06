@@ -17,10 +17,10 @@ cRoot::~cRoot()
 
 void cRoot::Init(graphic::cRenderer &renderer)
 {
-	const float size = 100;
-	m_ground.SetCube(renderer, Vector3(-size, -2, -size), Vector3(size, -1, size), 30.f);
+	const float size = 50;
+	m_ground.Create(renderer, 4, 4, size * 2, 60.f, -2);
 	m_ground.SetShader(cResourceManager::Get()->LoadShader(renderer, "shader/cube3.fx"));
-	m_ground.m_tex = cResourceManager::Get()->LoadTexture(renderer, "terrain/¹Ù´Ú.jpg");
+	m_ground.m_tex.Create(renderer, "../media/terrain/¹Ù´Ú.jpg");
 	if (m_ground.m_shader)
 		m_ground.m_shader->SetTechnique("Scene");
 
@@ -30,7 +30,8 @@ void cRoot::Init(graphic::cRenderer &renderer)
 	m_water.m_initInfo.uvFactor = 200.f;
 	m_water.Create(renderer);
 
-	m_skybox.Create(renderer, cResourceManager::Get()->FindFile("grassenvmap1024.dds"), 10000);
+	//m_skybox.Create(renderer, cResourceManager::Get()->FindFile("grassenvmap1024.dds"), 10000);
+	m_skybox.Create(renderer, "../media/skybox");
 
 	// ImGui Setting
 	float col_main_hue = 0.0f / 255.0f;
@@ -117,6 +118,8 @@ void cRoot::Update(graphic::cRenderer &renderer, const float deltaSeconds)
 	if (m_dispControl.m_isWater)
 		m_water.Update(deltaSeconds);
 
+	m_water.m_isRenderSurface = m_dispControl.m_isWaterSurface;
+
 	if (m_model.IsLoadFinish())
 	{
 		m_model.SetAnimation(m_model.m_animationName);
@@ -164,31 +167,38 @@ void cRoot::PreRender(graphic::cRenderer &renderer, const float deltaSeconds)
 	Plane waterPlaneH = waterPlaneL * WVPInvTrans;
 
 	float f[4] = { waterPlaneH.N.x, waterPlaneH.N.y, waterPlaneH.N.z, waterPlaneH.D };
-	renderer.GetDevice()->SetClipPlane(0, (float*)f);
 	renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 1);
+	renderer.GetDevice()->SetClipPlane(0, (float*)f);
 
 	m_water.BeginRefractScene();
 	renderer.ClearScene();
 	m_skybox.Render(renderer);
+	renderer.SetCullMode(D3DCULL_CCW);
+	renderer.SetZFunc(D3DCMP_ALWAYS);
 	RenderGeometry(renderer, deltaSeconds, Matrix44::Identity, false);
 	m_water.EndRefractScene();
 
 	// Seems like we need to reset these due to a driver bug.  It works
 	// correctly without these next two lines in the REF and another 
 	//video card, however.
-	renderer.GetDevice()->SetClipPlane(0, (float*)f);
-	renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 1);
-	renderer.GetDevice()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 
 	m_water.BeginReflectScene();
 	renderer.ClearScene();
 	Matrix44 reflectMatrix = waterPlaneW.GetReflectMatrix();
+	renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 	m_skybox.Render(renderer, reflectMatrix);
+
+	renderer.GetDevice()->SetClipPlane(0, (float*)f);
+	renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 1);
+
+	renderer.SetCullMode(D3DCULL_CW);
+	renderer.SetZFunc(D3DCMP_ALWAYS);
 	RenderGeometry(renderer, deltaSeconds, reflectMatrix, false);
 	m_water.EndReflectScene();
 
 	renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-	renderer.GetDevice()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+	renderer.SetZFunc(D3DCMP_LESSEQUAL);
+	renderer.SetCullMode(D3DCULL_CCW);
 }
 
 
@@ -215,7 +225,17 @@ void cRoot::Render(cRenderer &renderer, const float deltaSeconds)
 	if (m_dispControl.m_isSkybox)
 		m_skybox.Render(renderer);
 
-	RenderGeometry(renderer, deltaSeconds);
+	{
+		D3DFILLMODE fillMode = renderer.GetFillMode();
+		D3DCULL cullMode = renderer.GetCullMode();
+		renderer.SetCullMode(m_dispControl.m_isBackfaceCulling ? cullMode : D3DCULL_NONE);
+		renderer.SetFillMode(m_dispControl.m_isWireFrame ? D3DFILL_WIREFRAME : fillMode);
+
+		RenderGeometry(renderer, deltaSeconds);
+
+		renderer.SetFillMode(fillMode);
+		renderer.SetCullMode(cullMode);
+	}
 
 	if (m_dispControl.m_isWater)
 		m_water.Render(renderer);
@@ -227,11 +247,6 @@ void cRoot::RenderGeometry(graphic::cRenderer &renderer, const float deltaSecond
 	, const bool isShadow //= true;
 )
 {
-	D3DFILLMODE fillMode = renderer.GetFillMode();
-	D3DCULL cullMode = renderer.GetCullMode();
-	renderer.SetCullMode(m_dispControl.m_isBackfaceCulling ? cullMode : D3DCULL_NONE);
-	renderer.SetFillMode(m_dispControl.m_isWireFrame ? D3DFILL_WIREFRAME : fillMode);
-
 	if (isShadow)
 	{
 		if (m_ground.m_shader)
@@ -292,8 +307,6 @@ void cRoot::RenderGeometry(graphic::cRenderer &renderer, const float deltaSecond
 		}
 	}
 
-	renderer.SetFillMode(fillMode);
-	renderer.SetCullMode(cullMode);
 }
 
 

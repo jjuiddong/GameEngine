@@ -77,8 +77,9 @@ void CModelView::Init()
 	//m_shader.Create( "./media/shader/hlsl_skinning_using_color.fx", "TShader" );
 	//m_shader.Create( "./media/shader/hlsl_skinning_using_texcoord.fx", "TShader" );
 	//m_shader.Create(*g_renderer,  "../media/shader/hlsl_rigid_phong.fx", "TShader" );
-	m_shader = cResourceManager::Get()->LoadShader(*g_renderer, "../media/shader/hlsl_rigid_phong.fx", "TShader");
+	m_shader = cResourceManager::Get()->LoadShader(*g_renderer, "../media/shader/hlsl_rigid_phong.fx");
 	m_skybox.Create(*g_renderer, "../media/skybox" );
+	m_shader->SetTechnique("TShader");
 	
 	m_grid.Create(*g_renderer, 64, 64, 50, 1);
 	m_grid.GetTexture().Create(*g_renderer, "../media/texture/emptyTexture.png" );

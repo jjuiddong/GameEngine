@@ -30,9 +30,11 @@ protected:
 
 public:
 	graphic::cModel2 m_model;
-	graphic::cCube3 m_ground;
+	//graphic::cCube3 m_ground;
+	graphic::cGrid2 m_ground;
 	graphic::cWater m_water;
-	graphic::cSkyBox2 m_skybox;
+	graphic::cSkyBox2 m_skybox2;
+	graphic::cSkyBox m_skybox;
 
 	cDisplayControl m_dispControl;
 	cModelControl m_modelControl;

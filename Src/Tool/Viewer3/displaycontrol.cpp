@@ -31,6 +31,7 @@ void cDisplayControl::Render(cRenderer &renderer, const float deltaSeconds)
 		ImGui::Checkbox("Water", &m_isWater);
 		ImGui::Checkbox("Shadow", &m_isShadow); ImGui::SameLine(150);
 		ImGui::Checkbox("SkyBox", &m_isSkybox);
+		ImGui::Checkbox("Water Surface", &m_isWaterSurface);
 		
 		//ImGui::SameLine(150);
 		ImGui::Spacing(); ImGui::Spacing();

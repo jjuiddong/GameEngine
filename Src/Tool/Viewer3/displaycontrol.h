@@ -22,4 +22,5 @@ public:
 	bool m_isShadow = true;
 	bool m_isWater = true;
 	bool m_isSkybox = true;
+	bool m_isWaterSurface = false;
 };

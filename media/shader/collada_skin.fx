@@ -427,12 +427,6 @@ technique Scene_NoShadow
 	{
 		VertexShader = compile vs_3_0 VS();
 		PixelShader  = compile ps_3_0 PS_Scene_NoShadow();
-
-
-	        StencilEnable = false;
-        	ZEnable = true;
-	        ZFunc = LessEqual;
-	        AlphaBlendEnable = false;
 	}
 }
 

@@ -1,6 +1,7 @@
 //
 // 2017-05-01, jjuiddong
 // xfile shader
+// Pos + Normal + Tex
 //
 
 
@@ -48,6 +49,9 @@ sampler colorMap = sampler_state
     MinFilter = Anisotropic;
     MagFilter = Anisotropic;
     MipFilter = Linear;
+
+    AddressU  = WRAP;
+    AddressV  = WRAP;
 };
 
 
@@ -305,20 +309,6 @@ technique Scene_NoShadow
 	{
 		VertexShader = compile vs_3_0 VS();
 		PixelShader  = compile ps_3_0 PS_Scene_NoShadow();
-
-
-		//CullMode = CCW;
-		//FillMode = solid;
-        	ZEnable = true;
-	        ZFunc = LessEqual;
-	        StencilEnable = true;
-	        AlphaBlendEnable = false;
-	        BlendOp = Add;
-	        SrcBlend = One;
-	        DestBlend = One;
-	        StencilRef = 1;
-	        StencilFunc = Greater;
-	        StencilPass = Keep;
 	}
 }
 
