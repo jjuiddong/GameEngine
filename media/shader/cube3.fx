@@ -9,6 +9,7 @@ float4x4 g_mView;
 float4x4 g_mProj;
 float4x4 g_mWorld;
 float4x4 g_mWIT;
+float4x4 g_mWVPT; // ShadowMap Transform
 float3 g_vEyePos;
 float g_shininess = 90;
 float g_fFarClip = 10000;
@@ -55,6 +56,21 @@ sampler colorMap = sampler_state
 };
 
 
+texture g_shadowMapTexture;
+sampler ShadowMapSamp = sampler_state
+{
+    	Texture = <g_shadowMapTexture>;
+    	MinFilter = LINEAR;
+    	MagFilter = LINEAR;
+	MipFilter = NONE;
+
+	AddressU = Clamp;
+	AddressV = Clamp;
+};
+
+
+
+
 struct VS_OUTPUT
 {
 	float4 Pos : POSITION;
@@ -63,6 +79,15 @@ struct VS_OUTPUT
 	float3 Eye : TEXCOORD1;
 };
 
+
+struct VS_OUTPUT_SHADOW
+{
+	float4 Pos : POSITION;
+	float3 Normal : NORMAL;
+	float2 Tex : TEXCOORD0;
+	float4 TexShadow : TEXCOORD1;
+	float3 Eye : TEXCOORD2;
+};
 
 
 
@@ -126,6 +151,27 @@ float4 PS_Ambient(VS_OUTPUT In) : COLOR
 }
 
 
+VS_OUTPUT VS_ShadowMap(
+	float4 Pos : POSITION,
+	float3 Normal : NORMAL,
+	float2 Tex : TEXCOORD0
+)
+{
+	VS_OUTPUT Out = (VS_OUTPUT)0;
+    
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
+
+	Out.Pos = mul( Pos, mWVP );
+	Out.Normal = N;
+	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
+	Out.Tex = Tex;
+
+	return Out;
+}
+
+
 
 
 
@@ -167,6 +213,11 @@ float4 PS_Shadow() : COLOR
 }
 
 
+float4 PS_ShadowMap(VS_OUTPUT In) : COLOR
+{
+	return float4(1,1,1,1);
+}
+
 
 
 //-----------------------------------------------------------------------------------
@@ -199,6 +250,56 @@ float4 PS_Scene_NoShadow(VS_OUTPUT In) : COLOR
 	float4 Out = color * tex2D(colorMap, In.Tex);
 	return Out;
 }
+
+
+
+
+
+//--------------------------------------------------------------------------------
+// ShadowMap Render
+
+VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
+	float4 Pos : POSITION,
+	float3 Normal : NORMAL,
+	float2 Tex : TEXCOORD0
+)
+{
+	VS_OUTPUT_SHADOW Out = (VS_OUTPUT_SHADOW)0;
+    
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float4x4 mWVP = mul(g_mWorld, mVP);
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
+
+	Out.Pos = mul( Pos, mWVP );
+	Out.Normal = N;
+	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
+	Out.Tex = Tex;
+	Out.TexShadow = mul( Pos, g_mWVPT );
+
+	return Out;
+}
+
+
+float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
+{
+	float3 L = -g_light.dir;
+	float3 H = normalize(L + normalize(In.Eye));
+	float3 N = normalize(In.Normal);
+
+	float4 color  = g_light.ambient * g_material.ambient
+			+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L))
+			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
+
+	float4 Out = color * tex2D(colorMap, In.Tex);
+
+	float4 shadow = tex2Dproj( ShadowMapSamp, In.TexShadow );
+	Out = Out * saturate(color - (0.8f*shadow));
+
+	return Out;
+}
+
+
+
 
 
 
@@ -311,6 +412,29 @@ technique Scene_NoShadow
 		PixelShader  = compile ps_3_0 PS_Scene_NoShadow();
 	}
 }
+
+
+
+technique ShadowMap
+{
+	pass P0
+	{
+		VertexShader = compile vs_3_0 VS_ShadowMap();
+		PixelShader  = compile ps_3_0 PS_ShadowMap();
+	}
+}
+
+
+technique Scene_ShadowMap
+{
+	pass P0
+	{
+		VertexShader = compile vs_3_0 VS_Scene_ShadowMap();
+		PixelShader  = compile ps_3_0 PS_Scene_ShadowMap();
+	}
+}
+
+
 
 
 
