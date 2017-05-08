@@ -50,17 +50,6 @@ uniform extern float4x4 g_mWIT;
 uniform extern float4x4 g_mWorld;
 texture g_colorMapTexture;
 
-float g_fFarClip = 10000;
-float4 g_vFog= {1, 7000, 0, 0};
-//float4 g_fogColor = {0.2588f, 0.2941f, 0.4745f, 1}; // RGB(150,150,150)
-//float4 g_fogColor = {115.f/255.f, 96.f/255.f, 83.f/255.f, 1}; // RGB(150,150,150)
-//float4 g_fogColor = {134.f/255.f, 97.f/255.f, 70.f/255.f, 1}; // RGB(150,150,150)
-//float4 g_fogColor = {129.f/255.f, 94.f/255.f, 69.f/255.f, 1}; // RGB(129, 94, 69)
-//float4 g_fogColor = {113.f/255.f, 86.f/255.f, 68.f/255.f, 1}; // RGB(113, 86, 68)
-//float4 g_fogColor = {150.f/255.f, 108.f/255.f, 74.f/255.f, 1}; // RGB(150, 108, 74)
-float4 g_fogColor = {96.f/255.f, 76.f/255.f, 64.f/255.f, 1}; // RGB(96, 76, 64)
-
-
 
 
 sampler ReflectMapS = sampler_state
@@ -71,7 +60,7 @@ sampler ReflectMapS = sampler_state
 	MagFilter = LINEAR;
 	MipFilter = LINEAR;
 	AddressU  = CLAMP;
-	AddressV  = CLAMP;
+    AddressV  = CLAMP;
 };
 
 sampler RefractMapS = sampler_state
@@ -82,7 +71,7 @@ sampler RefractMapS = sampler_state
 	MagFilter = LINEAR;
 	MipFilter = LINEAR;
 	AddressU  = CLAMP;
-	AddressV  = CLAMP;
+    AddressV  = CLAMP;
 };
 
 sampler WaveMapS0 = sampler_state
@@ -93,7 +82,7 @@ sampler WaveMapS0 = sampler_state
 	MagFilter = LINEAR;
 	MipFilter = LINEAR;
 	AddressU  = WRAP;
-	AddressV  = WRAP;
+    AddressV  = WRAP;
 };
 
 sampler WaveMapS1 = sampler_state
@@ -104,7 +93,7 @@ sampler WaveMapS1 = sampler_state
 	MagFilter = LINEAR;
 	MipFilter = LINEAR;
 	AddressU  = WRAP;
-	AddressV  = WRAP;
+    AddressV  = WRAP;
 };
 
 
@@ -117,7 +106,6 @@ struct OutputVS
     float2 tex1        : TEXCOORD3;
     float4 projTexC    : TEXCOORD4;
     float  eyeVertDist : TEXCOORD5;
-    float3 Eye 	       : TEXCOORD6;
 };
 
 
@@ -160,11 +148,9 @@ OutputVS WaterVS(
 	
 	// Generate projective texture coordinates from camera's perspective.
 	outVS.projTexC = outVS.posH;
-
-	outVS.Eye = gEyePosW - mul(posL, gWorld).xyz;
-
+		
 	// Done--return the output.
-	return outVS;
+    return outVS;
 }
 
 
@@ -173,8 +159,7 @@ float4 WaterPS(float3 toEyeT      : TEXCOORD0,
                float2 tex0        : TEXCOORD2,
                float2 tex1        : TEXCOORD3,
                float4 projTexC    : TEXCOORD4,
-               float  eyeVertDist : TEXCOORD5,
-               float3 Eye         : TEXCOORD6 ) : COLOR
+               float  eyeVertDist : TEXCOORD5) : COLOR
 {
 	// Interpolated normals can become unnormal--so normalize.
 	// Note that toEyeW and normalW do not need to be normalized
@@ -247,14 +232,7 @@ float4 WaterPS(float3 toEyeT      : TEXCOORD0,
 	float3 final = diffuse + spec;
 	
 	// Output the color and the alpha.
-    	//return float4(final, g_material.diffuse.a);
-
-
-	float4 color = float4(final, g_material.diffuse.a);
-	float distance = length(Eye);
-	float l = saturate((distance - g_vFog.x) / (g_vFog.y - g_vFog.x));
-	float3 Out = lerp(color.xyz, g_fogColor.xyz, l);
-	return float4(Out.xyz, color.w);
+    return float4(final, g_material.diffuse.a);
 }
 
 technique WaterTech
@@ -264,7 +242,5 @@ technique WaterTech
         // Specify the vertex and pixel shader associated with this pass.
         vertexShader = compile vs_2_0 WaterVS();
         pixelShader  = compile ps_2_0 WaterPS();
-
-	AlphaBlendEnable = true;
     }    
 }

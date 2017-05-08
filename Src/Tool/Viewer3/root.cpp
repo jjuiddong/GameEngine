@@ -27,7 +27,8 @@ void cRoot::Init(graphic::cRenderer &renderer)
 	Matrix44 waterPos;
 	waterPos.SetPosition(Vector3(0, 0, 0));
 	m_water.m_initInfo.toWorld = waterPos;
-	m_water.m_initInfo.uvFactor = 200.f;
+	m_water.m_initInfo.uvFactor = 2000.f;
+	m_water.m_initInfo.cellSize = 640;
 	m_water.Create(renderer);
 
 	//m_skybox.Create(renderer, cResourceManager::Get()->FindFile("grassenvmap1024.dds"), 10000);
