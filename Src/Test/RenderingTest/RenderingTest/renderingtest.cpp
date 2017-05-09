@@ -70,12 +70,12 @@ bool cViewer::OnInit()
 	const int WINSIZE_Y = 768;
 	GetMainCamera()->Init(&m_renderer);
 	GetMainCamera()->SetCamera(Vector3(15, 2, -5), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.f, 10000.0f);
+	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 100.0f);
 
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
 		Vector4(0.2f, 0.2f, 0.2f, 1));
-	const Vector3 lightPos(-30, 30, -30);
+	const Vector3 lightPos(-10, 10, -10);
 	const Vector3 lightLookat(0, 0, 0);
 	GetMainLight().SetPosition(lightPos);
 	GetMainLight().SetDirection((lightLookat - lightPos).Normal());
@@ -97,7 +97,8 @@ bool cViewer::OnInit()
 	m_ground.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "../media/terrain/¹Ù´Ú.jpg");
 
 	m_skybox.Create(m_renderer, "skybox");
-	m_shadowMap.Create(m_renderer, 1024, 1024);
+	//m_shadowMap.Create(m_renderer, 1024, 1024);
+	m_shadowMap.Create(m_renderer, 2048, 2048);
 
 	{
 		string files[] = {
@@ -119,7 +120,7 @@ bool cViewer::OnInit()
 				Matrix44 T;
 				T.SetPosition(Vector3(k*2.f, 0, i * 2.f) - Vector3(10,0,0));
 				Matrix44 S;
-				S.SetScale(Vector3(1, 1, 1) * 10);
+				S.SetScale(Vector3(1, 1, 1) * 30);
 				model->m_tm = S * T;			
 
 				m_models.push_back(model);
@@ -138,8 +139,11 @@ bool cViewer::OnInit()
 		for (int i = 0; i < size; ++i)
 		{
 			cShader *p = cResourceManager::Get()->LoadShader(m_renderer, files[i]);
-			m_shadowMap.Bind(*p, "g_shadowMapTexture");
-			m_shaders.push_back(p);
+			if (p)
+			{
+				m_shadowMap.Bind(*p, "g_shadowMapTexture");
+				m_shaders.push_back(p);
+			}
 		}
 
 		m_ground.SetShader(cResourceManager::Get()->LoadShader(m_renderer, files[1]));
@@ -187,6 +191,8 @@ void cViewer::OnRender(const float deltaSeconds)
 	m_gui.SetContext();
 	m_gui.NewFrame();
 
+	Matrix44 viewtoLightProj;
+
 	{
 		Vector3 lightPos;
 		Matrix44 view, proj, tt;
@@ -194,6 +200,8 @@ void cViewer::OnRender(const float deltaSeconds)
 			Vector3(0, 0, 0), lightPos, view, proj, tt);
 
 		Matrix44 mWVPT = view * proj * tt;
+
+		viewtoLightProj = GetMainCamera()->GetViewMatrix().Inverse() * view * proj;
 
 		for (auto &p : m_shaders)
 		{
@@ -207,7 +215,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_shadowMap.Begin(m_renderer);
 		for (auto &p : m_models)
 			p->RenderShader(m_renderer);
-		m_shadowMap.End();
+		m_shadowMap.End(m_renderer);
 	}
 	
 
@@ -227,11 +235,22 @@ void cViewer::OnRender(const float deltaSeconds)
 			GetMainCamera()->Bind(*p);
 		}
 
+		const Vector3 lightPos = GetMainLight().GetPosition() * GetMainCamera()->GetViewMatrix();
+		const Vector3 lightDir = GetMainLight().GetDirection().MultiplyNormal( GetMainCamera()->GetViewMatrix());
+
 		for (auto &p : m_shaders)
 			p->SetTechnique("Scene_ShadowMap");
 		m_ground.RenderShader(m_renderer);
 		for (auto &p : m_models)
+		{
+			if (p->m_shader)
+			{
+				p->m_shader->SetVector("g_vLightPos", lightPos);
+				p->m_shader->SetVector("g_vLightDir", lightDir);
+				p->m_shader->SetMatrix("g_mViewToLightProj", viewtoLightProj);
+			}
 			p->RenderShader(m_renderer);
+		}
 
 		m_shadowMap.RenderShadowMap(m_renderer);
 
