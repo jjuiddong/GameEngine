@@ -3,6 +3,8 @@
 //
 
 #include "stdafx.h"
+#include "../../../../Common/Graphic/terrain/terrain2.h"
+#include "../../../../Common/Graphic/terrain/tile.h"
 using namespace graphic;
 
 
@@ -15,7 +17,7 @@ public:
 	virtual bool OnInit() override;
 	virtual void OnUpdate(const float deltaSeconds) override;
 	virtual void OnRender(const float deltaSeconds) override;
-	virtual void OnDeviceLost() override;
+	virtual void OnLostDevice() override;
 	virtual void OnShutdown() override;
 	virtual void OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 	void ChangeWindowSize();
@@ -25,16 +27,17 @@ private:
 	cImGui m_gui;
 	cGrid3 m_ground;
 	cSkyBox m_skybox;
+	cFrustum m_frustum;
+	cTerrain2 m_terrain;
 	cShadowMap m_shadowMap;
 	vector<cModel2*> m_models;
 	vector<cShader*> m_shaders;
 
 	bool m_isShadow = true;
-	cCube m_cube1;
-	cCube3 m_cube2;
-	Matrix44 m_rotateTm;
-	Matrix44 m_rotateTm2;
+	bool m_isVisibleSurface = true;
 	POINT m_curPos;
+	Plane m_groundPlane1, m_groundPlane2;
+	float m_moveLen;
 	bool m_LButtonDown;
 	bool m_RButtonDown;
 	bool m_MButtonDown;
@@ -44,11 +47,13 @@ INIT_FRAMEWORK(cViewer);
 
 
 cViewer::cViewer()
+	: m_groundPlane1(Vector3(0, 1, 0), 0)
 {
 	m_windowName = L"Rendering Test";
-	const RECT r = { 0, 0, 1024, 768 };
-	//const RECT r = { 0, 0, 1280, 1024};
+	//const RECT r = { 0, 0, 1024, 768 };
+	const RECT r = { 0, 0, 1280, 1024};
 	m_windowRect = r;
+	m_moveLen = 0;
 	m_LButtonDown = false;
 	m_RButtonDown = false;
 	m_MButtonDown = false;
@@ -66,29 +71,23 @@ bool cViewer::OnInit()
 
 	cResourceManager::Get()->SetMediaDirectory("../media/");
 
-	const int WINSIZE_X = 1024;
-	const int WINSIZE_Y = 768;
+	const int WINSIZE_X = m_windowRect.right - m_windowRect.left;
+	const int WINSIZE_Y = m_windowRect.bottom - m_windowRect.top;
 	GetMainCamera()->Init(&m_renderer);
-	GetMainCamera()->SetCamera(Vector3(15, 2, -5), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 100.0f);
+	GetMainCamera()->SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
+	GetMainCamera()->SetViewPort(WINSIZE_X, WINSIZE_Y);
 
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
 		Vector4(0.2f, 0.2f, 0.2f, 1));
-	const Vector3 lightPos(-10, 10, -10);
+	const Vector3 lightPos(-300, 300, -300);
 	const Vector3 lightLookat(0, 0, 0);
 	GetMainLight().SetPosition(lightPos);
 	GetMainLight().SetDirection((lightLookat - lightPos).Normal());
 
 	m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	m_renderer.GetDevice()->LightEnable(0, true);
-
-	m_cube1.InitCube(m_renderer);
-	m_cube1.SetColor(D3DXCOLOR(1, 0, 0, 1));
-
-	m_cube2.InitCube(m_renderer);
-	m_cube2.m_tm.SetTranslate(Vector3(3.5f, -2, 2));
-	m_cube2.m_mtrl.InitBlue();
 
 	m_gui.Init(m_hWnd, m_renderer.GetDevice());
 	m_gui.SetContext();
@@ -100,6 +99,8 @@ bool cViewer::OnInit()
 	//m_shadowMap.Create(m_renderer, 1024, 1024);
 	m_shadowMap.Create(m_renderer, 2048, 2048);
 
+	m_frustum.Create(m_renderer, GetMainCamera()->GetViewProjectionMatrix());
+
 	{
 		string files[] = {
 			"ChessBishop.x"
@@ -110,15 +111,15 @@ bool cViewer::OnInit()
 			, "ChessRook.x"
 		};
 		const int size = sizeof(files) / sizeof(string);
-		for (int k = 0; k < 10; ++k)
+		for (int k = 0; k < 0; ++k)
 		{
-			for (int i = 0; i < size; ++i)
+			for (int i = 0; i < 0; ++i)
 			{
 				cModel2 *model = new cModel2();
-				model->Create(m_renderer, files[i], "", "", true, false);
+				model->Create(m_renderer, files[i%size], "", "", true, false);
 
 				Matrix44 T;
-				T.SetPosition(Vector3(k*2.f, 0, i * 2.f) - Vector3(10,0,0));
+				T.SetPosition(Vector3(k*2.f, 0, i * 2.f) - Vector3(30,0,0));
 				Matrix44 S;
 				S.SetScale(Vector3(1, 1, 1) * 30);
 				model->m_tm = S * T;			
@@ -145,10 +146,37 @@ bool cViewer::OnInit()
 				m_shaders.push_back(p);
 			}
 		}
-
-		m_ground.SetShader(cResourceManager::Get()->LoadShader(m_renderer, files[1]));
-	
+		m_ground.SetShader(cResourceManager::Get()->LoadShader(m_renderer, files[1]));	
 	}
+
+	for (int tx = 0; tx < 0; ++tx)
+	{
+		for (int ty = 0; ty < 0; ++ty)
+		{
+			cTile *tile = new cTile();
+			tile->Create(m_renderer, sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f);
+			const int xSize = 5;
+			const int ySize = 5;
+			for (int i = 0; i < xSize; ++i)
+			{
+				for (int k = 0; k < ySize; ++k)
+				{
+					cModel2 *model = new cModel2();
+					model->Create(m_renderer, "ChessQueen.x");
+					Matrix44 T;
+					const float xGap = 50 / (xSize - 1);
+					const float yGap = 50 / (ySize - 1);
+					T.SetPosition(Vector3(tx* 50.f + k*xGap, 0, ty * 50.f + i * yGap));
+					Matrix44 S;
+					S.SetScale(Vector3(1, 1, 1) * 30);
+					model->m_tm = S * T;
+					tile->AddModel(model);
+				}
+				m_terrain.AddTile(tile);
+			}
+		}
+	}
+
 
 	return true;
 }
@@ -156,6 +184,8 @@ bool cViewer::OnInit()
 
 void cViewer::OnUpdate(const float deltaSeconds)
 {
+	m_terrain.Update(m_renderer, deltaSeconds);
+
 	for (auto &p : m_models)
 		p->Update(m_renderer, deltaSeconds);
 
@@ -186,73 +216,89 @@ ImVec4 clear_col = ImColor(114, 144, 154);
 
 void cViewer::OnRender(const float deltaSeconds)
 {
+	//m_terrain.PreRender(m_renderer);
+
 	GetMainLight().Bind(m_renderer, 0);
 
-	m_gui.SetContext();
-	m_gui.NewFrame();
+	//m_gui.SetContext();
+	//m_gui.NewFrame();
 
 	Matrix44 viewtoLightProj;
 
-	{
-		Vector3 lightPos;
-		Matrix44 view, proj, tt;
-		cLightManager::Get()->GetMainLight().GetShadowMatrix(
-			Vector3(0, 0, 0), lightPos, view, proj, tt);
+	// Generate ShadowMap
+	//if (m_isShadow)
+	//{
+	//	const Vector3 camPos = GetMainCamera()->GetEyePos();
+	//	const Vector3 camDir = GetMainCamera()->GetDirection();
 
-		Matrix44 mWVPT = view * proj * tt;
+	//	Vector3 pickPos;
+	//	if (abs(camDir.y) < 0.3f)
+	//	{
+	//		pickPos = camDir * 10 + camPos;
+	//	}
+	//	else
+	//	{
+	//		pickPos = m_groundPlane1.Pick(camPos, camDir);
+	//	}
 
-		viewtoLightProj = GetMainCamera()->GetViewMatrix().Inverse() * view * proj;
+	//	const Vector3 lightPos = -GetMainLight().GetDirection() * camPos.Length() + pickPos;
 
-		for (auto &p : m_shaders)
-		{
-			m_shadowMap.Bind(*p, "g_shadowMapTexture");
-			p->SetTechnique("ShadowMap");
-			p->SetMatrix("g_mWVPT", mWVPT);
-			p->SetMatrix("g_mView", view);
-			p->SetMatrix("g_mProj", proj);
-		}
+	//	Matrix44 view, proj, tt;
+	//	GetMainLight().GetShadowMatrix(lightPos, view, proj, tt);
 
-		m_shadowMap.Begin(m_renderer);
-		for (auto &p : m_models)
-			p->RenderShader(m_renderer);
-		m_shadowMap.End(m_renderer);
-	}
+	//	Matrix44 mWVPT = view * proj * tt;
+
+	//	viewtoLightProj = GetMainCamera()->GetViewMatrix().Inverse() * view * proj;
+
+	//	for (auto &p : m_shaders)
+	//	{
+	//		p->SetTechnique("ShadowMap");
+	//		m_shadowMap.Bind(*p, "g_shadowMapTexture");
+	//		p->SetMatrix("g_mWVPT", mWVPT);
+	//		p->SetMatrix("g_mView", view);
+	//		p->SetMatrix("g_mProj", proj);
+	//	}
+
+	//	m_shadowMap.Begin(m_renderer);
+	//	for (auto &p : m_models)
+	//		p->RenderShader(m_renderer);
+	//	m_shadowMap.End(m_renderer);
+	//}
 	
-
+	// Render
 	if (m_renderer.ClearScene())
 	{
 		m_renderer.BeginScene();
 		m_renderer.GetDevice()->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&Matrix44::Identity);
 
-		m_skybox.Render(m_renderer);
+		GetMainCamera()->Bind(m_renderer);
+		//m_skybox.Render(m_renderer);
 
-		m_renderer.RenderGrid();
-		m_renderer.RenderFPS();
+		//m_renderer.RenderGrid();
+		//m_renderer.RenderFPS();
 
-		for (auto &p : m_shaders)
-		{
-			GetMainLight().Bind(*p);
-			GetMainCamera()->Bind(*p);
-		}
+		//const Vector3 lightPos = GetMainLight().GetPosition() * GetMainCamera()->GetViewMatrix();
+		//const Vector3 lightDir = GetMainLight().GetDirection().MultiplyNormal( GetMainCamera()->GetViewMatrix());
 
-		const Vector3 lightPos = GetMainLight().GetPosition() * GetMainCamera()->GetViewMatrix();
-		const Vector3 lightDir = GetMainLight().GetDirection().MultiplyNormal( GetMainCamera()->GetViewMatrix());
+		//for (auto &p : m_shaders)
+		//{
+		//	GetMainLight().Bind(*p);
+		//	GetMainCamera()->Bind(*p);
+		//	p->SetTechnique(m_isShadow? "Scene_ShadowMap" : "Scene_NoShadow");
+		//	p->SetVector("g_vLightPos", lightPos);
+		//	p->SetVector("g_vLightDir", lightDir);
+		//	p->SetMatrix("g_mViewToLightProj", viewtoLightProj);
+		//}
+		////m_ground.RenderShader(m_renderer);
+		//for (auto &p : m_models)
+		//	p->RenderShader(m_renderer);
 
-		for (auto &p : m_shaders)
-			p->SetTechnique("Scene_ShadowMap");
-		m_ground.RenderShader(m_renderer);
-		for (auto &p : m_models)
-		{
-			if (p->m_shader)
-			{
-				p->m_shader->SetVector("g_vLightPos", lightPos);
-				p->m_shader->SetVector("g_vLightDir", lightDir);
-				p->m_shader->SetMatrix("g_mViewToLightProj", viewtoLightProj);
-			}
-			p->RenderShader(m_renderer);
-		}
+		//if (m_isVisibleSurface)
+		//	m_shadowMap.RenderShadowMap(m_renderer);
 
-		m_shadowMap.RenderShadowMap(m_renderer);
+		//m_terrain.Render(m_renderer);
+
+		m_frustum.Render(m_renderer);
 
 		// Volume Shadow
 		//for (auto &p : m_shaders)
@@ -276,14 +322,14 @@ void cViewer::OnRender(const float deltaSeconds)
 		//	p->RenderShader(m_renderer);
 
 		m_renderer.RenderAxis();
-		m_gui.Render();
+		//m_gui.Render();
 		m_renderer.EndScene();
 		m_renderer.Present();
 	}
 }
 
 
-void cViewer::OnDeviceLost()
+void cViewer::OnLostDevice()
 {
 	m_gui.InvalidateDeviceObjects();
 	m_shadowMap.LostDevice();
@@ -319,7 +365,7 @@ void cViewer::ChangeWindowSize()
 
 void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	cInputManager::Get()->MouseProc(message, wParam, lParam);
+	framework::cInputManager::Get()->MouseProc(message, wParam, lParam);
 
 	m_gui.WndProcHandler(m_hWnd, message, wParam, lParam);
 
@@ -389,18 +435,25 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			cResourceManager::Get()->ReloadShader(m_renderer);
 			break;
 
-		case VK_SPACE:
-			m_isShadow = !m_isShadow;
-			break;
+		case VK_SPACE: m_isShadow = !m_isShadow; break;
+		case '1': m_isVisibleSurface = !m_isVisibleSurface; break;
 		}
 		break;
 
 	case WM_LBUTTONDOWN:
 	{
+		POINT pos = { (short)LOWORD(lParam), (short)HIWORD(lParam) };
+
 		SetCapture(m_hWnd);
 		m_LButtonDown = true;
 		m_curPos.x = LOWORD(lParam);
 		m_curPos.y = HIWORD(lParam);
+
+		Vector3 orig, dir;
+		graphic::GetMainCamera()->GetRay(pos.x, pos.y, orig, dir);
+		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
+		m_moveLen = (p1 - orig).Length();
+		graphic::GetMainCamera()->MoveCancel();
 	}
 	break;
 
@@ -428,12 +481,14 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_MBUTTONDOWN:
+		SetCapture(m_hWnd);
 		m_MButtonDown = true;
 		m_curPos.x = LOWORD(lParam);
 		m_curPos.y = HIWORD(lParam);
 		break;
 
 	case WM_MBUTTONUP:
+		ReleaseCapture();
 		m_MButtonDown = false;
 		break;
 
@@ -451,18 +506,15 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			Quaternion q1(graphic::GetMainCamera()->GetRight(), -y * 0.01f);
-			Quaternion q2(graphic::GetMainCamera()->GetUpVector(), -x * 0.01f);
+			Vector3 dir = graphic::GetMainCamera()->GetDirection();
+			Vector3 right = graphic::GetMainCamera()->GetRight();
+			dir.y = 0;
+			dir.Normalize();
+			right.y = 0;
+			right.Normalize();
 
-			if (GetAsyncKeyState('F'))
-			{
-				//m_cube2.m_tm *= (q2.GetMatrix() * q1.GetMatrix());
-			}
-			else
-			{
-				m_rotateTm *= (q2.GetMatrix() * q1.GetMatrix());
-			}
-
+			graphic::GetMainCamera()->MoveRight(-x * m_moveLen * 0.001f);
+			graphic::GetMainCamera()->MoveFrontHorizontal(y * m_moveLen * 0.001f);
 		}
 		else if (m_RButtonDown)
 		{

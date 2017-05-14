@@ -12,11 +12,15 @@ float4x4 g_mWorld;
 float4x4 g_mWIT;
 float4x4 g_mWVPT; // ShadowMap Transform
 float3 g_vEyePos; // Eye Position in world space
+float g_shininess = 90;
+float g_fFarClip = 10000;
+float g_uvFactor = 1.f;
+float4x3 g_mPalette[ 64];
 
 
 //#define SMAP_SIZE 1024
 #define SMAP_SIZE 2048
-#define SHADOW_EPSILON 0.001f
+#define SHADOW_EPSILON 0.00001f
 
 float4x4 g_mViewToLightProj;  // Transform from view space to light projection space
 float3 g_vLightPos; // Light position in view space
@@ -24,10 +28,9 @@ float3 g_vLightDir; // Light direction in view space
 float4 g_vLightAmbient = float4( 0.3f, 0.3f, 0.3f, 1.0f );  // Use an ambient light of 0.3
 float4 g_vMaterial = float4(1,1,1,1);
 
-float g_shininess = 90;
-float g_fFarClip = 10000;
 
-float4x3 g_mPalette[ 64];
+
+
 
 
 struct Light
@@ -75,8 +78,8 @@ sampler shadowMap = sampler_state
     	MagFilter = LINEAR;
 	MipFilter = NONE;
 
-	AddressU = Clamp;
-	AddressV = Clamp;
+	AddressU = Border;
+	AddressV = Border;
 };
 
 
@@ -101,6 +104,7 @@ struct VS_OUTPUT_SHADOW
 	float4 vPos : TEXCOORD3;
 	float4 vPosLight : TEXCOORD4;
 };
+
 
 
 
@@ -232,9 +236,6 @@ void PS_ShadowMap(
 )
 {
 	Color = Depth.x / Depth.y;
-
-	//Color = float4(1,1,1,1);
-	//Color = Depth.x * 1;
 }
 
 

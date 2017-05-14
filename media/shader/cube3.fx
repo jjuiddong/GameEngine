@@ -14,8 +14,18 @@ float3 g_vEyePos;
 float g_shininess = 90;
 float g_fFarClip = 10000;
 float g_uvFactor = 1.f;
-
 float4x3 g_mPalette[ 64];
+
+//#define SMAP_SIZE 1024
+#define SMAP_SIZE 2048
+#define SHADOW_EPSILON 0.00001f
+
+float4x4 g_mViewToLightProj;  // Transform from view space to light projection space
+float3 g_vLightPos; // Light position in view space
+float3 g_vLightDir; // Light direction in view space
+float4 g_vLightAmbient = float4( 0.3f, 0.3f, 0.3f, 1.0f );  // Use an ambient light of 0.3
+float4 g_vMaterial = float4(1,1,1,1);
+
 
 
 struct Light
@@ -57,15 +67,15 @@ sampler colorMap = sampler_state
 
 
 texture g_shadowMapTexture;
-sampler ShadowMapSamp = sampler_state
+sampler shadowMap = sampler_state
 {
     	Texture = <g_shadowMapTexture>;
     	MinFilter = LINEAR;
     	MagFilter = LINEAR;
 	MipFilter = NONE;
 
-	AddressU = Clamp;
-	AddressV = Clamp;
+	AddressU = Border;
+	AddressV = Border;
 };
 
 
@@ -87,7 +97,10 @@ struct VS_OUTPUT_SHADOW
 	float2 Tex : TEXCOORD0;
 	float4 TexShadow : TEXCOORD1;
 	float3 Eye : TEXCOORD2;
+	float4 vPos : TEXCOORD3;
+	float4 vPosLight : TEXCOORD4;
 };
+
 
 
 
@@ -265,16 +278,19 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 )
 {
 	VS_OUTPUT_SHADOW Out = (VS_OUTPUT_SHADOW)0;
-    
+
+	float4x4 mWV = mul(g_mWorld, g_mView);
 	float4x4 mVP = mul(g_mView, g_mProj);
 	float4x4 mWVP = mul(g_mWorld, mVP);
-	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
+	float3 N = normalize( mul(Normal, (float3x3)mWV) );
 
 	Out.Pos = mul( Pos, mWVP );
 	Out.Normal = N;
 	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
 	Out.Tex = Tex;
 	Out.TexShadow = mul( Pos, g_mWVPT );
+	Out.vPos = mul( Pos, mWV);
+    	Out.vPosLight = mul( Out.vPos, g_mViewToLightProj );
 
 	return Out;
 }
@@ -282,20 +298,25 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 
 float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 {
-	float3 L = -g_light.dir;
-	float3 H = normalize(L + normalize(In.Eye));
-	float3 N = normalize(In.Normal);
+	float4 Diffuse;
+	float3 vLight = normalize( float3( In.vPos - g_vLightPos ) );
+        float2 ShadowTexC = 0.5 * In.vPosLight.xy / In.vPosLight.w + float2( 0.5f, 0.5f );
+        ShadowTexC.y = 1.0f - ShadowTexC.y;
 
-	float4 color  = g_light.ambient * g_material.ambient
-			+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L))
-			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
+	//float2 ShadowTexC = In.TexShadow.xy;
+	//float4 ShadowTexC = In.TexShadow;
+        float2 texelpos = SMAP_SIZE * ShadowTexC;
+        float2 lerps = frac( texelpos );
 
-	float4 Out = color * tex2D(colorMap, In.Tex);
+	float z = (In.vPosLight.z / In.vPosLight.w) * 1;
+        float sourcevals[1];
+	sourcevals[0] = ((tex2D( shadowMap, ShadowTexC ) + SHADOW_EPSILON) < z)? 0.0f: 1.0f;  
+	float LightAmount = sourcevals[0];
 
-	float4 shadow = tex2Dproj( ShadowMapSamp, In.TexShadow );
-	Out = Out * saturate(color - (0.8f*shadow));
+        Diffuse = ( saturate( dot(-vLight, In.Normal) ) * LightAmount * ( 1 - g_vLightAmbient ) + g_vLightAmbient )
+                  * g_vMaterial;
 
-	return Out;
+    	return tex2D( colorMap, In.Tex ) * Diffuse;
 }
 
 
