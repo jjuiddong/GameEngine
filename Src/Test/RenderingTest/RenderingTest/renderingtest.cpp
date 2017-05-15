@@ -27,7 +27,7 @@ private:
 	cImGui m_gui;
 	cGrid3 m_ground;
 	cSkyBox m_skybox;
-	cFrustum m_frustum;
+	cDbgFrustum m_frustum;
 	cTerrain2 m_terrain;
 	cShadowMap m_shadowMap;
 	vector<cModel2*> m_models;
@@ -35,6 +35,8 @@ private:
 
 	bool m_isShadow = true;
 	bool m_isVisibleSurface = true;
+	bool m_isFrustumTracking = true;
+	bool m_isCallingModel = true;
 	POINT m_curPos;
 	Plane m_groundPlane1, m_groundPlane2;
 	float m_moveLen;
@@ -149,9 +151,9 @@ bool cViewer::OnInit()
 		m_ground.SetShader(cResourceManager::Get()->LoadShader(m_renderer, files[1]));	
 	}
 
-	for (int tx = 0; tx < 0; ++tx)
+	for (int tx = 0; tx < 5; ++tx)
 	{
-		for (int ty = 0; ty < 0; ++ty)
+		for (int ty = 0; ty < 5; ++ty)
 		{
 			cTile *tile = new cTile();
 			tile->Create(m_renderer, sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f);
@@ -216,9 +218,13 @@ ImVec4 clear_col = ImColor(114, 144, 154);
 
 void cViewer::OnRender(const float deltaSeconds)
 {
-	//m_terrain.PreRender(m_renderer);
-
 	GetMainLight().Bind(m_renderer, 0);
+	
+	if (m_isFrustumTracking)
+		m_frustum.SetFrustum(m_renderer, GetMainCamera()->GetViewProjectionMatrix());
+
+	m_terrain.CullingTest(m_frustum, m_isCallingModel);
+	m_terrain.PreRender(m_renderer);
 
 	//m_gui.SetContext();
 	//m_gui.NewFrame();
@@ -226,44 +232,44 @@ void cViewer::OnRender(const float deltaSeconds)
 	Matrix44 viewtoLightProj;
 
 	// Generate ShadowMap
-	//if (m_isShadow)
-	//{
-	//	const Vector3 camPos = GetMainCamera()->GetEyePos();
-	//	const Vector3 camDir = GetMainCamera()->GetDirection();
+	if (m_isShadow)
+	{
+		const Vector3 camPos = GetMainCamera()->GetEyePos();
+		const Vector3 camDir = GetMainCamera()->GetDirection();
 
-	//	Vector3 pickPos;
-	//	if (abs(camDir.y) < 0.3f)
-	//	{
-	//		pickPos = camDir * 10 + camPos;
-	//	}
-	//	else
-	//	{
-	//		pickPos = m_groundPlane1.Pick(camPos, camDir);
-	//	}
+		Vector3 pickPos;
+		if (abs(camDir.y) < 0.3f)
+		{
+			pickPos = camDir * 10 + camPos;
+		}
+		else
+		{
+			pickPos = m_groundPlane1.Pick(camPos, camDir);
+		}
 
-	//	const Vector3 lightPos = -GetMainLight().GetDirection() * camPos.Length() + pickPos;
+		const Vector3 lightPos = -GetMainLight().GetDirection() * camPos.Length() + pickPos;
 
-	//	Matrix44 view, proj, tt;
-	//	GetMainLight().GetShadowMatrix(lightPos, view, proj, tt);
+		Matrix44 view, proj, tt;
+		GetMainLight().GetShadowMatrix(lightPos, view, proj, tt);
 
-	//	Matrix44 mWVPT = view * proj * tt;
+		Matrix44 mWVPT = view * proj * tt;
 
-	//	viewtoLightProj = GetMainCamera()->GetViewMatrix().Inverse() * view * proj;
+		viewtoLightProj = GetMainCamera()->GetViewMatrix().Inverse() * view * proj;
 
-	//	for (auto &p : m_shaders)
-	//	{
-	//		p->SetTechnique("ShadowMap");
-	//		m_shadowMap.Bind(*p, "g_shadowMapTexture");
-	//		p->SetMatrix("g_mWVPT", mWVPT);
-	//		p->SetMatrix("g_mView", view);
-	//		p->SetMatrix("g_mProj", proj);
-	//	}
+		for (auto &p : m_shaders)
+		{
+			p->SetTechnique("ShadowMap");
+			m_shadowMap.Bind(*p, "g_shadowMapTexture");
+			p->SetMatrix("g_mWVPT", mWVPT);
+			p->SetMatrix("g_mView", view);
+			p->SetMatrix("g_mProj", proj);
+		}
 
-	//	m_shadowMap.Begin(m_renderer);
-	//	for (auto &p : m_models)
-	//		p->RenderShader(m_renderer);
-	//	m_shadowMap.End(m_renderer);
-	//}
+		m_shadowMap.Begin(m_renderer);
+		for (auto &p : m_models)
+			p->RenderShader(m_renderer);
+		m_shadowMap.End(m_renderer);
+	}
 	
 	// Render
 	if (m_renderer.ClearScene())
@@ -272,31 +278,31 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_renderer.GetDevice()->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&Matrix44::Identity);
 
 		GetMainCamera()->Bind(m_renderer);
-		//m_skybox.Render(m_renderer);
+		m_skybox.Render(m_renderer);
 
-		//m_renderer.RenderGrid();
-		//m_renderer.RenderFPS();
+		m_renderer.RenderGrid();
+		m_renderer.RenderFPS();
 
-		//const Vector3 lightPos = GetMainLight().GetPosition() * GetMainCamera()->GetViewMatrix();
-		//const Vector3 lightDir = GetMainLight().GetDirection().MultiplyNormal( GetMainCamera()->GetViewMatrix());
+		const Vector3 lightPos = GetMainLight().GetPosition() * GetMainCamera()->GetViewMatrix();
+		const Vector3 lightDir = GetMainLight().GetDirection().MultiplyNormal( GetMainCamera()->GetViewMatrix());
 
-		//for (auto &p : m_shaders)
-		//{
-		//	GetMainLight().Bind(*p);
-		//	GetMainCamera()->Bind(*p);
-		//	p->SetTechnique(m_isShadow? "Scene_ShadowMap" : "Scene_NoShadow");
-		//	p->SetVector("g_vLightPos", lightPos);
-		//	p->SetVector("g_vLightDir", lightDir);
-		//	p->SetMatrix("g_mViewToLightProj", viewtoLightProj);
-		//}
-		////m_ground.RenderShader(m_renderer);
-		//for (auto &p : m_models)
-		//	p->RenderShader(m_renderer);
+		for (auto &p : m_shaders)
+		{
+			GetMainLight().Bind(*p);
+			GetMainCamera()->Bind(*p);
+			p->SetTechnique(m_isShadow? "Scene_ShadowMap" : "Scene_NoShadow");
+			p->SetVector("g_vLightPos", lightPos);
+			p->SetVector("g_vLightDir", lightDir);
+			p->SetMatrix("g_mViewToLightProj", viewtoLightProj);
+		}
+		m_ground.RenderShader(m_renderer);
+		for (auto &p : m_models)
+			p->RenderShader(m_renderer);
 
-		//if (m_isVisibleSurface)
-		//	m_shadowMap.RenderShadowMap(m_renderer);
+		if (m_isVisibleSurface)
+			m_shadowMap.RenderShadowMap(m_renderer);
 
-		//m_terrain.Render(m_renderer);
+		m_terrain.Render(m_renderer);
 
 		m_frustum.Render(m_renderer);
 
@@ -437,6 +443,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		case VK_SPACE: m_isShadow = !m_isShadow; break;
 		case '1': m_isVisibleSurface = !m_isVisibleSurface; break;
+		case '2': m_isFrustumTracking = !m_isFrustumTracking;  break;
+		case '3': m_isCallingModel = !m_isCallingModel;  break;
 		}
 		break;
 
