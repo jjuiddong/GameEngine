@@ -151,9 +151,9 @@ bool cViewer::OnInit()
 		m_ground.SetShader(cResourceManager::Get()->LoadShader(m_renderer, files[1]));	
 	}
 
-	for (int tx = 0; tx < 5; ++tx)
+	for (int tx = 0; tx < 10; ++tx)
 	{
-		for (int ty = 0; ty < 5; ++ty)
+		for (int ty = 0; ty < 10; ++ty)
 		{
 			cTile *tile = new cTile();
 			tile->Create(m_renderer, sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f);
