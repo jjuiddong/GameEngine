@@ -30,7 +30,6 @@ private:
 	cDbgFrustum m_frustum;
 	cTerrain2 m_terrain;
 	cShadowMap m_shadowMap;
-	vector<cModel2*> m_models;
 	vector<cShader*> m_shaders;
 
 	bool m_isShadow = true;
@@ -103,33 +102,33 @@ bool cViewer::OnInit()
 
 	m_frustum.Create(m_renderer, GetMainCamera()->GetViewProjectionMatrix());
 
-	{
-		string files[] = {
-			"ChessBishop.x"
-			, "ChessKing.x"
-			, "ChessKnight.x"
-			, "ChessPawn.x"
-			, "ChessQueen.x"
-			, "ChessRook.x"
-		};
-		const int size = sizeof(files) / sizeof(string);
-		for (int k = 0; k < 0; ++k)
-		{
-			for (int i = 0; i < 0; ++i)
-			{
-				cModel2 *model = new cModel2();
-				model->Create(m_renderer, files[i%size], "", "", true, false);
+	//{
+	//	string files[] = {
+	//		"ChessBishop.x"
+	//		, "ChessKing.x"
+	//		, "ChessKnight.x"
+	//		, "ChessPawn.x"
+	//		, "ChessQueen.x"
+	//		, "ChessRook.x"
+	//	};
+	//	const int size = sizeof(files) / sizeof(string);
+	//	for (int k = 0; k < 0; ++k)
+	//	{
+	//		for (int i = 0; i < 0; ++i)
+	//		{
+	//			cModel2 *model = new cModel2();
+	//			model->Create(m_renderer, files[i%size], "", "", true, false);
 
-				Matrix44 T;
-				T.SetPosition(Vector3(k*2.f, 0, i * 2.f) - Vector3(30,0,0));
-				Matrix44 S;
-				S.SetScale(Vector3(1, 1, 1) * 30);
-				model->m_tm = S * T;			
+	//			Matrix44 T;
+	//			T.SetPosition(Vector3(k*2.f, 0, i * 2.f) - Vector3(30,0,0));
+	//			Matrix44 S;
+	//			S.SetScale(Vector3(1, 1, 1) * 30);
+	//			model->m_tm = S * T;			
 
-				m_models.push_back(model);
-			}		
-		}
-	}
+	//			m_models.push_back(model);
+	//		}		
+	//	}
+	//}
 
 	{
 		string files[] = {
@@ -179,7 +178,6 @@ bool cViewer::OnInit()
 		}
 	}
 
-
 	return true;
 }
 
@@ -187,9 +185,6 @@ bool cViewer::OnInit()
 void cViewer::OnUpdate(const float deltaSeconds)
 {
 	m_terrain.Update(m_renderer, deltaSeconds);
-
-	for (auto &p : m_models)
-		p->Update(m_renderer, deltaSeconds);
 
 	// keyboard
 	if (GetFocus() == m_hWnd)
@@ -232,44 +227,39 @@ void cViewer::OnRender(const float deltaSeconds)
 	Matrix44 viewtoLightProj;
 
 	// Generate ShadowMap
-	if (m_isShadow)
-	{
-		const Vector3 camPos = GetMainCamera()->GetEyePos();
-		const Vector3 camDir = GetMainCamera()->GetDirection();
+	//if (m_isShadow)
+	//{
+	//	const Vector3 camPos = GetMainCamera()->GetEyePos();
+	//	const Vector3 camDir = GetMainCamera()->GetDirection();
 
-		Vector3 pickPos;
-		if (abs(camDir.y) < 0.3f)
-		{
-			pickPos = camDir * 10 + camPos;
-		}
-		else
-		{
-			pickPos = m_groundPlane1.Pick(camPos, camDir);
-		}
+	//	Vector3 pickPos;
+	//	if (abs(camDir.y) < 0.3f)
+	//	{
+	//		pickPos = camDir * 10 + camPos;
+	//	}
+	//	else
+	//	{
+	//		pickPos = m_groundPlane1.Pick(camPos, camDir);
+	//	}
 
-		const Vector3 lightPos = -GetMainLight().GetDirection() * camPos.Length() + pickPos;
+	//	const Vector3 lightPos = -GetMainLight().GetDirection() * camPos.Length() + pickPos;
 
-		Matrix44 view, proj, tt;
-		GetMainLight().GetShadowMatrix(lightPos, view, proj, tt);
+	//	Matrix44 view, proj, tt;
+	//	GetMainLight().GetShadowMatrix(lightPos, view, proj, tt);
 
-		Matrix44 mWVPT = view * proj * tt;
+	//	Matrix44 mWVPT = view * proj * tt;
 
-		viewtoLightProj = GetMainCamera()->GetViewMatrix().Inverse() * view * proj;
+	//	viewtoLightProj = GetMainCamera()->GetViewMatrix().Inverse() * view * proj;
 
-		for (auto &p : m_shaders)
-		{
-			p->SetTechnique("ShadowMap");
-			m_shadowMap.Bind(*p, "g_shadowMapTexture");
-			p->SetMatrix("g_mWVPT", mWVPT);
-			p->SetMatrix("g_mView", view);
-			p->SetMatrix("g_mProj", proj);
-		}
-
-		m_shadowMap.Begin(m_renderer);
-		for (auto &p : m_models)
-			p->RenderShader(m_renderer);
-		m_shadowMap.End(m_renderer);
-	}
+	//	for (auto &p : m_shaders)
+	//	{
+	//		p->SetTechnique("ShadowMap");
+	//		m_shadowMap.Bind(*p, "g_shadowMapTexture");
+	//		p->SetMatrix("g_mWVPT", mWVPT);
+	//		p->SetMatrix("g_mView", view);
+	//		p->SetMatrix("g_mProj", proj);
+	//	}
+	//}
 	
 	// Render
 	if (m_renderer.ClearScene())
@@ -283,52 +273,21 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_renderer.RenderGrid();
 		m_renderer.RenderFPS();
 
-		const Vector3 lightPos = GetMainLight().GetPosition() * GetMainCamera()->GetViewMatrix();
-		const Vector3 lightDir = GetMainLight().GetDirection().MultiplyNormal( GetMainCamera()->GetViewMatrix());
-
 		for (auto &p : m_shaders)
 		{
 			GetMainLight().Bind(*p);
 			GetMainCamera()->Bind(*p);
-			p->SetTechnique(m_isShadow? "Scene_ShadowMap" : "Scene_NoShadow");
-			p->SetVector("g_vLightPos", lightPos);
-			p->SetVector("g_vLightDir", lightDir);
-			p->SetMatrix("g_mViewToLightProj", viewtoLightProj);
 		}
-		m_ground.RenderShader(m_renderer);
-		for (auto &p : m_models)
-			p->RenderShader(m_renderer);
+
+		//m_ground.RenderShader(m_renderer);
 
 		if (m_isVisibleSurface)
 			m_shadowMap.RenderShadowMap(m_renderer);
 
 		m_terrain.Render(m_renderer);
-
 		m_frustum.Render(m_renderer);
 
-		// Volume Shadow
-		//for (auto &p : m_shaders)
-		//	p->SetTechnique("Ambient");
-		//m_ground.RenderShader(m_renderer);
-		//for (auto &p : m_models)
-		//	p->RenderShader(m_renderer);
-
-		//if (m_isShadow)
-		//{
-		//	for (auto &p : m_shaders)
-		//		p->SetTechnique("Shadow");
-		//	for (auto &p : m_models)
-		//		p->RenderShadow(m_renderer);
-		//}
-
-		//for (auto &p : m_shaders)
-		//	p->SetTechnique("Scene");
-		//m_ground.RenderShader(m_renderer);
-		//for (auto &p : m_models)
-		//	p->RenderShader(m_renderer);
-
 		m_renderer.RenderAxis();
-		//m_gui.Render();
 		m_renderer.EndScene();
 		m_renderer.Present();
 	}
@@ -348,11 +307,6 @@ void cViewer::OnLostDevice()
 void cViewer::OnShutdown()
 {
 	m_gui.Shutdown();
-
-	for (auto &p : m_models)
-		delete p;
-	m_models.clear();
-	
 }
 
 
@@ -445,6 +399,12 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		case '1': m_isVisibleSurface = !m_isVisibleSurface; break;
 		case '2': m_isFrustumTracking = !m_isFrustumTracking;  break;
 		case '3': m_isCallingModel = !m_isCallingModel;  break;
+		case '4': {
+			static bool isDbgRender = true;
+			isDbgRender = !isDbgRender;
+			m_terrain.SetDbgRendering(isDbgRender);
+		}
+		break;
 		}
 		break;
 

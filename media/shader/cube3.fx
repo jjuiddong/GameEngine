@@ -287,7 +287,7 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	Out.Pos = mul( Pos, mWVP );
 	Out.Normal = N;
 	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
-	Out.Tex = Tex;
+	Out.Tex = Tex * g_uvFactor;
 	Out.TexShadow = mul( Pos, g_mWVPT );
 	Out.vPos = mul( Pos, mWV);
     	Out.vPosLight = mul( Out.vPos, g_mViewToLightProj );
