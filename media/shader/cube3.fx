@@ -9,7 +9,8 @@ float4x4 g_mView;
 float4x4 g_mProj;
 float4x4 g_mWorld;
 float4x4 g_mWIT;
-float4x4 g_mWVPT; // ShadowMap Transform
+float4x4 g_mVPT; // ShadowMap Transform, = light view x light proj x uv transform
+float4x4 g_mLVP; // ShadowMap Transform, Light View Projection, = light view x light proj
 float3 g_vEyePos;
 float g_shininess = 90;
 float g_fFarClip = 10000;
@@ -20,11 +21,11 @@ float4x3 g_mPalette[ 64];
 #define SMAP_SIZE 2048
 #define SHADOW_EPSILON 0.00001f
 
-float4x4 g_mViewToLightProj;  // Transform from view space to light projection space
-float3 g_vLightPos; // Light position in view space
-float3 g_vLightDir; // Light direction in view space
-float4 g_vLightAmbient = float4( 0.3f, 0.3f, 0.3f, 1.0f );  // Use an ambient light of 0.3
-float4 g_vMaterial = float4(1,1,1,1);
+//float4x4 g_mViewToLightProj;  // Transform from view space to light projection space
+//float3 g_vLightPos; // Light position in view space
+//float3 g_vLightDir; // Light direction in view space
+//float4 g_vLightAmbient = float4( 0.3f, 0.3f, 0.3f, 1.0f );  // Use an ambient light of 0.3
+//float4 g_vMaterial = float4(1,1,1,1);
 
 
 
@@ -164,27 +165,29 @@ float4 PS_Ambient(VS_OUTPUT In) : COLOR
 }
 
 
-VS_OUTPUT VS_ShadowMap(
-	float4 Pos : POSITION,
-	float3 Normal : NORMAL,
-	float2 Tex : TEXCOORD0
+
+void VS_ShadowMap(
+	float4 Pos : POSITION
+	, float3 Normal : NORMAL
+        , out float4 oPos : POSITION
+        , out float2 Depth : TEXCOORD0
 )
 {
-	VS_OUTPUT Out = (VS_OUTPUT)0;
-    
 	float4x4 mVP = mul(g_mView, g_mProj);
 	float4x4 mWVP = mul(g_mWorld, mVP);
-	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
 
-	Out.Pos = mul( Pos, mWVP );
-	Out.Normal = N;
-	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
-	Out.Tex = Tex;
-
-	return Out;
+	oPos = mul( Pos, mWVP );
+	Depth.xy = oPos.zw;
 }
 
 
+void PS_ShadowMap(
+		float2 Depth : TEXCOORD0
+		, out float4 Color : COLOR 
+)
+{
+	Color = Depth.x / Depth.y;
+}
 
 
 
@@ -225,11 +228,6 @@ float4 PS_Shadow() : COLOR
 	return float4(0,1,0,1);
 }
 
-
-float4 PS_ShadowMap(VS_OUTPUT In) : COLOR
-{
-	return float4(1,1,1,1);
-}
 
 
 
@@ -283,14 +281,16 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	float4x4 mVP = mul(g_mView, g_mProj);
 	float4x4 mWVP = mul(g_mWorld, mVP);
 	float3 N = normalize( mul(Normal, (float3x3)mWV) );
+	float4 wPos = mul(Pos, g_mWorld);
 
 	Out.Pos = mul( Pos, mWVP );
 	Out.Normal = N;
 	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
 	Out.Tex = Tex * g_uvFactor;
-	Out.TexShadow = mul( Pos, g_mWVPT );
+	Out.TexShadow = mul( wPos, g_mVPT );
 	Out.vPos = mul( Pos, mWV);
-    	Out.vPosLight = mul( Out.vPos, g_mViewToLightProj );
+	Out.vPosLight = mul( wPos, g_mLVP );
+    	//Out.vPosLight = mul( Out.vPos, g_mViewToLightProj );
 
 	return Out;
 }
@@ -298,25 +298,23 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 
 float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 {
-	float4 Diffuse;
-	float3 vLight = normalize( float3( In.vPos - g_vLightPos ) );
-        float2 ShadowTexC = 0.5 * In.vPosLight.xy / In.vPosLight.w + float2( 0.5f, 0.5f );
-        ShadowTexC.y = 1.0f - ShadowTexC.y;
-
-	//float2 ShadowTexC = In.TexShadow.xy;
-	//float4 ShadowTexC = In.TexShadow;
-        float2 texelpos = SMAP_SIZE * ShadowTexC;
-        float2 lerps = frac( texelpos );
 
 	float z = (In.vPosLight.z / In.vPosLight.w) * 1;
         float sourcevals[1];
-	sourcevals[0] = ((tex2D( shadowMap, ShadowTexC ) + SHADOW_EPSILON) < z)? 0.0f: 1.0f;  
+	sourcevals[0] = ((tex2Dproj( shadowMap, In.TexShadow ) + SHADOW_EPSILON) < z)? 0.0f: 1.0f;  
 	float LightAmount = sourcevals[0];
 
-        Diffuse = ( saturate( dot(-vLight, In.Normal) ) * LightAmount * ( 1 - g_vLightAmbient ) + g_vLightAmbient )
-                  * g_vMaterial;
+	float3 L = -g_light.dir;
+	float3 H = normalize(L + normalize(In.Eye));
+	float3 N = normalize(In.Normal);
 
-    	return tex2D( colorMap, In.Tex ) * Diffuse;
+	float4 color  = g_light.ambient * g_material.ambient
+			+ g_light.diffuse * g_material.diffuse * 0.2
+			+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L)) * LightAmount
+			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
+
+	float4 Out = color * tex2D(colorMap, In.Tex);
+	return Out;
 }
 
 

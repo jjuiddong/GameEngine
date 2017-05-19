@@ -155,7 +155,7 @@ bool cViewer::OnInit()
 		for (int ty = 0; ty < 10; ++ty)
 		{
 			cTile *tile = new cTile();
-			tile->Create(m_renderer, sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f);
+			tile->Create(m_renderer, sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f, 8.f, tx+(ty*2));
 			const int xSize = 5;
 			const int ySize = 5;
 			for (int i = 0; i < xSize; ++i)
@@ -281,8 +281,8 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		//m_ground.RenderShader(m_renderer);
 
-		if (m_isVisibleSurface)
-			m_shadowMap.RenderShadowMap(m_renderer);
+		//if (m_isVisibleSurface)
+		//	m_shadowMap.RenderShadowMap(m_renderer);
 
 		m_terrain.Render(m_renderer);
 		m_frustum.Render(m_renderer);
@@ -298,9 +298,11 @@ void cViewer::OnLostDevice()
 {
 	m_gui.InvalidateDeviceObjects();
 	m_shadowMap.LostDevice();
+	m_terrain.LostDevice();
 	m_renderer.ResetDevice(0, 0, true);
 	m_gui.CreateDeviceObjects();
 	m_shadowMap.ResetDevice(m_renderer);
+	m_terrain.ResetDevice(m_renderer);
 }
 
 
