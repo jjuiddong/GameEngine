@@ -27,8 +27,8 @@ private:
 	cImGui m_gui;
 	cGrid3 m_ground;
 	cSkyBox m_skybox;
-	cDbgFrustum m_frustum;
 	cTerrain2 m_terrain;
+	cCamera m_terrainCamera;
 	cShadowMap m_shadowMap;
 	vector<cShader*> m_shaders;
 
@@ -79,6 +79,12 @@ bool cViewer::OnInit()
 	GetMainCamera()->SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
 	GetMainCamera()->SetViewPort(WINSIZE_X, WINSIZE_Y);
 
+	m_terrainCamera.Init(&m_renderer);
+	m_terrainCamera.SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	m_terrainCamera.SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
+	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
+	
+
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
 		Vector4(0.2f, 0.2f, 0.2f, 1));
@@ -99,8 +105,6 @@ bool cViewer::OnInit()
 	m_skybox.Create(m_renderer, "skybox");
 	//m_shadowMap.Create(m_renderer, 1024, 1024);
 	m_shadowMap.Create(m_renderer, 2048, 2048);
-
-	m_frustum.Create(m_renderer, GetMainCamera()->GetViewProjectionMatrix());
 
 	//{
 	//	string files[] = {
@@ -150,12 +154,19 @@ bool cViewer::OnInit()
 		m_ground.SetShader(cResourceManager::Get()->LoadShader(m_renderer, files[1]));	
 	}
 
+	m_terrain.Create(m_renderer, sRectf(0, 500, 500, 0));
+
 	for (int tx = 0; tx < 10; ++tx)
 	{
 		for (int ty = 0; ty < 10; ++ty)
 		{
 			cTile *tile = new cTile();
-			tile->Create(m_renderer, sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f, 8.f, tx+(ty*2));
+			tile->Create(m_renderer, 
+				common::format("%d-%d", tx, ty), 
+				sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f, 8.f
+				, Vector2(0,0), Vector2(1, 1), tx+(ty*2));
+			tile->m_ground.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "terrain/¹Ù´Ú.jpg");
+
 			const int xSize = 5;
 			const int ySize = 5;
 			for (int i = 0; i < xSize; ++i)
@@ -213,12 +224,13 @@ ImVec4 clear_col = ImColor(114, 144, 154);
 
 void cViewer::OnRender(const float deltaSeconds)
 {
-	GetMainLight().Bind(m_renderer, 0);
-	
 	if (m_isFrustumTracking)
-		m_frustum.SetFrustum(m_renderer, GetMainCamera()->GetViewProjectionMatrix());
+		cMainCamera::Get()->PushCamera(&m_terrainCamera);
 
-	m_terrain.CullingTest(m_frustum, m_isCallingModel);
+	GetMainLight().Bind(m_renderer, 0);
+
+	m_terrain.CullingTest(m_renderer, m_terrainCamera, m_isCallingModel);
+
 	m_terrain.PreRender(m_renderer);
 
 	//m_gui.SetContext();
@@ -270,7 +282,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		GetMainCamera()->Bind(m_renderer);
 		m_skybox.Render(m_renderer);
 
-		m_renderer.RenderGrid();
+		//m_renderer.RenderGrid();
 		m_renderer.RenderFPS();
 
 		for (auto &p : m_shaders)
@@ -285,12 +297,14 @@ void cViewer::OnRender(const float deltaSeconds)
 		//	m_shadowMap.RenderShadowMap(m_renderer);
 
 		m_terrain.Render(m_renderer);
-		m_frustum.Render(m_renderer);
 
-		m_renderer.RenderAxis();
+		//m_renderer.RenderAxis();
 		m_renderer.EndScene();
 		m_renderer.Present();
 	}
+
+	if (m_isFrustumTracking)
+		cMainCamera::Get()->PopCamera();
 }
 
 
@@ -321,6 +335,8 @@ void cViewer::ChangeWindowSize()
 		m_renderer.ResetDevice();
 		m_gui.CreateDeviceObjects();
 		m_shadowMap.ResetDevice(m_renderer);
+		m_terrain.ResetDevice(m_renderer);
+		m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	}
 }
 
@@ -368,6 +384,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEWHEEL:
 	{
+		if (m_isFrustumTracking)
+			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+
 		int fwKeys = GET_KEYSTATE_WPARAM(wParam);
 		int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 		//dbg::Print("%d %d", fwKeys, zDelta);
@@ -378,6 +397,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			zoomLen = zoomLen / 10.f;
 
 		graphic::GetMainCamera()->Zoom((zDelta<0) ? -zoomLen : zoomLen);
+
+		if (m_isFrustumTracking)
+			cMainCamera::Get()->PopCamera();
 	}
 	break;
 
@@ -399,7 +421,22 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		case VK_SPACE: m_isShadow = !m_isShadow; break;
 		case '1': m_isVisibleSurface = !m_isVisibleSurface; break;
-		case '2': m_isFrustumTracking = !m_isFrustumTracking;  break;
+		case '2': 
+		{
+			if (m_isFrustumTracking)
+			{
+				GetMainCamera()->SetEyePos(m_terrainCamera.GetEyePos());
+				GetMainCamera()->SetLookAt(m_terrainCamera.GetLookAt());
+			}
+			else
+			{
+				m_terrainCamera.SetEyePos(GetMainCamera()->GetEyePos());
+				m_terrainCamera.SetLookAt(GetMainCamera()->GetLookAt());
+			}
+			m_isFrustumTracking = !m_isFrustumTracking;
+		}
+		break;
+
 		case '3': m_isCallingModel = !m_isCallingModel;  break;
 		case '4': {
 			static bool isDbgRender = true;
@@ -464,6 +501,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEMOVE:
 	{
+		if (m_isFrustumTracking)
+			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+
 		if (wParam & 0x10) // middle button down
 		{
 			POINT pos = { LOWORD(lParam), HIWORD(lParam) };
@@ -493,11 +533,11 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			//graphic::GetMainCamera()->Yaw2(x * 0.005f);
-			//graphic::GetMainCamera()->Pitch2(y * 0.005f);
+			graphic::GetMainCamera()->Yaw2(x * 0.005f);
+			graphic::GetMainCamera()->Pitch2(y * 0.005f);
 
-			graphic::GetMainCamera()->Yaw3(x * 0.005f, Vector3(0, 0, 0));
-			graphic::GetMainCamera()->Pitch3(y * 0.005f, Vector3(0, 0, 0));
+			//graphic::GetMainCamera()->Yaw3(x * 0.005f, Vector3(0, 0, 0));
+			//graphic::GetMainCamera()->Pitch3(y * 0.005f, Vector3(0, 0, 0));
 
 		}
 		else if (m_MButtonDown)
@@ -515,6 +555,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			POINT pos = { LOWORD(lParam), HIWORD(lParam) };
 		}
 
+		if (m_isFrustumTracking)
+			cMainCamera::Get()->PopCamera();
 	}
 	break;
 	}
