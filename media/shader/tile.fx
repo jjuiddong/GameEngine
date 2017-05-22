@@ -69,6 +69,8 @@ sampler shadowMap = sampler_state
 
 	AddressU = Border;
 	AddressV = Border;
+
+	BorderColor = 0xffffffff;
 };
 
 

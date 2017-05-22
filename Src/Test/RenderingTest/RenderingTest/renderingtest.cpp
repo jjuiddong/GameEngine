@@ -36,7 +36,7 @@ private:
 	bool m_isVisibleSurface = true;
 	bool m_isFrustumTracking = true;
 	bool m_isCallingModel = true;
-	POINT m_curPos;
+	sf::Vector2i m_curPos;
 	Plane m_groundPlane1, m_groundPlane2;
 	float m_moveLen;
 	bool m_LButtonDown;
@@ -82,6 +82,7 @@ bool cViewer::OnInit()
 	m_terrainCamera.Init(&m_renderer);
 	m_terrainCamera.SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_terrainCamera.SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
+	//m_terrainCamera.SetProjectionOrthogonal((float)WINSIZE_X, (float)WINSIZE_Y, 0.1f, 10000.0f);
 	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 	
 
@@ -317,6 +318,7 @@ void cViewer::OnLostDevice()
 	m_gui.CreateDeviceObjects();
 	m_shadowMap.ResetDevice(m_renderer);
 	m_terrain.ResetDevice(m_renderer);
+	m_terrainCamera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
 }
 
 
@@ -336,6 +338,7 @@ void cViewer::ChangeWindowSize()
 		m_gui.CreateDeviceObjects();
 		m_shadowMap.ResetDevice(m_renderer);
 		m_terrain.ResetDevice(m_renderer);
+		m_terrainCamera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
 		m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	}
 }
@@ -350,7 +353,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 	if ((message != WM_EXITSIZEMOVE) && (message != WM_SIZE))
 		if (ImGui::IsMouseHoveringAnyWindow())
 			return;
-
 
 	static bool maximizeWnd = false;
 	switch (message)
@@ -459,7 +461,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		Vector3 orig, dir;
 		graphic::GetMainCamera()->GetRay(pos.x, pos.y, orig, dir);
 		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
-		m_moveLen = (p1 - orig).Length();
+		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
 		graphic::GetMainCamera()->MoveCancel();
 	}
 	break;
@@ -504,16 +506,24 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		if (m_isFrustumTracking)
 			cMainCamera::Get()->PushCamera(&m_terrainCamera);
 
+		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
+
 		if (wParam & 0x10) // middle button down
 		{
-			POINT pos = { LOWORD(lParam), HIWORD(lParam) };
 		}
 
 		if (m_LButtonDown)
 		{
-			POINT pos = { LOWORD(lParam), HIWORD(lParam) };
 			const int x = pos.x - m_curPos.x;
 			const int y = pos.y - m_curPos.y;
+
+			if ((abs(x) > 100) || (abs(y) > 100))
+			{
+				if (m_isFrustumTracking)
+					cMainCamera::Get()->PopCamera();
+				break;
+			}
+
 			m_curPos = pos;
 
 			Vector3 dir = graphic::GetMainCamera()->GetDirection();
@@ -528,7 +538,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		else if (m_RButtonDown)
 		{
-			POINT pos = { LOWORD(lParam), HIWORD(lParam) };
 			const int x = pos.x - m_curPos.x;
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
@@ -536,23 +545,18 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			graphic::GetMainCamera()->Yaw2(x * 0.005f);
 			graphic::GetMainCamera()->Pitch2(y * 0.005f);
 
-			//graphic::GetMainCamera()->Yaw3(x * 0.005f, Vector3(0, 0, 0));
-			//graphic::GetMainCamera()->Pitch3(y * 0.005f, Vector3(0, 0, 0));
-
 		}
 		else if (m_MButtonDown)
 		{
-			const POINT point = { LOWORD(lParam), HIWORD(lParam) };
-			const POINT pos = { point.x - m_curPos.x, point.y - m_curPos.y };
-			m_curPos = point;
+			const sf::Vector2i point = { pos.x - m_curPos.x, pos.y - m_curPos.y };
+			m_curPos = pos;
 
 			const float len = graphic::GetMainCamera()->GetDistance();
-			graphic::GetMainCamera()->MoveRight(-pos.x * len * 0.001f);
-			graphic::GetMainCamera()->MoveUp(pos.y * len * 0.001f);
+			graphic::GetMainCamera()->MoveRight(-point.x * len * 0.001f);
+			graphic::GetMainCamera()->MoveUp(point.y * len * 0.001f);
 		}
 		else
 		{
-			POINT pos = { LOWORD(lParam), HIWORD(lParam) };
 		}
 
 		if (m_isFrustumTracking)

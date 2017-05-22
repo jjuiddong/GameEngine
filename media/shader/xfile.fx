@@ -19,17 +19,7 @@ float g_uvFactor = 1.f;
 float4x3 g_mPalette[ 64];
 
 
-//#define SMAP_SIZE 1024
-#define SMAP_SIZE 2048
-#define SHADOW_EPSILON 0.00001f
-
-//float4x4 g_mViewToLightProj;  // Transform from view space to light projection space
-//float3 g_vLightPos; // Light position in view space
-//float3 g_vLightDir; // Light direction in view space
-//float4 g_vLightAmbient = float4( 0.3f, 0.3f, 0.3f, 1.0f );  // Use an ambient light of 0.3
-//float4 g_vMaterial = float4(1,1,1,1);
-
-
+#define SHADOW_EPSILON 0.0001f
 
 
 
@@ -81,6 +71,8 @@ sampler shadowMap = sampler_state
 
 	AddressU = Border;
 	AddressV = Border;
+
+	BorderColor = 0xffffffff;
 };
 
 
@@ -271,6 +263,7 @@ float4 PS_Scene_NoShadow(VS_OUTPUT In) : COLOR
 			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
+	//return float4(1,1,1,1);
 	return Out;
 }
 
@@ -309,17 +302,10 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 
 float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 {
-	//float4 Diffuse;
-	//float3 vLight = normalize( float3( In.vPos - g_vLightPos ) );
-
 	float z = (In.vPosLight.z / In.vPosLight.w) * 1;
         float sourcevals[1];
-	sourcevals[0] = ((tex2Dproj( shadowMap, In.TexShadow ) + SHADOW_EPSILON) < z)? 0.0f: 1.0f;  
+	sourcevals[0] = ((tex2Dproj( shadowMap, In.TexShadow ) + SHADOW_EPSILON) < z)? 0.1f: 1.0f;  
 	float LightAmount = sourcevals[0];
-
-        //Diffuse = ( saturate( dot(-vLight, In.Normal) ) * LightAmount * ( 1 - g_vLightAmbient ) + g_vLightAmbient )
-        //          * g_vMaterial;
-    	//return tex2D( colorMap, In.Tex ) * Diffuse;
 
 	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
