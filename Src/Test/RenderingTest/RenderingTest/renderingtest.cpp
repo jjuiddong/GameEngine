@@ -183,6 +183,8 @@ bool cViewer::OnInit()
 					Matrix44 S;
 					S.SetScale(Vector3(1, 1, 1) * 30);
 					model->m_tm = S * T;
+
+					model->SetShader(cResourceManager::Get()->LoadShader(m_renderer, "shader/xfile.fx"));
 					tile->AddModel(model);
 				}
 				m_terrain.AddTile(tile);
@@ -517,7 +519,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int x = pos.x - m_curPos.x;
 			const int y = pos.y - m_curPos.y;
 
-			if ((abs(x) > 100) || (abs(y) > 100))
+			if ((abs(x) > 1000) || (abs(y) > 1000))
 			{
 				if (m_isFrustumTracking)
 					cMainCamera::Get()->PopCamera();
