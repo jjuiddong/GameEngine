@@ -165,7 +165,7 @@ bool cViewer::OnInit()
 			tile->Create(m_renderer, 
 				common::format("%d-%d", tx, ty), 
 				sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f, 8.f
-				, Vector2(0,0), Vector2(1, 1), tx+(ty*2));
+				, Vector2(0,0), Vector2(1, 1));
 			tile->m_ground.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "terrain/¹Ù´Ú.jpg");
 
 			const int xSize = 5;
