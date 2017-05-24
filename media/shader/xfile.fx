@@ -95,7 +95,7 @@ struct VS_OUTPUT_SHADOW
 	float4 TexShadow : TEXCOORD1;
 	float3 Eye : TEXCOORD2;
 	float4 vPos : TEXCOORD3;
-	float4 vPosLight : TEXCOORD4;
+	float Depth : TEXCOORD4;
 };
 
 
@@ -293,8 +293,7 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	Out.Tex = Tex;
 	Out.TexShadow = mul( wPos, g_mVPT );
 	Out.vPos = mul( Pos, mWV);
-	Out.vPosLight = mul( wPos, g_mLVP );
-    	//Out.vPosLight = mul( Out.vPos, g_mViewToLightProj );
+	Out.Depth = mul( wPos, g_mLVP ).z;
 
 	return Out;
 }
@@ -302,10 +301,36 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 
 float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 {
-	float z = (In.vPosLight.z / In.vPosLight.w) * 1;
-        float sourcevals[1];
-	sourcevals[0] = ((tex2Dproj( shadowMap, In.TexShadow ) + SHADOW_EPSILON) < z)? 0.1f: 1.0f;  
-	float LightAmount = sourcevals[0];
+	float4 vTexCoords[9];
+	float fTexelSize = 1.0f / 1024.0f;
+
+	// Generate the tecture co-ordinates for the specified depth-map size
+	// 4 3 5
+	// 1 0 2
+   	// 7 6 8
+   	vTexCoords[0] = In.TexShadow;
+   	vTexCoords[1] = In.TexShadow + float4( -fTexelSize, 0.0f, 0.0f, 0.0f );
+   	vTexCoords[2] = In.TexShadow + float4(  fTexelSize, 0.0f, 0.0f, 0.0f );
+   	vTexCoords[3] = In.TexShadow + float4( 0.0f, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[6] = In.TexShadow + float4( 0.0f,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[4] = In.TexShadow + float4( -fTexelSize, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[5] = In.TexShadow + float4(  fTexelSize, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[7] = In.TexShadow + float4( -fTexelSize,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[8] = In.TexShadow + float4(  fTexelSize,  fTexelSize, 0.0f, 0.0f );
+
+        float fShadowTerms[9];
+	float fShadowTerm = 0.0f;
+   	for( int i = 0; i < 9; i++ )
+   	{
+	  	float A = tex2Dproj( shadowMap, vTexCoords[i] ).r;
+	  	float B = (In.Depth - SHADOW_EPSILON);
+
+	  	// Texel is shadowed
+	  	fShadowTerms[i] = A < B ? 0.1f : 1.0f;
+	  	fShadowTerm += fShadowTerms[i];
+   	}
+
+	fShadowTerm /= 9.0f;
 
 	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
@@ -313,7 +338,7 @@ float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 
 	float4 color  = g_light.ambient * g_material.ambient
 			+ g_light.diffuse * g_material.diffuse * 0.2
-			+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L)) * LightAmount
+			+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L)) * fShadowTerm
 			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
