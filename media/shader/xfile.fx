@@ -293,7 +293,8 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	Out.Tex = Tex;
 	Out.TexShadow = mul( wPos, g_mVPT );
 	Out.vPos = mul( Pos, mWV);
-	Out.Depth = mul( wPos, g_mLVP ).z;
+	//Out.Depth = mul( wPos, g_mLVP ).z;
+	Out.Depth = min(mul( wPos, g_mLVP ).z, 1);
 
 	return Out;
 }

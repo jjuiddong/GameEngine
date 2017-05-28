@@ -283,7 +283,9 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	Out.Tex = Tex * g_uvFactor;
 	Out.TexShadow = mul( wPos, g_mVPT );
 	Out.vPos = mul( Pos, mWV);
-	Out.Depth = mul( wPos, g_mLVP ).z;
+	//Out.Depth = mul( wPos, g_mLVP ).z;
+	Out.Depth = min(mul( wPos, g_mLVP ).z, 1);
+	
 
 	return Out;
 }
@@ -291,8 +293,6 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 
 float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 {
-	//float z = (In.vPosLight.z / In.vPosLight.w) * 1;
-
 	float4 vTexCoords[9];
 	float fTexelSize = 1.0f / 1024.0f;
 

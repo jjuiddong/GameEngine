@@ -81,7 +81,7 @@ bool cViewer::OnInit()
 
 	m_terrainCamera.Init(&m_renderer);
 	m_terrainCamera.SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	m_terrainCamera.SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
+	m_terrainCamera.SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 1000.0f);
 	//m_terrainCamera.SetProjectionOrthogonal((float)WINSIZE_X, (float)WINSIZE_Y, 0.1f, 10000.0f);
 	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 	
