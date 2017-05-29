@@ -20,8 +20,8 @@ float g_uvFactor = 1.f;
 float4 g_vFog= {1, 7000, 0, 0};
 float4 g_fogColor = {0.2588f, 0.2941f, 0.4745f, 1}; // RGB(150,150,150)
 float4x3 g_mPalette[ 64];
-
-#define SHADOW_EPSILON 0.01f
+float g_shadowEpsilon = 0.001f;
+//#define SHADOW_EPSILON 0.001f
 
 struct Light
 {
@@ -354,7 +354,7 @@ float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
    	for( int i = 0; i < 9; i++ )
    	{
 	  	float A = tex2Dproj( shadowMap, vTexCoords[i] ).r;
-	  	float B = (depth - SHADOW_EPSILON);
+	  	float B = (depth - g_shadowEpsilon);
 
 	  	fShadowTerms[i] = A < B ? 0.1f : 1.0f;
 	  	fShadowTerm += fShadowTerms[i];
@@ -376,7 +376,7 @@ float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 	//return fShadowTerms[0];
 	//return fShadowTerm;
 	//return tex2Dproj( shadowMap, vTexCoords[0] ).r;
-	//return (tex2Dproj( shadowMap, vTexCoords[3] ).r - (depth - SHADOW_EPSILON)) * 1000;
+	//return (tex2Dproj( shadowMap, vTexCoords[3] ).r - (depth - g_shadowEpsilon)) * 1000;
 	return Out;
 }
 

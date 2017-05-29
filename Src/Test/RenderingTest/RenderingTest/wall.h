@@ -24,6 +24,7 @@ namespace warehouse
 		bool m_isPillar;
 		graphic::cCube3 m_wall;
 		vector<graphic::cCube3*> m_pillars;
+		float m_shadowEpsilon;
 	};
 
 }

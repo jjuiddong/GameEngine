@@ -8,6 +8,7 @@ using namespace warehouse;
 
 cWall::cWall()
 	: m_isPillar(true)
+	, m_shadowEpsilon(0.01f)
 {
 }
 
@@ -67,6 +68,7 @@ void cWall::RenderShader(graphic::cRenderer &renderer, const Matrix44 &tm)
 {
 	RET(!m_shader);
 
+	m_shader->SetFloat("g_shadowEpsilon", m_shadowEpsilon);
 	m_wall.RenderShader(renderer, *m_shader, tm);
 
 	for (auto &p : m_pillars)

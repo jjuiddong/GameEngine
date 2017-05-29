@@ -178,13 +178,14 @@ bool cViewer::OnInit()
 				for (int k = 0; k < ySize; ++k)
 				{
 					cModel2 *model = new cModel2();
-					model->Create(m_renderer, "ChessQueen.x");
+					model->Create(m_renderer, "ConveyerBelt.x");
 					Matrix44 T;
 					const float xGap = size / (xSize - 1);
 					const float yGap = size / (ySize - 1);
 					T.SetPosition(Vector3(tx* 50.f + k*xGap, 0, ty * 50.f + i * yGap));
 					Matrix44 S;
-					S.SetScale(Vector3(1, 1, 1) * 20);
+					//S.SetScale(Vector3(1, 1, 1) * 20);
+					S.SetScale(Vector3(1, 1, 1) * 0.03f);
 					model->m_tm = S * T;
 
 					model->SetShader(cResourceManager::Get()->LoadShader(m_renderer, "shader/xfile.fx"));
@@ -207,8 +208,11 @@ bool cViewer::OnInit()
 					{
 						warehouse::cWall *wall = new warehouse::cWall;
 						wall->Create(m_renderer, p1, p1 + Vector3(100, -1, 100), 1.1f, 0.5f, false);
+						wall->m_shadowEpsilon = 0.001f;
 						tile->AddModel(wall);
 					}
+
+					
 				}
 
 				m_terrain.AddTile(tile);
