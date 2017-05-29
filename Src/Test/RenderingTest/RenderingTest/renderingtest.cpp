@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "../../../../../Common/Graphic/terrain/terrain2.h"
 #include "../../../../../Common/Graphic/terrain/tile.h"
+#include "wall.h"
 using namespace graphic;
 
 
@@ -81,7 +82,7 @@ bool cViewer::OnInit()
 
 	m_terrainCamera.Init(&m_renderer);
 	m_terrainCamera.SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	m_terrainCamera.SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 1000.0f);
+	m_terrainCamera.SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
 	//m_terrainCamera.SetProjectionOrthogonal((float)WINSIZE_X, (float)WINSIZE_Y, 0.1f, 10000.0f);
 	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 	
@@ -141,6 +142,7 @@ bool cViewer::OnInit()
 			// "collada_rigid.fx"
 			"xfile.fx"
 			, "cube3.fx"
+			, "wall.fx"
 		};
 		const int size = sizeof(files) / sizeof(string);
 		for (int i = 0; i < size; ++i)
@@ -157,19 +159,20 @@ bool cViewer::OnInit()
 
 	m_terrain.Create(m_renderer, sRectf(0, 500, 500, 0));
 
-	for (int tx = 0; tx < 10; ++tx)
+	const float size = 200;
+	for (int tx = 0; tx < 1; ++tx)
 	{
-		for (int ty = 0; ty < 10; ++ty)
+		for (int ty = 0; ty < 1; ++ty)
 		{
 			cTile *tile = new cTile();
 			tile->Create(m_renderer, 
 				common::format("%d-%d", tx, ty), 
-				sRectf(tx*50.f, ty * 50.f, tx * 50.f+50, ty * 50.f + 50), 0.01f, 8.f
+				sRectf(tx*size, ty * size, tx * size + size, ty * size + size), 0.01f, 100.f
 				, Vector2(0,0), Vector2(1, 1));
 			tile->m_ground.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "terrain/¹Ù´Ú.jpg");
 
-			const int xSize = 5;
-			const int ySize = 5;
+			const int xSize = 15;
+			const int ySize = 15;
 			for (int i = 0; i < xSize; ++i)
 			{
 				for (int k = 0; k < ySize; ++k)
@@ -177,16 +180,37 @@ bool cViewer::OnInit()
 					cModel2 *model = new cModel2();
 					model->Create(m_renderer, "ChessQueen.x");
 					Matrix44 T;
-					const float xGap = 50 / (xSize - 1);
-					const float yGap = 50 / (ySize - 1);
+					const float xGap = size / (xSize - 1);
+					const float yGap = size / (ySize - 1);
 					T.SetPosition(Vector3(tx* 50.f + k*xGap, 0, ty * 50.f + i * yGap));
 					Matrix44 S;
-					S.SetScale(Vector3(1, 1, 1) * 30);
+					S.SetScale(Vector3(1, 1, 1) * 20);
 					model->m_tm = S * T;
 
 					model->SetShader(cResourceManager::Get()->LoadShader(m_renderer, "shader/xfile.fx"));
 					tile->AddModel(model);
 				}
+
+				if (tx == 0 && ty == 0)
+				{
+					const Vector3 p1 = Vector3(tx*size+20, 0, ty * size + 100);
+					{
+						warehouse::cWall *wall = new warehouse::cWall;
+						wall->Create(m_renderer, p1, p1 + Vector3(100, 0, 0), 10, 0.5f);
+						tile->AddModel(wall);
+					}
+					{
+						warehouse::cWall *wall = new warehouse::cWall;
+						wall->Create(m_renderer, p1, p1 + Vector3(0, 0, 100), 10, 0.5f);
+						tile->AddModel(wall);
+					}
+					{
+						warehouse::cWall *wall = new warehouse::cWall;
+						wall->Create(m_renderer, p1, p1 + Vector3(100, -1, 100), 1.1f, 0.5f, false);
+						tile->AddModel(wall);
+					}
+				}
+
 				m_terrain.AddTile(tile);
 			}
 		}
@@ -229,6 +253,8 @@ void cViewer::OnRender(const float deltaSeconds)
 {
 	if (m_isFrustumTracking)
 		cMainCamera::Get()->PushCamera(&m_terrainCamera);
+
+	
 
 	GetMainLight().Bind(m_renderer, 0);
 

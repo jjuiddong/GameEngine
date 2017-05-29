@@ -1,9 +1,7 @@
 //
-// 2017-05-01, jjuiddong
-// xfile shader
+// 2017-02-21, jjuiddong
+// Wall Model Shader
 //
-// 2017-05-09
-//	- shadow map
 
 
 float4x4 g_mView;
@@ -15,17 +13,15 @@ float4x4 g_mLVP; // ShadowMap Transform, Light View Projection, = light view x l
 float4x4 g_mLightView;
 float4x4 g_mLightProj;
 float4x4 g_mLightTT;
-float3 g_vEyePos; // Eye Position in world space
+float3 g_vEyePos;
 float g_shininess = 90;
 float g_fFarClip = 10000;
 float g_uvFactor = 1.f;
+float4 g_vFog= {1, 7000, 0, 0};
+float4 g_fogColor = {0.2588f, 0.2941f, 0.4745f, 1}; // RGB(150,150,150)
 float4x3 g_mPalette[ 64];
 
-
-#define SHADOW_EPSILON 0.001f
-
-
-
+#define SHADOW_EPSILON 0.01f
 
 struct Light
 {
@@ -56,13 +52,12 @@ texture g_colorMapTexture;
 sampler colorMap = sampler_state
 {
     Texture = <g_colorMapTexture>;
-    MinFilter = Anisotropic;
-    MagFilter = Anisotropic;
-    MipFilter = Linear;
-    AddressU  = WRAP;
-    AddressV  = WRAP;
+    MinFilter = LINEAR;
+    MagFilter = LINEAR;
+    MipFilter = NONE;
+    AddressU = Wrap;
+    AddressV = Wrap;
 };
-
 
 texture g_shadowMapTexture;
 sampler shadowMap = sampler_state
@@ -80,14 +75,23 @@ sampler shadowMap = sampler_state
 
 
 
-
-struct VS_OUTPUT
+struct VS_AMBIENT_OUTPUT
 {
 	float4 Pos : POSITION;
 	float3 Normal : NORMAL;
 	float2 Tex : TEXCOORD0;
 	float3 Eye : TEXCOORD1;
 };
+
+
+struct VS_SCENE_OUTPUT
+{
+	float4 Pos : POSITION;
+	float3 Normal : NORMAL;
+	float2 Tex : TEXCOORD0;
+	float3 Eye : TEXCOORD1;
+};
+
 
 
 struct VS_OUTPUT_SHADOW
@@ -100,7 +104,6 @@ struct VS_OUTPUT_SHADOW
 	float4 vPos : TEXCOORD3;
 	float2 Depth : TEXCOORD4;
 };
-
 
 
 
@@ -129,41 +132,39 @@ float4 PS_Wire() : COLOR
 //-----------------------------------------------------------------------------------
 // Ambient
 
-VS_OUTPUT VS(
+VS_AMBIENT_OUTPUT VS_Ambient(
 	float4 Pos : POSITION,
-	float3 Normal : NORMAL,
-	float2 Tex : TEXCOORD0
+	float3 Normal : NORMAL
 )
 {
-	VS_OUTPUT Out = (VS_OUTPUT)0;
+	VS_AMBIENT_OUTPUT Out = (VS_AMBIENT_OUTPUT)0;
     
 	float4x4 mVP = mul(g_mView, g_mProj);
-	float4x4 mWVP = mul(g_mWorld, mVP);
-	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
+	float3 worldPos = mul(Pos, g_mWorld).xyz;
+	float3 N = normalize( mul(Normal, g_mWIT) );
 
-	Out.Pos = mul( Pos, mWVP );
+	Out.Pos = mul( float4(worldPos,1), mVP );
 	Out.Normal = N;
 	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
-	Out.Tex = Tex;
 
 	return Out;
 }
 
 
-
-
-float4 PS_Ambient(VS_OUTPUT In) : COLOR
+float4 PS_Ambient(VS_AMBIENT_OUTPUT In) : COLOR
 {
 	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.Normal);
 
 	float4 color = 	g_light.ambient * g_material.ambient
-			+ g_light.diffuse * g_material.diffuse * 0.2
 			+ (g_light.diffuse * g_material.diffuse * max(0, dot(N,L))) * 0.1f;
 
-	float4 Out = color * tex2D(colorMap, In.Tex);
-	return Out;
+	float distance = length(In.Eye);
+	float l = saturate((distance - g_vFog.x) / (g_vFog.y - g_vFog.x));
+	color = lerp(color, g_fogColor * 0.5, l);
+
+	return color;
 }
 
 
@@ -183,8 +184,8 @@ void VS_Shadow(
 	float4x4 mWVP = mul(g_mWorld, mVP);
 	float3 N = mul( vNormal, (float3x3)mWV );
 	float4 PosView = mul( vPos, mWV );
-	float4 LightPos = mul( g_light.pos, g_mView );
-	float3 LightVecView = PosView - LightPos;
+	float4 LightPos = mul( float4(g_light.pos,1), mWV );
+	float3 LightVecView = PosView.xyz - LightPos.xyz;
 
         if (dot(N, -LightVecView) > 0.0f)
 	{
@@ -208,8 +209,6 @@ float4 PS_Shadow() : COLOR
 }
 
 
-
-
 void VS_ShadowMap(
 	float4 Pos : POSITION
 	, float3 Normal : NORMAL
@@ -225,7 +224,6 @@ void VS_ShadowMap(
 }
 
 
-
 void PS_ShadowMap(
 		float2 Depth : TEXCOORD0
 		, out float4 Color : COLOR 
@@ -235,40 +233,65 @@ void PS_ShadowMap(
 }
 
 
-
-
-
 //-----------------------------------------------------------------------------------
 // Scene
 
-float4 PS_Scene(VS_OUTPUT In) : COLOR
+VS_SCENE_OUTPUT VS_Scene(
+	float4 Pos : POSITION,
+	float3 Normal : NORMAL
+)
 {
-	float3 L = -g_light.dir;
-	float3 H = normalize(L + normalize(In.Eye));
-	float3 N = normalize(In.Normal);
+	VS_SCENE_OUTPUT Out = (VS_SCENE_OUTPUT)0;
+    
+	float4x4 mVP = mul(g_mView, g_mProj);
+	float3 worldPos = mul(Pos, g_mWorld).xyz;
+	float3 N = normalize( mul(Normal, g_mWIT) );
 
-	float4 color  = g_light.diffuse * g_material.diffuse * max(0, dot(N,L))
-			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
+	Out.Pos = mul( float4(worldPos,1), mVP );
+	Out.Normal = N;
+	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
 
-	float4 Out = color * tex2D(colorMap, In.Tex);
 	return Out;
 }
 
 
-float4 PS_Scene_NoShadow(VS_OUTPUT In) : COLOR
+float4 PS_Scene(VS_SCENE_OUTPUT In) : COLOR
 {
 	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.Normal);
+
+
+	float4 color  = g_light.diffuse * g_material.diffuse * max(0, dot(N,L))
+			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
+
+	float distance = length(In.Eye);
+	float l = saturate((distance - g_vFog.x) / (g_vFog.y - g_vFog.x));
+	color = lerp(color, g_fogColor*0.5, l);
+
+	return color;
+}
+
+
+float4 PS_Scene_NoShadow(VS_SCENE_OUTPUT In) : COLOR
+{
+	float3 L = -g_light.dir;
+	float3 H = normalize(L + normalize(In.Eye));
+	float3 N = normalize(In.Normal);
+
 
 	float4 color  = g_light.ambient * g_material.ambient
 			+ g_light.diffuse * g_material.diffuse * max(0, dot(N,L))
 			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
 
-	float4 Out = color * tex2D(colorMap, In.Tex);
-	//return float4(1,1,1,1);
-	return Out;
+	float distance = length(In.Eye);
+	float l = saturate((distance - g_vFog.x) / (g_vFog.y - g_vFog.x));
+	color = lerp(color, g_fogColor*0.5, l);
+
+	return color;
 }
+
+
 
 
 
@@ -286,18 +309,16 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	float4x4 mWV = mul(g_mWorld, g_mView);
 	float4x4 mVP = mul(g_mView, g_mProj);
 	float4x4 mWVP = mul(g_mWorld, mVP);
-	float3 N = normalize( mul(Normal, (float3x3)mWV) );
-
+	float3 N = normalize( mul(Normal, (float3x3)g_mWorld) );
 	float4 wPos = mul(Pos, g_mWorld);
 
 	Out.Pos = mul( Pos, mWVP );
 	Out.Normal = N;
-	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
-	Out.Tex = Tex;
-	Out.TexShadow = mul( wPos, g_mVPT );
+	Out.Eye = g_vEyePos - wPos.xyz;
+	Out.Tex = Tex * g_uvFactor;
+	//Out.TexShadow = mul( wPos, g_mVPT );
 	//Out.vPos = mul( Pos, mWV);
-	//Out.Depth = mul( wPos, g_mLVP ).z;
-	//Out.Depth = min(mul( wPos, g_mLVP ).z, 1);
+	//Out.Depth = mul( wPos, g_mLVP ).zw;
 
 	float4x4 mLVP = mul(g_mLightView, g_mLightProj);
 	float4x4 mVPT = mul( mLVP, g_mLightTT);
@@ -335,7 +356,6 @@ float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 	  	float A = tex2Dproj( shadowMap, vTexCoords[i] ).r;
 	  	float B = (depth - SHADOW_EPSILON);
 
-	  	// Texel is shadowed
 	  	fShadowTerms[i] = A < B ? 0.1f : 1.0f;
 	  	fShadowTerm += fShadowTerms[i];
    	}
@@ -352,23 +372,29 @@ float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
 
 	float4 Out = color * tex2D(colorMap, In.Tex);
+	//return float4(fShadowTerm, fShadowTerm, fShadowTerm, 1);
+	//return fShadowTerms[0];
+	//return fShadowTerm;
+	//return tex2Dproj( shadowMap, vTexCoords[0] ).r;
+	//return (tex2Dproj( shadowMap, vTexCoords[3] ).r - (depth - SHADOW_EPSILON)) * 1000;
 	return Out;
 }
-
 
 
 
 //-----------------------------------------------------------------------------------
 // Unlit
 
-float4 PS_Unlit(VS_OUTPUT In) : COLOR
+float4 PS_Unlit(VS_SCENE_OUTPUT In) : COLOR
 {
+
 	float3 L = -g_light.dir;
 	float3 H = normalize(L + normalize(In.Eye));
 	float3 N = normalize(In.Normal);
 
+
 	float4 color  = g_light.ambient * g_material.ambient
-			+ g_light.diffuse * g_material.diffuse * (max(0, dot(N,L)) + 0.5)
+			+ g_light.diffuse * g_material.diffuse * (max(0, dot(N,L)) + 0.3)
 			+ g_light.specular * pow( max(0, dot(N,H)), g_shininess);
 
 	return color;
@@ -381,15 +407,14 @@ technique Ambient
 {
 	pass P0
 	{
-		VertexShader = compile vs_3_0 VS();
+		VertexShader = compile vs_3_0 VS_Ambient();
 		PixelShader  = compile ps_3_0 PS_Ambient();
 
 
-		//CullMode = CCW;
+		CullMode = CCW;
 		//FillMode = solid;
-		//AlphaBlendEnable = false;
-	        StencilEnable = false;
-	        ZFunc = LessEqual;
+       	 	ZEnable = true;
+		AlphaBlendEnable = false;
 	}
 }
 
@@ -408,7 +433,7 @@ technique Shadow
 		// Disable writing to the frame buffer
 	        AlphaBlendEnable = true;
       		SrcBlend = Zero;
-		DestBlend = One;
+       		DestBlend = One;
 	        //SrcBlend = SrcAlpha;
 	        //DestBlend = InvSrcAlpha;
         
@@ -438,12 +463,11 @@ technique Scene
 {
 	pass P0
 	{
-		VertexShader = compile vs_3_0 VS();
+		VertexShader = compile vs_3_0 VS_Scene();
 		PixelShader  = compile ps_3_0 PS_Scene();
 
 
-		//CullMode = CCW;
-		//FillMode = solid;
+		CullMode = CCW;
         	ZEnable = true;
 	        ZFunc = LessEqual;
 	        StencilEnable = true;
@@ -463,11 +487,14 @@ technique Scene_NoShadow
 {
 	pass P0
 	{
-		VertexShader = compile vs_3_0 VS();
+		VertexShader = compile vs_3_0 VS_Scene();
 		PixelShader  = compile ps_3_0 PS_Scene_NoShadow();
+
+        	ZEnable = true;
+	        StencilEnable = false;
+	        AlphaBlendEnable = false;
 	}
 }
-
 
 
 
@@ -487,9 +514,13 @@ technique Scene_ShadowMap
 	{
 		VertexShader = compile vs_3_0 VS_Scene_ShadowMap();
 		PixelShader  = compile ps_3_0 PS_Scene_ShadowMap();
+
+	        AlphaBlendEnable = true;
+	        BlendOp = Add;
+	        SrcBlend = SrcAlpha;
+	        DestBlend = InvSrcAlpha;
 	}
 }
-
 
 
 technique WireFrame
@@ -501,7 +532,7 @@ technique WireFrame
 
 
 		CullMode = CCW;
-		//FillMode = wireframe;
+		FillMode = wireframe;
         	ZEnable = true;
 	        ZFunc = LessEqual;
 	        StencilEnable = false;
@@ -514,7 +545,7 @@ technique Unlit
 {
 	pass P0
 	{
-		VertexShader = compile vs_3_0 VS();
+		VertexShader = compile vs_3_0 VS_Scene();
 		PixelShader  = compile ps_3_0 PS_Unlit();
 
 		CullMode = CCW;
@@ -523,7 +554,12 @@ technique Unlit
 	        ZFunc = LessEqual;
 	        StencilEnable = false;
 	        AlphaBlendEnable = false;
+	        BlendOp = Add;
+	        SrcBlend = One;
+	        DestBlend = One;
+	        StencilRef = 1;
+	        StencilFunc = Greater;
+	        StencilPass = Keep;
 	}
 }
-
 

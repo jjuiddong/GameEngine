@@ -11,13 +11,16 @@ float4x4 g_mWorld;
 float4x4 g_mWIT;
 float4x4 g_mVPT; // ShadowMap Transform, = light view x light proj x uv transform
 float4x4 g_mLVP; // ShadowMap Transform, Light View Projection, = light view x light proj
+float4x4 g_mLightView;
+float4x4 g_mLightProj;
+float4x4 g_mLightTT;
 float3 g_vEyePos;
 float g_shininess = 90;
 float g_fFarClip = 10000;
 float g_uvFactor = 1.f;
 float4x3 g_mPalette[ 64];
 
-#define SHADOW_EPSILON 0.0001f
+#define SHADOW_EPSILON 0.00001f
 
 
 
@@ -93,7 +96,7 @@ struct VS_OUTPUT_SHADOW
 	float4 TexShadow : TEXCOORD1;
 	float3 Eye : TEXCOORD2;
 	float4 vPos : TEXCOORD3;
-	float Depth : TEXCOORD4;
+	float2 Depth : TEXCOORD4;
 };
 
 
@@ -281,11 +284,14 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	Out.Normal = N;
 	Out.Eye = g_vEyePos - mul(Pos, g_mWorld).xyz;
 	Out.Tex = Tex * g_uvFactor;
-	Out.TexShadow = mul( wPos, g_mVPT );
-	Out.vPos = mul( Pos, mWV);
-	//Out.Depth = mul( wPos, g_mLVP ).z;
-	Out.Depth = min(mul( wPos, g_mLVP ).z, 1);
-	
+	//Out.TexShadow = mul( wPos, g_mVPT );
+	//Out.vPos = mul( Pos, mWV);
+	//Out.Depth = mul( wPos, g_mLVP ).zw;
+
+	float4x4 mLVP = mul(g_mLightView, g_mLightProj);
+	float4x4 mVPT = mul( mLVP, g_mLightTT);
+	Out.TexShadow = mul( wPos, mVPT );
+	Out.Depth = mul( wPos, mLVP ).zw;
 
 	return Out;
 }
@@ -295,6 +301,7 @@ float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 {
 	float4 vTexCoords[9];
 	float fTexelSize = 1.0f / 1024.0f;
+	float depth = min(In.Depth.x / In.Depth.y, 1.0);
 
 	// Generate the tecture co-ordinates for the specified depth-map size
 	// 4 3 5
@@ -315,7 +322,7 @@ float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
    	for( int i = 0; i < 9; i++ )
    	{
 	  	float A = tex2Dproj( shadowMap, vTexCoords[i] ).r;
-	  	float B = (In.Depth - SHADOW_EPSILON);
+	  	float B = (depth - SHADOW_EPSILON);
 
 	  	fShadowTerms[i] = A < B ? 0.1f : 1.0f;
 	  	fShadowTerm += fShadowTerms[i];
