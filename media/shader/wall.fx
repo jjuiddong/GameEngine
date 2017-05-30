@@ -21,7 +21,7 @@ float4 g_vFog= {1, 7000, 0, 0};
 float4 g_fogColor = {0.2588f, 0.2941f, 0.4745f, 1}; // RGB(150,150,150)
 float4x3 g_mPalette[ 64];
 float g_shadowEpsilon = 0.001f;
-//#define SHADOW_EPSILON 0.001f
+
 
 struct Light
 {
