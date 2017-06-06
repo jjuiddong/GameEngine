@@ -11,9 +11,17 @@ float4x4 g_mWorld;
 float4x4 g_mWIT;
 float4x4 g_mVPT; // ShadowMap Transform, = light view x light proj x uv transform
 float4x4 g_mLVP; // ShadowMap Transform, Light View Projection, = light view x light proj
-float4x4 g_mLightView;
-float4x4 g_mLightProj;
-float4x4 g_mLightTT;
+
+float4x4 g_mLightView1;
+float4x4 g_mLightView2;
+float4x4 g_mLightView3;
+float4x4 g_mLightProj1;
+float4x4 g_mLightProj2;
+float4x4 g_mLightProj3;
+float4x4 g_mLightTT1;
+float4x4 g_mLightTT2;
+float4x4 g_mLightTT3;
+
 float3 g_vEyePos;
 float g_shininess = 90;
 float g_fFarClip = 10000;
@@ -62,10 +70,38 @@ sampler colorMap = sampler_state
 };
 
 
-texture g_shadowMapTexture;
-sampler shadowMap = sampler_state
+texture g_shadowMapTexture1;
+texture g_shadowMapTexture2;
+texture g_shadowMapTexture3;
+sampler shadowMap1 = sampler_state
 {
-    	Texture = <g_shadowMapTexture>;
+    	Texture = <g_shadowMapTexture1>;
+    	MinFilter = LINEAR;
+    	MagFilter = LINEAR;
+	MipFilter = NONE;
+
+	AddressU = Border;
+	AddressV = Border;
+
+	BorderColor = 0xffffffff;
+};
+
+sampler shadowMap2 = sampler_state
+{
+    	Texture = <g_shadowMapTexture2>;
+    	MinFilter = LINEAR;
+    	MagFilter = LINEAR;
+	MipFilter = NONE;
+
+	AddressU = Border;
+	AddressV = Border;
+
+	BorderColor = 0xffffffff;
+};
+
+sampler shadowMap3 = sampler_state
+{
+    	Texture = <g_shadowMapTexture3>;
     	MinFilter = LINEAR;
     	MagFilter = LINEAR;
 	MipFilter = NONE;
@@ -93,10 +129,12 @@ struct VS_OUTPUT_SHADOW
 	float4 Pos : POSITION;
 	float3 Normal : NORMAL;
 	float2 Tex : TEXCOORD0;
-	float4 TexShadow : TEXCOORD1;
-	float3 Eye : TEXCOORD2;
-	float4 vPos : TEXCOORD3;
-	float2 Depth : TEXCOORD4;
+	float4 TexShadow1 : TEXCOORD1;
+	float4 TexShadow2 : TEXCOORD2;
+	float4 TexShadow3 : TEXCOORD3;
+	float3 Eye : TEXCOORD4;
+	float4 Depth1 : TEXCOORD5;
+	float2 Depth2 : TEXCOORD6;
 };
 
 
@@ -288,10 +326,20 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	//Out.vPos = mul( Pos, mWV);
 	//Out.Depth = mul( wPos, g_mLVP ).zw;
 
-	float4x4 mLVP = mul(g_mLightView, g_mLightProj);
-	float4x4 mVPT = mul( mLVP, g_mLightTT);
-	Out.TexShadow = mul( wPos, mVPT );
-	Out.Depth = mul( wPos, mLVP ).zw;
+	float4x4 mLVP1 = mul(g_mLightView1, g_mLightProj1);
+	float4x4 mVPT1 = mul( mLVP1, g_mLightTT1);
+	Out.TexShadow1 = mul( wPos, mVPT1 );
+	Out.Depth1.xy = mul( wPos, mLVP1 ).zw;
+
+	float4x4 mLVP2 = mul(g_mLightView2, g_mLightProj2);
+	float4x4 mVPT2 = mul( mLVP2, g_mLightTT2);
+	Out.TexShadow2 = mul( wPos, mVPT2 );
+	Out.Depth1.zw = mul( wPos, mLVP2 ).zw;
+
+	float4x4 mLVP3 = mul(g_mLightView3, g_mLightProj3);
+	float4x4 mVPT3 = mul( mLVP3, g_mLightTT3);
+	Out.TexShadow3 = mul( wPos, mVPT3 );
+	Out.Depth2.xy = mul( wPos, mLVP3 ).zw;
 
 	return Out;
 }
@@ -299,32 +347,60 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 
 float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 {
-	float4 vTexCoords[9];
+	float4 vTexCoords[3][9];
 	float fTexelSize = 1.0f / 1024.0f;
-	float depth = min(In.Depth.x / In.Depth.y, 1.0);
+	float depth1 = min(In.Depth1.x / In.Depth1.y, 1.0);
+	float depth2 = min(In.Depth1.z / In.Depth1.w, 1.0);
+	float depth3 = min(In.Depth2.x / In.Depth2.y, 1.0);
 
 	// Generate the tecture co-ordinates for the specified depth-map size
 	// 4 3 5
 	// 1 0 2
    	// 7 6 8
-   	vTexCoords[0] = In.TexShadow;
-   	vTexCoords[1] = In.TexShadow + float4( -fTexelSize, 0.0f, 0.0f, 0.0f );
-   	vTexCoords[2] = In.TexShadow + float4(  fTexelSize, 0.0f, 0.0f, 0.0f );
-   	vTexCoords[3] = In.TexShadow + float4( 0.0f, -fTexelSize, 0.0f, 0.0f );
-   	vTexCoords[6] = In.TexShadow + float4( 0.0f,  fTexelSize, 0.0f, 0.0f );
-   	vTexCoords[4] = In.TexShadow + float4( -fTexelSize, -fTexelSize, 0.0f, 0.0f );
-   	vTexCoords[5] = In.TexShadow + float4(  fTexelSize, -fTexelSize, 0.0f, 0.0f );
-   	vTexCoords[7] = In.TexShadow + float4( -fTexelSize,  fTexelSize, 0.0f, 0.0f );
-   	vTexCoords[8] = In.TexShadow + float4(  fTexelSize,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[0][0] = In.TexShadow1;
+   	vTexCoords[0][1] = In.TexShadow1 + float4( -fTexelSize, 0.0f, 0.0f, 0.0f );
+   	vTexCoords[0][2] = In.TexShadow1 + float4(  fTexelSize, 0.0f, 0.0f, 0.0f );
+   	vTexCoords[0][3] = In.TexShadow1 + float4( 0.0f, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[0][6] = In.TexShadow1 + float4( 0.0f,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[0][4] = In.TexShadow1 + float4( -fTexelSize, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[0][5] = In.TexShadow1 + float4(  fTexelSize, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[0][7] = In.TexShadow1 + float4( -fTexelSize,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[0][8] = In.TexShadow1 + float4(  fTexelSize,  fTexelSize, 0.0f, 0.0f );
+
+   	vTexCoords[1][0] = In.TexShadow2;
+   	vTexCoords[1][1] = In.TexShadow2 + float4( -fTexelSize, 0.0f, 0.0f, 0.0f );
+   	vTexCoords[1][2] = In.TexShadow2 + float4(  fTexelSize, 0.0f, 0.0f, 0.0f );
+   	vTexCoords[1][3] = In.TexShadow2 + float4( 0.0f, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[1][6] = In.TexShadow2 + float4( 0.0f,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[1][4] = In.TexShadow2 + float4( -fTexelSize, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[1][5] = In.TexShadow2 + float4(  fTexelSize, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[1][7] = In.TexShadow2 + float4( -fTexelSize,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[1][8] = In.TexShadow2 + float4(  fTexelSize,  fTexelSize, 0.0f, 0.0f );
+
+   	vTexCoords[2][0] = In.TexShadow3;
+   	vTexCoords[2][1] = In.TexShadow3 + float4( -fTexelSize, 0.0f, 0.0f, 0.0f );
+   	vTexCoords[2][2] = In.TexShadow3 + float4(  fTexelSize, 0.0f, 0.0f, 0.0f );
+   	vTexCoords[2][3] = In.TexShadow3 + float4( 0.0f, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[2][6] = In.TexShadow3 + float4( 0.0f,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[2][4] = In.TexShadow3 + float4( -fTexelSize, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[2][5] = In.TexShadow3 + float4(  fTexelSize, -fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[2][7] = In.TexShadow3 + float4( -fTexelSize,  fTexelSize, 0.0f, 0.0f );
+   	vTexCoords[2][8] = In.TexShadow3 + float4(  fTexelSize,  fTexelSize, 0.0f, 0.0f );
+
+
+	float S1 = (depth1 - SHADOW_EPSILON);
+	float S2 = (depth2 - SHADOW_EPSILON);
+	float S3 = (depth3 - SHADOW_EPSILON);
 
         float fShadowTerms[9];
 	float fShadowTerm = 0.0f;
    	for( int i = 0; i < 9; i++ )
    	{
-	  	float A = tex2Dproj( shadowMap, vTexCoords[i] ).r;
-	  	float B = (depth - SHADOW_EPSILON);
+	  	float D1 = tex2Dproj( shadowMap1, vTexCoords[0][i] ).r;
+		float D2 = tex2Dproj( shadowMap2, vTexCoords[1][i] ).r;
+		float D3 = tex2Dproj( shadowMap3, vTexCoords[2][i] ).r;
 
-	  	fShadowTerms[i] = A < B ? 0.1f : 1.0f;
+		fShadowTerms[i] = ((D1 < S1) || (D2 < S2) || (D3 < S3)) ? 0.1f : 1.f;
 	  	fShadowTerm += fShadowTerms[i];
    	}
 

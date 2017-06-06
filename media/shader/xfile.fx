@@ -12,9 +12,17 @@ float4x4 g_mWorld;
 float4x4 g_mWIT;
 float4x4 g_mVPT; // ShadowMap Transform, = light view x light proj x uv transform
 float4x4 g_mLVP; // ShadowMap Transform, Light View Projection, = light view x light proj
-float4x4 g_mLightView;
-float4x4 g_mLightProj;
-float4x4 g_mLightTT;
+
+float4x4 g_mLightView1;
+float4x4 g_mLightView2;
+float4x4 g_mLightView3;
+float4x4 g_mLightProj1;
+float4x4 g_mLightProj2;
+float4x4 g_mLightProj3;
+float4x4 g_mLightTT1;
+float4x4 g_mLightTT2;
+float4x4 g_mLightTT3;
+
 float3 g_vEyePos; // Eye Position in world space
 float g_shininess = 90;
 float g_fFarClip = 10000;
@@ -64,10 +72,38 @@ sampler colorMap = sampler_state
 };
 
 
-texture g_shadowMapTexture;
-sampler shadowMap = sampler_state
+texture g_shadowMapTexture1;
+texture g_shadowMapTexture2;
+texture g_shadowMapTexture3;
+sampler shadowMap1 = sampler_state
 {
-    	Texture = <g_shadowMapTexture>;
+    	Texture = <g_shadowMapTexture1>;
+    	MinFilter = LINEAR;
+    	MagFilter = LINEAR;
+	MipFilter = NONE;
+
+	AddressU = Border;
+	AddressV = Border;
+
+	BorderColor = 0xffffffff;
+};
+
+sampler shadowMap2 = sampler_state
+{
+    	Texture = <g_shadowMapTexture2>;
+    	MinFilter = LINEAR;
+    	MagFilter = LINEAR;
+	MipFilter = NONE;
+
+	AddressU = Border;
+	AddressV = Border;
+
+	BorderColor = 0xffffffff;
+};
+
+sampler shadowMap3 = sampler_state
+{
+    	Texture = <g_shadowMapTexture3>;
     	MinFilter = LINEAR;
     	MagFilter = LINEAR;
 	MipFilter = NONE;
@@ -299,8 +335,8 @@ VS_OUTPUT_SHADOW VS_Scene_ShadowMap(
 	//Out.Depth = mul( wPos, g_mLVP ).z;
 	//Out.Depth = min(mul( wPos, g_mLVP ).z, 1);
 
-	float4x4 mLVP = mul(g_mLightView, g_mLightProj);
-	float4x4 mVPT = mul( mLVP, g_mLightTT);
+	float4x4 mLVP = mul(g_mLightView1, g_mLightProj1);
+	float4x4 mVPT = mul( mLVP, g_mLightTT1);
 	Out.TexShadow = mul( wPos, mVPT );
 	Out.Depth = mul( wPos, mLVP ).zw;
 
@@ -332,7 +368,7 @@ float4 PS_Scene_ShadowMap(VS_OUTPUT_SHADOW In) : COLOR
 	float fShadowTerm = 0.0f;
    	for( int i = 0; i < 9; i++ )
    	{
-	  	float A = tex2Dproj( shadowMap, vTexCoords[i] ).r;
+	  	float A = tex2Dproj( shadowMap1, vTexCoords[i] ).r;
 	  	float B = (depth - SHADOW_EPSILON);
 
 	  	// Texel is shadowed

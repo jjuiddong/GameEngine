@@ -3,9 +3,9 @@
 //
 
 #include "stdafx.h"
-#include "../../../../../Common/Graphic/terrain/terrain2.h"
-#include "../../../../../Common/Graphic/terrain/tile.h"
 #include "wall.h"
+#include "tbb/tbb.h"
+
 using namespace graphic;
 
 
@@ -24,19 +24,25 @@ public:
 	void ChangeWindowSize();
 
 
-private:
+public:
 	cImGui m_gui;
 	cGrid3 m_ground;
 	cSkyBox m_skybox;
 	cTerrain2 m_terrain;
 	cCamera m_terrainCamera;
-	cShadowMap m_shadowMap;
+
+	enum {FRUSTUM_COUNT=3};
+	cDbgFrustum m_frustum[ FRUSTUM_COUNT];
+	cDbgQuad2 m_quad[ FRUSTUM_COUNT];
+
 	vector<cShader*> m_shaders;
 
 	bool m_isShadow = true;
-	bool m_isVisibleSurface = true;
 	bool m_isFrustumTracking = true;
-	bool m_isCallingModel = true;
+	bool m_isCullingModel = true;
+	bool m_isShowLightFrustum = false;
+	bool m_isShowFrustum = true;
+	bool m_isShowFrustumQuad = true;
 	sf::Vector2i m_curPos;
 	Plane m_groundPlane1, m_groundPlane2;
 	float m_moveLen;
@@ -46,6 +52,20 @@ private:
 };
 
 INIT_FRAMEWORK(cViewer);
+
+
+void threadfunction(cViewer &viewer, int idx)
+{
+	viewer.m_terrain.CullingTest(viewer.m_renderer, viewer.m_frustum[idx], viewer.m_isCullingModel, idx);
+	viewer.m_terrain.PreRender(viewer.m_renderer, Matrix44::Identity, idx);
+}
+
+void ParallelApplyFoo(cViewer &viewer, size_t n) {
+	tbb::parallel_for(size_t(0), n, [&](size_t i) {
+		threadfunction(viewer, i);
+	});
+}
+
 
 
 cViewer::cViewer()
@@ -105,8 +125,12 @@ bool cViewer::OnInit()
 	m_ground.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "../media/terrain/¹Ù´Ú.jpg");
 
 	m_skybox.Create(m_renderer, "skybox");
-	//m_shadowMap.Create(m_renderer, 1024, 1024);
-	m_shadowMap.Create(m_renderer, 2048, 2048);
+
+	for (int i = 0; i < FRUSTUM_COUNT; ++i)
+	{
+		m_frustum[i].Create(m_renderer, Matrix44::Identity);
+		m_quad[i].Create(m_renderer);
+	}
 
 	//{
 	//	string files[] = {
@@ -149,10 +173,7 @@ bool cViewer::OnInit()
 		{
 			cShader *p = cResourceManager::Get()->LoadShader(m_renderer, files[i]);
 			if (p)
-			{
-				m_shadowMap.Bind(*p, "g_shadowMapTexture");
 				m_shaders.push_back(p);
-			}
 		}
 		m_ground.SetShader(cResourceManager::Get()->LoadShader(m_renderer, files[1]));	
 	}
@@ -178,7 +199,7 @@ bool cViewer::OnInit()
 				for (int k = 0; k < ySize; ++k)
 				{
 					cModel2 *model = new cModel2();
-					model->Create(m_renderer, "ConveyerBelt.x");
+					model->Create(m_renderer, common::GenerateId(), "ConveyerBelt.x", "", "", true);
 					Matrix44 T;
 					const float xGap = size / (xSize - 1);
 					const float yGap = size / (ySize - 1);
@@ -228,6 +249,9 @@ void cViewer::OnUpdate(const float deltaSeconds)
 {
 	m_terrain.Update(m_renderer, deltaSeconds);
 
+	cFrustum::Split3(m_terrainCamera, 0.005f, 0.015f, 0.04f
+		, m_frustum[0], m_frustum[1], m_frustum[2]);
+
 	// keyboard
 	if (GetFocus() == m_hWnd)
 	{
@@ -258,54 +282,17 @@ void cViewer::OnRender(const float deltaSeconds)
 	if (m_isFrustumTracking)
 		cMainCamera::Get()->PushCamera(&m_terrainCamera);
 
-	
-
 	GetMainLight().Bind(m_renderer, 0);
 
-	m_terrain.CullingTest(m_renderer, m_terrainCamera, m_isCallingModel);
+	//ParallelApplyFoo(*this, FRUSTUM_COUNT);
 
-	m_terrain.PreRender(m_renderer);
+	for (int i = 0; i < FRUSTUM_COUNT; ++i)
+	{
+		m_terrain.CullingTest(m_renderer, m_frustum[i], m_isCullingModel, i);
+		m_terrain.PreRender(m_renderer, Matrix44::Identity, i);
+	}
 
-	//m_gui.SetContext();
-	//m_gui.NewFrame();
 
-	Matrix44 viewtoLightProj;
-
-	// Generate ShadowMap
-	//if (m_isShadow)
-	//{
-	//	const Vector3 camPos = GetMainCamera()->GetEyePos();
-	//	const Vector3 camDir = GetMainCamera()->GetDirection();
-
-	//	Vector3 pickPos;
-	//	if (abs(camDir.y) < 0.3f)
-	//	{
-	//		pickPos = camDir * 10 + camPos;
-	//	}
-	//	else
-	//	{
-	//		pickPos = m_groundPlane1.Pick(camPos, camDir);
-	//	}
-
-	//	const Vector3 lightPos = -GetMainLight().GetDirection() * camPos.Length() + pickPos;
-
-	//	Matrix44 view, proj, tt;
-	//	GetMainLight().GetShadowMatrix(lightPos, view, proj, tt);
-
-	//	Matrix44 mWVPT = view * proj * tt;
-
-	//	viewtoLightProj = GetMainCamera()->GetViewMatrix().Inverse() * view * proj;
-
-	//	for (auto &p : m_shaders)
-	//	{
-	//		p->SetTechnique("ShadowMap");
-	//		m_shadowMap.Bind(*p, "g_shadowMapTexture");
-	//		p->SetMatrix("g_mWVPT", mWVPT);
-	//		p->SetMatrix("g_mView", view);
-	//		p->SetMatrix("g_mProj", proj);
-	//	}
-	//}
-	
 	// Render
 	if (m_renderer.ClearScene())
 	{
@@ -314,22 +301,36 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		GetMainCamera()->Bind(m_renderer);
 		m_skybox.Render(m_renderer);
-
-		//m_renderer.RenderGrid();
 		m_renderer.RenderFPS();
-
 		for (auto &p : m_shaders)
 		{
 			GetMainLight().Bind(*p);
 			GetMainCamera()->Bind(*p);
 		}
 
-		//m_ground.RenderShader(m_renderer);
+		Vector3 vtxBox[4];
+		const Plane ground(Vector3(0, 1, 0), 0);
+		for (int i = 0; i < FRUSTUM_COUNT; ++i)
+		{
+			m_frustum[i].GetGroundPlaneVertices(ground, vtxBox);
+			if (m_isShowFrustumQuad)
+				m_quad[i].SetQuad(vtxBox, 0.1f);
+		}
 
-		//if (m_isVisibleSurface)
-		//	m_shadowMap.RenderShadowMap(m_renderer);
-
+		m_terrain.CullingTestOnly(m_renderer, m_terrainCamera, m_isCullingModel);
 		m_terrain.Render(m_renderer);
+
+		if (m_isShowFrustumQuad)
+			for (int i=0; i < FRUSTUM_COUNT; ++i)
+				m_quad[i].Render(m_renderer);
+
+		if (m_isShowFrustum)
+			for (int i = 0; i < FRUSTUM_COUNT; ++i)
+				m_frustum[i].RenderShader(m_renderer);
+
+		if (m_isShowLightFrustum)
+			for (int i = 0; i < FRUSTUM_COUNT; ++i)
+				m_terrain.m_dbgLightFrustum[i].RenderShader(m_renderer);
 
 		//m_renderer.RenderAxis();
 		m_renderer.EndScene();
@@ -344,11 +345,9 @@ void cViewer::OnRender(const float deltaSeconds)
 void cViewer::OnLostDevice()
 {
 	m_gui.InvalidateDeviceObjects();
-	m_shadowMap.LostDevice();
 	m_terrain.LostDevice();
 	m_renderer.ResetDevice(0, 0, true);
 	m_gui.CreateDeviceObjects();
-	m_shadowMap.ResetDevice(m_renderer);
 	m_terrain.ResetDevice(m_renderer);
 	m_terrainCamera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
 }
@@ -365,10 +364,8 @@ void cViewer::ChangeWindowSize()
 	if (m_renderer.CheckResetDevice())
 	{
 		m_gui.InvalidateDeviceObjects();
-		m_shadowMap.LostDevice();
 		m_renderer.ResetDevice();
 		m_gui.CreateDeviceObjects();
-		m_shadowMap.ResetDevice(m_renderer);
 		m_terrain.ResetDevice(m_renderer);
 		m_terrainCamera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
 		m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
@@ -454,9 +451,10 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case VK_SPACE: m_isShadow = !m_isShadow; break;
-		case '1': m_isVisibleSurface = !m_isVisibleSurface; break;
+		case '1': m_isShowLightFrustum = !m_isShowLightFrustum; break;
 		case '2': 
 		{
+			// Switching Camera Option
 			if (m_isFrustumTracking)
 			{
 				GetMainCamera()->SetEyePos(m_terrainCamera.GetEyePos());
@@ -471,18 +469,23 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 
-		case '3': m_isCallingModel = !m_isCallingModel;  break;
+		case '3': m_isCullingModel = !m_isCullingModel;  break;
 		case '4': {
-			static bool isDbgRender = true;
+			static bool isDbgRender = false;
 			isDbgRender = !isDbgRender;
 			m_terrain.SetDbgRendering(isDbgRender);
 		}
 		break;
+		case '5': m_isShowFrustum = !m_isShowFrustum; break;
+		case '6': m_isShowFrustumQuad = !m_isShowFrustumQuad; break;
 		}
 		break;
 
 	case WM_LBUTTONDOWN:
 	{
+		if (m_isFrustumTracking)
+			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+
 		POINT pos = { (short)LOWORD(lParam), (short)HIWORD(lParam) };
 
 		SetCapture(m_hWnd);
@@ -495,6 +498,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
 		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
 		graphic::GetMainCamera()->MoveCancel();
+
+		if (m_isFrustumTracking)
+			cMainCamera::Get()->PopCamera();
 	}
 	break;
 
