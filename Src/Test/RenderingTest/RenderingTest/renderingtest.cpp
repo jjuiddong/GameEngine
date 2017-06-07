@@ -4,7 +4,6 @@
 
 #include "stdafx.h"
 #include "wall.h"
-#include "tbb/tbb.h"
 
 using namespace graphic;
 
@@ -52,20 +51,6 @@ public:
 };
 
 INIT_FRAMEWORK(cViewer);
-
-
-void threadfunction(cViewer &viewer, int idx)
-{
-	viewer.m_terrain.CullingTest(viewer.m_renderer, viewer.m_frustum[idx], viewer.m_isCullingModel, idx);
-	viewer.m_terrain.PreRender(viewer.m_renderer, Matrix44::Identity, idx);
-}
-
-void ParallelApplyFoo(cViewer &viewer, size_t n) {
-	tbb::parallel_for(size_t(0), n, [&](size_t i) {
-		threadfunction(viewer, i);
-	});
-}
-
 
 
 cViewer::cViewer()
