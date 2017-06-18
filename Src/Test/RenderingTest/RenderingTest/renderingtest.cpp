@@ -1,5 +1,5 @@
 //
-// Collada Viewer
+// Rendering Test
 //
 
 #include "stdafx.h"
@@ -29,6 +29,7 @@ public:
 	cSkyBox m_skybox;
 	cTerrain2 m_terrain;
 	cCamera m_terrainCamera;
+	cModel2 *m_model;
 
 	enum {FRUSTUM_COUNT=3};
 	cDbgFrustum m_frustum[ FRUSTUM_COUNT];
@@ -185,6 +186,7 @@ bool cViewer::OnInit()
 				{
 					cModel2 *model = new cModel2();
 					model->Create(m_renderer, common::GenerateId(), "ConveyerBelt.x", "", "", true);
+					//model->Create(m_renderer, common::GenerateId(), "bigship1.x", "", "", true);
 					Matrix44 T;
 					const float xGap = size / (xSize - 1);
 					const float yGap = size / (ySize - 1);
@@ -196,6 +198,7 @@ bool cViewer::OnInit()
 
 					model->SetShader(cResourceManager::Get()->LoadShader(m_renderer, "shader/xfile.fx"));
 					tile->AddModel(model);
+					m_model = model;
 				}
 
 				if (tx == 0 && ty == 0)
@@ -241,18 +244,37 @@ void cViewer::OnUpdate(const float deltaSeconds)
 	if (GetFocus() == m_hWnd)
 	{
 		const float vel = 10 * deltaSeconds;
-		if (GetAsyncKeyState('W'))
-			GetMainCamera()->MoveFront(vel);
-		else if (GetAsyncKeyState('A'))
-			GetMainCamera()->MoveRight(-vel);
-		else if (GetAsyncKeyState('D'))
-			GetMainCamera()->MoveRight(vel);
-		else if (GetAsyncKeyState('S'))
-			GetMainCamera()->MoveFront(-vel);
-		else if (GetAsyncKeyState('E'))
-			GetMainCamera()->MoveUp(vel);
-		else if (GetAsyncKeyState('C'))
-			GetMainCamera()->MoveUp(-vel);
+		//if (GetAsyncKeyState('W'))
+		//	GetMainCamera()->MoveFront(vel);
+		//else if (GetAsyncKeyState('A'))
+		//	GetMainCamera()->MoveRight(-vel);
+		//else if (GetAsyncKeyState('D'))
+		//	GetMainCamera()->MoveRight(vel);
+		//else if (GetAsyncKeyState('S'))
+		//	GetMainCamera()->MoveFront(-vel);
+		//else if (GetAsyncKeyState('E'))
+		//	GetMainCamera()->MoveUp(vel);
+		//else if (GetAsyncKeyState('C'))
+		//	GetMainCamera()->MoveUp(-vel);
+
+
+		if (m_model->m_xModel)
+		{
+			const int numFaces = m_model->m_xModel->m_pmesh->GetNumFaces();
+			if (GetAsyncKeyState('A'))
+			{
+				m_model->m_xModel->m_pmesh->SetNumFaces(numFaces + 1);
+				if (m_model->m_xModel->m_pmesh->GetNumFaces() == numFaces)
+					m_model->m_xModel->m_pmesh->SetNumFaces(numFaces + 2);
+			}
+
+			if (GetAsyncKeyState('S'))
+			{
+				m_model->m_xModel->m_pmesh->SetNumFaces(numFaces - 1);
+				if (m_model->m_xModel->m_pmesh->GetNumFaces() == numFaces)
+					m_model->m_xModel->m_pmesh->SetNumFaces(numFaces - 2);
+			}
+		}
 
 		GetMainCamera()->Update(deltaSeconds);
 	}
