@@ -163,7 +163,7 @@ void cRoot::PreRender(graphic::cRenderer &renderer, const float deltaSeconds)
 	Plane waterPlaneW = waterPlaneL * WInvTrans;
 
 	// Reflection plane in homogeneous clip space.
-	Matrix44 WVPInvTrans = (waterWorld * cMainCamera::Get()->GetViewProjectionMatrix()).Inverse();
+	Matrix44 WVPInvTrans = (waterWorld * GetMainCamera()->GetViewProjectionMatrix()).Inverse();
 	WVPInvTrans.Transpose();
 	Plane waterPlaneH = waterPlaneL * WVPInvTrans;
 
@@ -171,19 +171,19 @@ void cRoot::PreRender(graphic::cRenderer &renderer, const float deltaSeconds)
 	renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 1);
 	renderer.GetDevice()->SetClipPlane(0, (float*)f);
 
-	m_water.BeginRefractScene();
+	m_water.BeginRefractScene(renderer);
 	renderer.ClearScene();
 	m_skybox.Render(renderer);
 	renderer.SetCullMode(D3DCULL_CCW);
 	renderer.SetZFunc(D3DCMP_ALWAYS);
 	RenderGeometry(renderer, deltaSeconds, Matrix44::Identity, false);
-	m_water.EndRefractScene();
+	m_water.EndRefractScene(renderer);
 
 	// Seems like we need to reset these due to a driver bug.  It works
 	// correctly without these next two lines in the REF and another 
 	//video card, however.
 
-	m_water.BeginReflectScene();
+	m_water.BeginReflectScene(renderer);
 	renderer.ClearScene();
 	Matrix44 reflectMatrix = waterPlaneW.GetReflectMatrix();
 	renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
@@ -195,7 +195,7 @@ void cRoot::PreRender(graphic::cRenderer &renderer, const float deltaSeconds)
 	renderer.SetCullMode(D3DCULL_CW);
 	renderer.SetZFunc(D3DCMP_ALWAYS);
 	RenderGeometry(renderer, deltaSeconds, reflectMatrix, false);
-	m_water.EndReflectScene();
+	m_water.EndReflectScene(renderer);
 
 	renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 	renderer.SetZFunc(D3DCMP_LESSEQUAL);

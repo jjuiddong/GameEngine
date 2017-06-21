@@ -31,6 +31,7 @@ public:
 	cModel2 m_model;
 	cDbgBox m_box;
 	cDbgLine m_line;
+	cDbgLineList m_lineList;
 	Vector3 m_startPos;
 	Vector3 m_endPos;
 
@@ -103,61 +104,73 @@ bool cViewer::OnInit()
 	m_ground.Create(m_renderer, 10, 10, 100);
 	//m_ground.m_tex = cResourceManager::Get()->LoadTexture(m_renderer, "../media/terrain/¹Ù´Ú.jpg");
 
-	m_pathFinder.Create(100);
+	m_pathFinder.Create(200);
 
-	for (int x = 0; x < 5; ++x)
+	Vector3 offset[] = {
+		Vector3(0,0,0)
+		, Vector3(70,0,70)
+		, Vector3(-70, 0, 70)
+		, Vector3(70, 0, -70)
+		, Vector3(-70, 0, -70)
+	};
+
+	int offsetIndex = 0;
+	for (int o = 0; o < 5; ++o)
 	{
-		for (int z = 0; z < 5; ++z)
+		for (int x = 0; x < 5; ++x)
 		{
-			ai::sVertex vtx;
-			vtx.pos = Vector3(x * 10.f, 0, z * 10.f);
-			for (int i = 0; i < 4; ++i)
-				vtx.edge[i] = -1;
+			for (int z = 0; z < 5; ++z)
+			{
+				ai::sVertex vtx;
+				vtx.pos = Vector3(x * 10.f, 0, z * 10.f) + offset[o];
+				for (int i = 0; i < 4; ++i)
+					vtx.edge[i] = -1;
 
-			int idx = 0;
-			if (x-1 >= 0)
-				vtx.edge[idx++] = z + (x-1)*5;
-			if (x + 1 < 5)
-				vtx.edge[idx++] = z + (x + 1) * 5;
-			if (z - 1 >= 0)
-				vtx.edge[idx++] = z-1 + x*5;
-			if (z + 1 < 5)
-				vtx.edge[idx++] = z+1 + x*5;
+				int idx = 0;
+				if (x-1 >= 0)
+					vtx.edge[idx++] = z + (x-1)*5 + offsetIndex;
+				if (x + 1 < 5)
+					vtx.edge[idx++] = z + (x + 1) * 5 + offsetIndex;
+				if (z - 1 >= 0)
+					vtx.edge[idx++] = z-1 + x*5 + offsetIndex;
+				if (z + 1 < 5)
+					vtx.edge[idx++] = z+1 + x*5 + offsetIndex;
 
-			m_pathFinder.AddVertex(vtx);
+				m_pathFinder.AddVertex(vtx);
+			}
 		}
+
+		offsetIndex += 25;
 	}
 
-
-	for (int x = 0; x < 5; ++x)
-	{
-		for (int z = 0; z < 5; ++z)
-		{
-			ai::sVertex vtx;
-			vtx.pos = Vector3(x * 10.f, 0, z * 10.f) + Vector3(100,0,100);
-			for (int i = 0; i < 4; ++i)
-				vtx.edge[i] = -1;
-
-			int idx = 0;
-			if (x - 1 >= 0)
-				vtx.edge[idx++] = z + (x - 1) * 5 + 25;
-			if (x + 1 < 5)
-				vtx.edge[idx++] = z + (x + 1) * 5 + 25;
-			if (z - 1 >= 0)
-				vtx.edge[idx++] = z - 1 + x * 5 + 25;
-			if (z + 1 < 5)
-				vtx.edge[idx++] = z + 1 + x * 5 + 25;
-
-			m_pathFinder.AddVertex(vtx);
-		}
-	}
 
 	m_pathFinder.m_vertices[24].edge[2] = 25;
 	m_pathFinder.m_vertices[25].edge[2] = 24;
-
+	m_pathFinder.m_vertices[4].edge[2] = 70;
+	m_pathFinder.m_vertices[70].edge[2] = 4;
+	m_pathFinder.m_vertices[20].edge[2] = 79;
+	m_pathFinder.m_vertices[79].edge[2] = 20;
+	m_pathFinder.m_vertices[0].edge[2] = 124;
+	m_pathFinder.m_vertices[124].edge[2] = 0;
 
 	m_startPos = Vector3(0, 0, 0);
 	m_endPos = Vector3(90, 0, 40);
+
+	m_lineList.Create(m_renderer, 1000);
+	m_lineList.ClearLines();
+	for (auto &vtx : m_pathFinder.m_vertices)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			if (vtx.edge[i] < 0)
+				break;
+
+			m_lineList.AddLine(
+				vtx.pos
+				, m_pathFinder.m_vertices[vtx.edge[i]].pos);
+		}
+	}
+	m_lineList.Render(m_renderer);
 
 	return true;
 }
@@ -209,11 +222,13 @@ void cViewer::OnRender(const float deltaSeconds)
 			m_box.Render(m_renderer, tm);
 		}
 
+		m_lineList.Render(m_renderer);
+
 		vector<Vector3> path;
 		m_pathFinder.Find(m_startPos, m_endPos, path);
 		for (u_int i = 1; i < path.size(); ++i)
 		{
-			m_line.SetLine(path[i - 1], path[i], 0.1f);
+			m_line.SetLine(path[i - 1], path[i], 0.3f);
 			m_line.Render(m_renderer);
 
 		}
