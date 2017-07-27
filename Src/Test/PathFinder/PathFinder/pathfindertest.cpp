@@ -34,6 +34,9 @@ public:
 	cDbgLineList m_lineList;
 	Vector3 m_startPos;
 	Vector3 m_endPos;
+	cText m_text;
+	cSprite m_sprite;
+	cSurface2 m_surface;
 
 	ai::cPathFinder m_pathFinder;
 
@@ -172,6 +175,33 @@ bool cViewer::OnInit()
 	}
 	m_lineList.Render(m_renderer);
 
+
+	m_surface.Create(m_renderer, 128, 128, 1);
+	m_text.Create(m_renderer);
+	m_text.SetText("test");
+
+	m_surface.Begin(m_renderer);
+	if (SUCCEEDED(m_renderer.GetDevice()->Clear(
+		0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
+		D3DCOLOR_ARGB(0, 50, 50, 50),
+		1.0f, 0)))
+	{
+		m_text.SetPos(9, 10);
+		m_text.SetColor(D3DCOLOR_XRGB(0, 0, 0));
+		m_text.Render();
+		m_text.SetPos(9, 9);
+		m_text.Render();
+		m_text.SetPos(10, 9);
+		m_text.Render();
+
+		m_text.SetColor(D3DCOLOR_XRGB(255, 255, 255));
+		m_text.SetPos(10, 10);
+		m_text.Render();
+
+	}
+	m_surface.End(m_renderer);
+
+
 	return true;
 }
 
@@ -234,6 +264,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		}
 
 		m_model.RenderShader(m_renderer);
+		m_surface.Render(m_renderer);
 
 		m_renderer.RenderFPS();
 		m_renderer.RenderAxis();

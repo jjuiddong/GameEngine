@@ -1,0 +1,14 @@
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 ../media/terrain/???.jpg 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTextureParallel skybox/ThickCloudsWaterFront2048.png 
+Error : Error LoadTextureParallel skybox/ThickCloudsWaterBack2048.png 
+Error : Error LoadTextureParallel skybox/ThickCloudsWaterRight2048.png 
+Error : Error LoadTextureParallel skybox/ThickCloudsWaterLeft2048.png 
+Error : Error LoadTextureParallel skybox/ThickCloudsWaterUp2048.png 
+Error : Error LoadTextureParallel skybox/ThickCloudsWaterDown2048.png 
+Error : Error LoadShader cube3.fx 파일이 존재하지 않습니다.
+Error : Error LoadShader shader/frustum.fx 파일이 존재하지 않습니다.
+Error : Error LoadShader shader/frustum.fx 파일이 존재하지 않습니다.
+Error : Error LoadShader shader/frustum.fx 파일이 존재하지 않습니다.
