@@ -9,13 +9,6 @@ using namespace common;
 
 using namespace graphic;
 
-struct ConstantBuffer
-{
-	XMMATRIX mWorld;
-	XMMATRIX mView;
-	XMMATRIX mProjection;
-};
-
 class cViewer : public framework::cGameMain
 {
 public:
@@ -34,17 +27,14 @@ public:
 public:
 	cCamera m_terrainCamera;
 	cGrid m_ground;
-	cShader11 m_shader;
+	cCube m_cube;
+	cShader11 m_gridShader;
+	cShader11 m_cubeShader;
 
-	ID3D11Buffer *m_constantBuffer;
+	cConstantBuffer m_constantBuffer;
 	Transform m_world;
 
-	bool m_isShadow = true;
 	bool m_isFrustumTracking = true;
-	bool m_isCullingModel = true;
-	bool m_isShowLightFrustum = false;
-	bool m_isShowFrustum = true;
-	bool m_isShowFrustumQuad = true;
 	sf::Vector2i m_curPos;
 	Plane m_groundPlane1, m_groundPlane2;
 	float m_moveLen;
@@ -56,9 +46,16 @@ public:
 INIT_FRAMEWORK(cViewer);
 
 
+struct ConstantBuffer
+{
+	XMMATRIX mWorld;
+	XMMATRIX mView;
+	XMMATRIX mProjection;
+};
+
+
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
-	, m_constantBuffer(NULL)
 {
 	m_windowName = L"Init DX11";
 	//const RECT r = { 0, 0, 1024, 768 };
@@ -72,7 +69,6 @@ cViewer::cViewer()
 
 cViewer::~cViewer()
 {
-	SAFE_RELEASE(m_constantBuffer);
 	graphic::ReleaseRenderer();
 }
 
@@ -95,26 +91,35 @@ bool cViewer::OnInit()
 	m_terrainCamera.SetProjection(D3DX_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
 	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	m_ground.Create(m_renderer, 10, 10, 1);
-
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	m_shader.CreateVertexShader(m_renderer, "line.fx", "VS", layout, ARRAYSIZE(layout));
-	m_shader.CreatePixelShader(m_renderer, "line.fx", "PS");
+	m_gridShader.CreateVertexShader(m_renderer, "grid.fx", "VS", layout, ARRAYSIZE(layout));
+	m_gridShader.CreatePixelShader(m_renderer, "grid.fx", "PS");
 
+
+	D3D11_INPUT_ELEMENT_DESC cubeLayout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+	m_cubeShader.CreateVertexShader(m_renderer, "cubetex.fx", "VS", cubeLayout, ARRAYSIZE(cubeLayout));
+	m_cubeShader.CreatePixelShader(m_renderer, "cubetex.fx", "PS");
 
 	// Create the constant buffer
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(ConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	if (FAILED(m_renderer.GetDevice()->CreateBuffer(&bd, NULL, &m_constantBuffer)))
-		return false;
+	m_constantBuffer.Create(m_renderer, sizeof(ConstantBuffer));
+
+	m_ground.Create(m_renderer, 10, 10, 1);
+	m_ground.SetShader(&m_gridShader);
+
+	cBoundingBox bbox;
+	bbox.SetBoundingBox(Vector3(-1, -1, -1)*0.5F, Vector3(1, 1, 1)*0.5F);
+	m_cube.Create(m_renderer, bbox);
+	m_cube.SetShader(&m_cubeShader);
 
 	//GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 	//	Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
@@ -166,13 +171,16 @@ void cViewer::OnRender(const float deltaSeconds)
 		cb1.mWorld = XMMatrixTranspose(mWorld);
 		cb1.mView = XMMatrixTranspose(mView);
 		cb1.mProjection = XMMatrixTranspose(mProj);
-		m_renderer.GetDeviceContext()->UpdateSubresource(m_constantBuffer, 0, NULL, &cb1, 0, 0);
+		m_constantBuffer.Update(m_renderer, &cb1);
+		m_constantBuffer.Bind(m_renderer);
 
-		m_shader.BindVertexShader(m_renderer);
-		m_renderer.GetDeviceContext()->VSSetConstantBuffers(0, 1, &m_constantBuffer);
-		m_shader.BindPixelShader(m_renderer);
-		//m_ground.Render(m_renderer);
-		m_ground.RenderLinelist(m_renderer);
+		m_gridShader.BindVertexShader(m_renderer);
+		m_gridShader.BindPixelShader(m_renderer);
+		m_ground.Render(m_renderer);
+
+		m_cubeShader.BindVertexShader(m_renderer);
+		m_cubeShader.BindPixelShader(m_renderer);
+		m_cube.Render(m_renderer);
 
 		//m_renderer.RenderGrid();
 		//m_renderer.RenderFPS();
@@ -285,33 +293,33 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			//cResourceManager::Get()->ReloadShader(m_renderer);
 			break;
 
-		case VK_SPACE: m_isShadow = !m_isShadow; break;
-		case '1': m_isShowLightFrustum = !m_isShowLightFrustum; break;
-		case '2':
-		{
-			// Switching Camera Option
-			if (m_isFrustumTracking)
-			{
-				GetMainCamera()->SetEyePos(m_terrainCamera.GetEyePos());
-				GetMainCamera()->SetLookAt(m_terrainCamera.GetLookAt());
-			}
-			else
-			{
-				m_terrainCamera.SetEyePos(GetMainCamera()->GetEyePos());
-				m_terrainCamera.SetLookAt(GetMainCamera()->GetLookAt());
-			}
-			m_isFrustumTracking = !m_isFrustumTracking;
-		}
-		break;
+		//case VK_SPACE: m_isShadow = !m_isShadow; break;
+		//case '1': m_isShowLightFrustum = !m_isShowLightFrustum; break;
+		//case '2':
+		//{
+		//	// Switching Camera Option
+		//	if (m_isFrustumTracking)
+		//	{
+		//		GetMainCamera()->SetEyePos(m_terrainCamera.GetEyePos());
+		//		GetMainCamera()->SetLookAt(m_terrainCamera.GetLookAt());
+		//	}
+		//	else
+		//	{
+		//		m_terrainCamera.SetEyePos(GetMainCamera()->GetEyePos());
+		//		m_terrainCamera.SetLookAt(GetMainCamera()->GetLookAt());
+		//	}
+		//	m_isFrustumTracking = !m_isFrustumTracking;
+		//}
+		//break;
 
-		case '3': m_isCullingModel = !m_isCullingModel;  break;
-		case '4': {
-			static bool isDbgRender = false;
-			isDbgRender = !isDbgRender;
-		}
-				  break;
-		case '5': m_isShowFrustum = !m_isShowFrustum; break;
-		case '6': m_isShowFrustumQuad = !m_isShowFrustumQuad; break;
+		//case '3': m_isCullingModel = !m_isCullingModel;  break;
+		//case '4': {
+		//	static bool isDbgRender = false;
+		//	isDbgRender = !isDbgRender;
+		//}
+		//		  break;
+		//case '5': m_isShowFrustum = !m_isShowFrustum; break;
+		//case '6': m_isShowFrustumQuad = !m_isShowFrustumQuad; break;
 		}
 		break;
 
