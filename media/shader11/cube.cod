@@ -1,0 +1,12 @@
+//
+// FX Version: fx_5_0
+//
+// 1 local buffer(s)
+//
+cbuffer ConstantBuffer : register(b0)
+{
+    float4x4 World;                     // Offset:    0, size:   64
+    float4x4 View;                      // Offset:   64, size:   64
+    float4x4 Projection;                // Offset:  128, size:   64
+}
+

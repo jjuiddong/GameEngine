@@ -1,5 +1,5 @@
-﻿//
-// Init DX11
+//
+// DX11 Lighting
 //
 
 #include "../../../../../Common/Common/common.h"
@@ -31,7 +31,6 @@ public:
 	cShader11 m_gridShader;
 	cShader11 m_cubeShader;
 	cTexture m_texture;
-	cSamplerState m_sampler;
 
 	cConstantBuffer m_constantBuffer;
 	Transform m_world;
@@ -59,7 +58,7 @@ struct ConstantBuffer
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
 {
-	m_windowName = L"Init DX11";
+	m_windowName = L"DX11 Lighting";
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 1024 };
 	m_windowRect = r;
@@ -98,8 +97,7 @@ bool cViewer::OnInit()
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	m_gridShader.CreateVertexShader(m_renderer, "grid.fx", "VS", layout, ARRAYSIZE(layout));
-	m_gridShader.CreatePixelShader(m_renderer, "grid.fx", "PS");
+	m_gridShader.Create(m_renderer, "../media/shader11/grid.fxo", "LightTech", layout, ARRAYSIZE(layout));
 
 
 	D3D11_INPUT_ELEMENT_DESC cubeLayout[] =
@@ -109,8 +107,7 @@ bool cViewer::OnInit()
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	m_cubeShader.CreateVertexShader(m_renderer, "cubetex.fx", "VS", cubeLayout, ARRAYSIZE(cubeLayout));
-	m_cubeShader.CreatePixelShader(m_renderer, "cubetex.fx", "PS");
+	m_cubeShader.Create(m_renderer, "../media/shader11/cubetex-light.fxo", "LightTech", cubeLayout, ARRAYSIZE(cubeLayout));
 
 	// Create the constant buffer
 	m_constantBuffer.Create(m_renderer, sizeof(ConstantBuffer));
@@ -125,7 +122,6 @@ bool cViewer::OnInit()
 
 	m_texture.Create(m_renderer, "../media/BoxEdgebg_Wood_black.png");
 	m_cube.m_texture = &m_texture;
-	m_sampler.Create(m_renderer);
 
 	//GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 	//	Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
@@ -177,21 +173,23 @@ void cViewer::OnRender(const float deltaSeconds)
 		cb1.mView = XMMatrixTranspose(mView);
 		cb1.mProjection = XMMatrixTranspose(mProj);
 		m_constantBuffer.Update(m_renderer, &cb1);
-		m_constantBuffer.Bind(m_renderer);
 
-		m_gridShader.BindVertexShader(m_renderer);
-		m_gridShader.BindPixelShader(m_renderer);
-		m_ground.Render(m_renderer);
+		const int pass = m_gridShader.Begin();
+		for (int i = 0; i < pass; ++i)
+		{
+			m_gridShader.BeginPass(m_renderer, i);
+			m_constantBuffer.Bind(m_renderer);
+			m_ground.Render(m_renderer);
+		}
 
-		m_cubeShader.BindVertexShader(m_renderer);
-		m_cubeShader.BindPixelShader(m_renderer);
-		
-		m_sampler.Bind(m_renderer);
-		m_cube.Render(m_renderer);
 
-		//m_renderer.RenderGrid();
-		//m_renderer.RenderFPS();
-		//m_renderer.RenderAxis();
+		const int pass2 = m_cubeShader.Begin();
+		for (int i = 0; i < pass2; ++i)
+		{
+			m_cubeShader.BeginPass(m_renderer, i);
+			m_constantBuffer.Bind(m_renderer);
+			m_cube.Render(m_renderer);
+		}
 
 		m_renderer.EndScene();
 		m_renderer.Present();
@@ -300,33 +298,33 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			//cResourceManager::Get()->ReloadShader(m_renderer);
 			break;
 
-		//case VK_SPACE: m_isShadow = !m_isShadow; break;
-		//case '1': m_isShowLightFrustum = !m_isShowLightFrustum; break;
-		//case '2':
-		//{
-		//	// Switching Camera Option
-		//	if (m_isFrustumTracking)
-		//	{
-		//		GetMainCamera()->SetEyePos(m_terrainCamera.GetEyePos());
-		//		GetMainCamera()->SetLookAt(m_terrainCamera.GetLookAt());
-		//	}
-		//	else
-		//	{
-		//		m_terrainCamera.SetEyePos(GetMainCamera()->GetEyePos());
-		//		m_terrainCamera.SetLookAt(GetMainCamera()->GetLookAt());
-		//	}
-		//	m_isFrustumTracking = !m_isFrustumTracking;
-		//}
-		//break;
+			//case VK_SPACE: m_isShadow = !m_isShadow; break;
+			//case '1': m_isShowLightFrustum = !m_isShowLightFrustum; break;
+			//case '2':
+			//{
+			//	// Switching Camera Option
+			//	if (m_isFrustumTracking)
+			//	{
+			//		GetMainCamera()->SetEyePos(m_terrainCamera.GetEyePos());
+			//		GetMainCamera()->SetLookAt(m_terrainCamera.GetLookAt());
+			//	}
+			//	else
+			//	{
+			//		m_terrainCamera.SetEyePos(GetMainCamera()->GetEyePos());
+			//		m_terrainCamera.SetLookAt(GetMainCamera()->GetLookAt());
+			//	}
+			//	m_isFrustumTracking = !m_isFrustumTracking;
+			//}
+			//break;
 
-		//case '3': m_isCullingModel = !m_isCullingModel;  break;
-		//case '4': {
-		//	static bool isDbgRender = false;
-		//	isDbgRender = !isDbgRender;
-		//}
-		//		  break;
-		//case '5': m_isShowFrustum = !m_isShowFrustum; break;
-		//case '6': m_isShowFrustumQuad = !m_isShowFrustumQuad; break;
+			//case '3': m_isCullingModel = !m_isCullingModel;  break;
+			//case '4': {
+			//	static bool isDbgRender = false;
+			//	isDbgRender = !isDbgRender;
+			//}
+			//		  break;
+			//case '5': m_isShowFrustum = !m_isShowFrustum; break;
+			//case '6': m_isShowFrustumQuad = !m_isShowFrustumQuad; break;
 		}
 		break;
 
