@@ -32,8 +32,12 @@ public:
 	cShader11 m_cubeShader;
 	cTexture m_texture;
 
-	cConstantBuffer m_constantBuffer;
+	cConstantBuffer m_cbPerFrame;
+	cConstantBuffer m_cbLight;
+	cConstantBuffer m_cbMaterial;
+	
 	Transform m_world;
+	cMaterial m_mtrl;
 
 	bool m_isFrustumTracking = true;
 	sf::Vector2i m_curPos;
@@ -47,12 +51,14 @@ public:
 INIT_FRAMEWORK(cViewer);
 
 
-struct ConstantBuffer
+struct sCbPerFrame
 {
 	XMMATRIX mWorld;
 	XMMATRIX mView;
 	XMMATRIX mProjection;
+	XMVECTOR eyePosW;
 };
+
 
 
 cViewer::cViewer()
@@ -95,7 +101,9 @@ bool cViewer::OnInit()
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	m_gridShader.Create(m_renderer, "../media/shader11/grid.fxo", "LightTech", layout, ARRAYSIZE(layout));
 
@@ -110,26 +118,29 @@ bool cViewer::OnInit()
 	m_cubeShader.Create(m_renderer, "../media/shader11/cubetex-light.fxo", "LightTech", cubeLayout, ARRAYSIZE(cubeLayout));
 
 	// Create the constant buffer
-	m_constantBuffer.Create(m_renderer, sizeof(ConstantBuffer));
+	m_cbPerFrame.Create(m_renderer, sizeof(sCbPerFrame));
+	m_cbLight.Create(m_renderer, sizeof(sCbLight));
+	m_cbMaterial.Create(m_renderer, sizeof(sCbMaterial));
 
-	m_ground.Create(m_renderer, 10, 10, 1);
-	m_ground.SetShader(&m_gridShader);
+	m_ground.Create(m_renderer, 10, 10, 1, eGridType::POSITION | eGridType::NORMAL | eGridType::DIFFUSE | eGridType::TEXTURE);
 
 	cBoundingBox bbox;
 	bbox.SetBoundingBox(Vector3(-1, -1, -1)*0.5F, Vector3(1, 1, 1)*0.5F);
-	m_cube.Create(m_renderer, bbox, cCube::eCubeType::POSITION | cCube::eCubeType::NORMAL | cCube::eCubeType::DIFFUSE | cCube::eCubeType::TEXTURE);
-	m_cube.SetShader(&m_cubeShader);
+	m_cube.Create(m_renderer, bbox, eCubeType::POSITION | eCubeType::NORMAL | eCubeType::DIFFUSE | eGridType::TEXTURE);
 
 	m_texture.Create(m_renderer, "../media/BoxEdgebg_Wood_black.png");
 	m_cube.m_texture = &m_texture;
+	m_ground.m_texture = &m_texture;
 
-	//GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
-	//	Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
-	//	Vector4(0.2f, 0.2f, 0.2f, 1));
-	//const Vector3 lightPos(-300, 300, -300);
-	//const Vector3 lightLookat(0, 0, 0);
-	//GetMainLight().SetPosition(lightPos);
-	//GetMainLight().SetDirection((lightLookat - lightPos).Normal());
+	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
+		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
+		Vector4(0.2f, 0.2f, 0.2f, 1));
+	const Vector3 lightPos(-300, 300, -300);
+	const Vector3 lightLookat(0, 0, 0);
+	GetMainLight().SetPosition(lightPos);
+	GetMainLight().SetDirection((lightLookat - lightPos).Normal());
+
+	m_mtrl.InitWhite();
 
 	//m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	//m_renderer.GetDevice()->LightEnable(0, true);
@@ -161,7 +172,6 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		GetMainCamera()->Bind(m_renderer);
 
-		ConstantBuffer cb1;
 		static float t = 0;
 		t += deltaSeconds;
 		//m_world.rot.SetRotationY(t);
@@ -169,25 +179,33 @@ void cViewer::OnRender(const float deltaSeconds)
 		XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetViewMatrix());
 		XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetProjectionMatrix());
 		XMMATRIX mWorld = XMLoadFloat4x4((XMFLOAT4X4*)&m_world.GetMatrix());
-		cb1.mWorld = XMMatrixTranspose(mWorld);
-		cb1.mView = XMMatrixTranspose(mView);
-		cb1.mProjection = XMMatrixTranspose(mProj);
-		m_constantBuffer.Update(m_renderer, &cb1);
+		sCbPerFrame cb0;
+		cb0.mWorld = XMMatrixTranspose(mWorld);
+		cb0.mView = XMMatrixTranspose(mView);
+		cb0.mProjection = XMMatrixTranspose(mProj);
+		m_cbPerFrame.Update(m_renderer, &cb0);
+
+		sCbLight cb1 = GetMainLight().GetLight();
+		m_cbLight.Update(m_renderer, &cb1);
+
+		sCbMaterial cb2 = m_mtrl.GetMaterial();
+		m_cbMaterial.Update(m_renderer, &cb2);
 
 		const int pass = m_gridShader.Begin();
 		for (int i = 0; i < pass; ++i)
 		{
 			m_gridShader.BeginPass(m_renderer, i);
-			m_constantBuffer.Bind(m_renderer);
+			m_cbPerFrame.Bind(m_renderer);
 			m_ground.Render(m_renderer);
 		}
-
 
 		const int pass2 = m_cubeShader.Begin();
 		for (int i = 0; i < pass2; ++i)
 		{
 			m_cubeShader.BeginPass(m_renderer, i);
-			m_constantBuffer.Bind(m_renderer);
+			m_cbPerFrame.Bind(m_renderer);
+			m_cbLight.Bind(m_renderer, 1);
+			m_cbMaterial.Bind(m_renderer, 2);
 			m_cube.Render(m_renderer);
 		}
 

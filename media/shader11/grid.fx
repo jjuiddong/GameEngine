@@ -7,29 +7,60 @@
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
-cbuffer ConstantBuffer : register( b0 )
+Texture2D txDiffuse : register( t0 );
+SamplerState samLinear : register( s0 )
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = WRAP;
+	AddressV = WRAP;
+};
+
+
+cbuffer cbPerFrame : register( b0 )
 {
 	matrix World;
 	matrix View;
 	matrix Projection;
+	float3 gEyePosW;
 }
+
+
+cbuffer cbLight : register( b1 )
+{
+	float4 Ambient;
+	float4 Diffuse;
+	float4 Specular;
+	float3 Direction;
+	float3 PosW;
+}
+
+
+
+
 
 //--------------------------------------------------------------------------------------
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
+    float3 Normal : TEXCOORD0;
+    float2 Tex : TEXCOORD1;
     float4 Color : COLOR0;
 };
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
-VS_OUTPUT VS( float4 Pos : POSITION, float4 Color : COLOR )
+VS_OUTPUT VS( float4 Pos : POSITION
+	, float3 Normal : NORMAL
+	, float2 Tex : TEXCOORD0
+	, float4 Color : COLOR )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     output.Pos = mul( Pos, World );
     output.Pos = mul( output.Pos, View );
     output.Pos = mul( output.Pos, Projection );
+    output.Normal = normalize( mul(Normal, (float3x3)World) );
+    output.Tex = Tex;
     output.Color = Color;
     return output;
 }
@@ -38,9 +69,11 @@ VS_OUTPUT VS( float4 Pos : POSITION, float4 Color : COLOR )
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
-float4 PS( VS_OUTPUT input ) : SV_Target
+float4 PS( VS_OUTPUT In ) : SV_Target
 {
-    return input.Color;
+    //return input.Color;
+    float4 Out = txDiffuse.Sample( samLinear, In.Tex );
+    return Out;
 }
 
 
