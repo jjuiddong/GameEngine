@@ -1,11 +1,12 @@
 //
-// DX11 Lighting
+// DX11 Primitive
 //
 
 #include "../../../../../Common/Common/common.h"
 using namespace common;
 #include "../../../../../Common/Graphic11/graphic11.h"
 #include "../../../../../Common/Framework11/framework11.h"
+
 
 using namespace graphic;
 
@@ -30,12 +31,14 @@ public:
 	cCube m_cube;
 	cShader11 m_gridShader;
 	cShader11 m_cubeShader;
+	cShader11 m_dbgShader;
 	cTexture m_texture;
+	cDbgBox m_dbgBox;
 
 	cConstantBuffer m_cbPerFrame;
 	cConstantBuffer m_cbLight;
 	cConstantBuffer m_cbMaterial;
-	
+
 	Transform m_world;
 	cMaterial m_mtrl;
 
@@ -64,7 +67,7 @@ struct sCbPerFrame
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
 {
-	m_windowName = L"DX11 Lighting";
+	m_windowName = L"DX11 Primitive";
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 1024 };
 	m_windowRect = r;
@@ -117,6 +120,14 @@ bool cViewer::OnInit()
 	};
 	m_cubeShader.Create(m_renderer, "../media/shader11/cubetex-light.fxo", "LightTech", cubeLayout, ARRAYSIZE(cubeLayout));
 
+	D3D11_INPUT_ELEMENT_DESC dbgLayout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+	m_dbgShader.Create(m_renderer, "../media/shader11/dbg.fxo", "LightTech", dbgLayout, ARRAYSIZE(dbgLayout));
+
+
 	// Create the constant buffer
 	m_cbPerFrame.Create(m_renderer, sizeof(sCbPerFrame));
 	m_cbLight.Create(m_renderer, sizeof(sCbLight));
@@ -125,11 +136,10 @@ bool cViewer::OnInit()
 	m_ground.Create(m_renderer, 10, 10, 1, eGridType::POSITION | eGridType::NORMAL | eGridType::DIFFUSE | eGridType::TEXTURE);
 
 	cBoundingBox bbox;
-	bbox.SetBoundingBox(Vector3(-1, -1, -1)*0.5F, Vector3(1, 1, 1)*0.5F);
+	bbox.SetBoundingBox(Vector3(0,0,0), Vector3(2, 2, 2));
 	m_cube.Create(m_renderer, bbox, eCubeType::POSITION | eCubeType::NORMAL | eCubeType::DIFFUSE | eGridType::TEXTURE);
 
-	//m_texture.Create(m_renderer, "../media/BoxEdgebg_Wood_black.png");
-	m_texture.Create(m_renderer, "../media/white.dds");
+	m_texture.Create(m_renderer, "../media/BoxEdgebg_Wood_black.dds");
 	m_cube.m_texture = &m_texture;
 	m_ground.m_texture = &m_texture;
 
@@ -142,6 +152,9 @@ bool cViewer::OnInit()
 	GetMainLight().SetDirection((lightLookat - lightPos).Normal());
 
 	m_mtrl.InitWhite();
+
+	m_dbgBox.Create(m_renderer);
+	m_dbgBox.SetBox(m_cube.m_boundingBox);
 
 	//m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	//m_renderer.GetDevice()->LightEnable(0, true);
@@ -197,9 +210,14 @@ void cViewer::OnRender(const float deltaSeconds)
 		{
 			m_gridShader.BeginPass(m_renderer, i);
 			m_cbPerFrame.Bind(m_renderer);
+			m_cbLight.Bind(m_renderer, 1);
+			m_cbMaterial.Bind(m_renderer, 2);
 			m_ground.Render(m_renderer);
 		}
 
+
+		cb0.mWorld = XMMatrixTranspose(m_cube.m_boundingBox.GetTransform());
+		m_cbPerFrame.Update(m_renderer, &cb0);
 		const int pass2 = m_cubeShader.Begin();
 		for (int i = 0; i < pass2; ++i)
 		{
@@ -209,6 +227,18 @@ void cViewer::OnRender(const float deltaSeconds)
 			m_cbMaterial.Bind(m_renderer, 2);
 			m_cube.Render(m_renderer);
 		}
+
+
+		cb0.mWorld = XMMatrixTranspose(m_dbgBox.m_boundingBox.GetTransform());
+		m_cbPerFrame.Update(m_renderer, &cb0);
+		const int pass3 = m_dbgShader.Begin();
+		for (int i = 0; i < pass3; ++i)
+		{
+			m_dbgShader.BeginPass(m_renderer, i);
+			m_cbPerFrame.Bind(m_renderer);
+			m_dbgBox.Render(m_renderer);
+		}
+
 
 		m_renderer.EndScene();
 		m_renderer.Present();
@@ -245,10 +275,6 @@ void cViewer::ChangeWindowSize()
 void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	framework::cInputManager::Get()->MouseProc(message, wParam, lParam);
-
-	//if ((message != WM_EXITSIZEMOVE) && (message != WM_SIZE))
-	//	if (ImGui::IsMouseHoveringAnyWindow())
-	//		return;
 
 	static bool maximizeWnd = false;
 	switch (message)
