@@ -91,10 +91,6 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 
 	float4 Out = color * txDiffuse.Sample( samLinear, In.Tex );
 	return Out;
-
-    //return input.Color;
-    //float4 Out = txDiffuse.Sample( samLinear, In.Tex );
-    //return Out;
 }
 
 

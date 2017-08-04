@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6E53F4F9-5D5B-4563-94FA-17B807475E30}</ProjectGuid>
+    <ProjectGuid>{FC6B4B98-714F-4497-9613-873ED8C7E1A2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>DX11Primitive</RootNamespace>
+    <RootNamespace>DX11Frustum</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -150,7 +150,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dx11primitive.cpp" />
+    <ClCompile Include="dx11frustum.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\Common\Common\Common.vcxproj">
@@ -162,9 +162,12 @@
     <ProjectReference Include="..\..\..\..\..\Common\Graphic11\Graphic11.vcxproj">
       <Project>{6e994653-a69c-4be2-b830-97676e805f29}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\DirectXTK\DirectXTK_Desktop_2015.vcxproj">
+      <Project>{e0b52ae7-e160-4d32-bf3f-910b785e5a8e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\..\media\shader11\cubetex-light.fx">
+    <CustomBuild Include="..\..\..\..\media\shader11\dbg.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc /Fc /Od /Zi /T fx_5_0 /Fo "%(RelativeDir)\%(Filename).fxo" "%(FullPath)"</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc compile for debug: %(FullPath)</Message>
@@ -178,15 +181,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\..\media\shader11\dbg.fx">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc /Fc /Od /Zi /T fx_5_0 /Fo "%(RelativeDir)\%(Filename).fxo" "%(FullPath)"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc compile for debug: %(FullPath)</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)\%(Filename).fxo</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\..\..\media\shader11\solid-light.fx">
+    <CustomBuild Include="..\..\..\..\media\shader11\cubetex-light.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc /Fc /Od /Zi /T fx_5_0 /Fo "%(RelativeDir)\%(Filename).fxo" "%(FullPath)"</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc compile for debug: %(FullPath)</Message>

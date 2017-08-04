@@ -1,7 +1,7 @@
 //
 // FX Version: fx_5_0
 //
-// 1 local buffer(s)
+// 3 local buffer(s)
 //
 cbuffer cbPerFrame : register(b0)
 {
@@ -9,6 +9,24 @@ cbuffer cbPerFrame : register(b0)
     float4x4 View;                      // Offset:   64, size:   64
     float4x4 Projection;                // Offset:  128, size:   64
     float3  gEyePosW;                   // Offset:  192, size:   12
+}
+
+cbuffer cbLight : register(b1)
+{
+    float4  gLight_Ambient;             // Offset:    0, size:   16
+    float4  gLight_Diffuse;             // Offset:   16, size:   16
+    float4  gLight_Specular;            // Offset:   32, size:   16
+    float3  gLight_Direction;           // Offset:   48, size:   12
+    float3  gLight_PosW;                // Offset:   64, size:   12
+}
+
+cbuffer cbMaetrial : register(b2)
+{
+    float4  gMtrl_Ambient;              // Offset:    0, size:   16
+    float4  gMtrl_Diffuse;              // Offset:   16, size:   16
+    float4  gMtrl_Specular;             // Offset:   32, size:   16
+    float4  gMtrl_Emissive;             // Offset:   48, size:   16
+    float   gMtrl_Pow;                  // Offset:   64, size:    4
 }
 
 //
@@ -90,7 +108,7 @@ fxgroup
                 //   o1.x <- <VS return value>.Color.x; o1.y <- <VS return value>.Color.y; o1.z <- <VS return value>.Color.z; o1.w <- <VS return value>.Color.w; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 43 "D:\Project\GameEngine\media\shader11\dbg.fx"
+                #line 63 "D:\Project\GameEngine\media\shader11\dbg.fx"
                 dp4 r0.x, v0.xyzw, cb0[0].xyzw  // r0.x <- output.Pos.x
                 dp4 r0.y, v0.xyzw, cb0[1].xyzw  // r0.y <- output.Pos.y
                 dp4 r0.z, v0.xyzw, cb0[2].xyzw  // r0.z <- output.Pos.z
@@ -141,7 +159,7 @@ fxgroup
                 //   v1.x <- In.Color.x; v1.y <- In.Color.y; v1.z <- In.Color.z; v1.w <- In.Color.w; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 56 "D:\Project\GameEngine\media\shader11\dbg.fx"
+                #line 77 "D:\Project\GameEngine\media\shader11\dbg.fx"
                 mov o0.xyzw, v1.xyzw
                 ret 
                 // Approximately 2 instruction slots used

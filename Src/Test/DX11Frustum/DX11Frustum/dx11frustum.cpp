@@ -1,5 +1,5 @@
 //
-// DX11 Primitive
+// DX11 Frustum
 //
 
 #include "../../../../../Common/Common/common.h"
@@ -27,18 +27,16 @@ public:
 
 public:
 	cCamera m_terrainCamera;
+	cCamera m_testCam;
 	cGrid m_ground;
 	cCube m_cube;
-	cLine m_line;
-	cCircle m_circle;
-	cPyramid m_pyramid;
 	cShader11 m_gridShader;
 	cShader11 m_cubeShader;
-	cShader11 m_solidShader;
 	cShader11 m_dbgShader;
 	cTexture m_texture;
 	cDbgBox m_dbgBox;
 	cDbgSphere m_dbgSphere;
+	cDbgFrustum m_dbgFrustum;
 
 	cConstantBuffer m_cbPerFrame;
 	cConstantBuffer m_cbLight;
@@ -46,6 +44,8 @@ public:
 
 	Transform m_world;
 	cMaterial m_mtrl;
+	Vector3 m_SpherePos;
+	Vector3 m_BoxPos;
 
 	bool m_isFrustumTracking = true;
 	sf::Vector2i m_curPos;
@@ -72,7 +72,7 @@ struct sCbPerFrame
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
 {
-	m_windowName = L"DX11 Primitive";
+	m_windowName = L"DX11 Frustum";
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 1024 };
 	m_windowRect = r;
@@ -106,6 +106,12 @@ bool cViewer::OnInit()
 	m_terrainCamera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
 	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
+	m_testCam.Init(&m_renderer);
+	m_testCam.SetCamera(Vector3(5, 5, 5), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	m_testCam.SetProjection(MATH_PI / 8.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 100.f);
+	m_testCam.SetViewPort(WINSIZE_X, WINSIZE_Y);
+
+
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -125,15 +131,6 @@ bool cViewer::OnInit()
 	};
 	m_cubeShader.Create(m_renderer, "../media/shader11/cubetex-light.fxo", "LightTech", cubeLayout, ARRAYSIZE(cubeLayout));
 
-	D3D11_INPUT_ELEMENT_DESC solidLayout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	m_solidShader.Create(m_renderer, "../media/shader11/solid-light.fxo", "LightTech", solidLayout, ARRAYSIZE(solidLayout));
-	
-
 	D3D11_INPUT_ELEMENT_DESC dbgLayout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -151,16 +148,9 @@ bool cViewer::OnInit()
 	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
 	cBoundingBox bbox;
-	bbox.SetBoundingBox(Vector3(0,0,0), Vector3(1, 1, 1));
-	m_cube.Create(m_renderer, bbox, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
-
-	m_line.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0));
-	m_pyramid.Create(m_renderer, 1, 1, Vector3(0,0,-2), 5, cColor::RED);
-	m_circle.Create(m_renderer, Vector3(0, 0, 0), 3, 10, cColor::WHITE);
-	m_circle.m_transform.pos = Vector3(-2, 0, 0);
-	m_circle.m_transform.rot.SetRotationY(MATH_PI);
-
-
+	bbox.SetBoundingBox(Vector3(0, 0, 0), Vector3(1, 1, 1)*0.5f);
+	m_cube.Create(m_renderer, bbox, eCubeType::POSITION | eCubeType::NORMAL | eCubeType::DIFFUSE | eGridType::TEXTURE);
+	
 	m_texture.Create(m_renderer, "../media/BoxEdgebg_Wood_black.dds");
 	m_cube.m_texture = &m_texture;
 	m_ground.m_texture = &m_texture;
@@ -175,10 +165,10 @@ bool cViewer::OnInit()
 
 	m_mtrl.InitWhite();
 
-	m_dbgBox.Create(m_renderer);
-	m_dbgBox.SetBox(m_cube.m_boundingBox);
-
-	m_dbgSphere.Create(m_renderer, 1, 10, 10);
+	m_dbgBox.Create(m_renderer, m_cube.m_boundingBox, cColor::WHITE);
+	m_dbgSphere.Create(m_renderer, 0.5f, 10, 10, cColor::WHITE);
+	m_dbgSphere.m_bsphere.SetPos(Vector3(0.f, 0, 3.1f));
+	m_dbgFrustum.Create(m_renderer, m_testCam.GetEyePos(), m_testCam.GetDirection(), m_testCam.GetProjectionMatrix(), cColor::WHITE);
 
 	//m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	//m_renderer.GetDevice()->LightEnable(0, true);
@@ -250,49 +240,66 @@ void cViewer::OnRender(const float deltaSeconds)
 			m_cbPerFrame.Bind(m_renderer);
 			m_cbLight.Bind(m_renderer, 1);
 			m_cbMaterial.Bind(m_renderer, 2);
-			m_cube.Render(m_renderer);
+			//m_cube.Render(m_renderer);
 		}
-
-
-		const int pass22 = m_solidShader.Begin();
-		for (int i = 0; i < pass22; ++i)
-		{
-			m_solidShader.BeginPass(m_renderer, i);
-
-			cb0.mWorld = XMMatrixTranspose(m_line.m_boundingBox.GetTransform());
-			m_cbPerFrame.Update(m_renderer, &cb0);
-			m_cbPerFrame.Bind(m_renderer);
-			m_cbLight.Bind(m_renderer, 1);
-			m_cbMaterial.Bind(m_renderer, 2);
-			m_cube.Render(m_renderer);
-		}
-
 
 		m_dbgBox.SetBox(m_cube.m_transform);
 		const int pass3 = m_dbgShader.Begin();
 		for (int i = 0; i < pass3; ++i)
 		{
 			m_dbgShader.BeginPass(m_renderer, i);
-			
-			cb0.mWorld = XMMatrixTranspose(m_dbgBox.m_boundingBox.GetTransform());
+
+			cb0.mWorld = XMMatrixIdentity(); 
 			m_cbPerFrame.Update(m_renderer, &cb0);
 			m_cbPerFrame.Bind(m_renderer);
-			m_dbgBox.Render(m_renderer);
+			m_cbLight.Bind(m_renderer, 1);
 
+			m_mtrl.InitWhite();
+			cb2 = m_mtrl.GetMaterial();
+			m_cbMaterial.Update(m_renderer, &cb2);
+			m_cbMaterial.Bind(m_renderer, 2);
+			m_dbgFrustum.Render(m_renderer);
+			
+
+			m_dbgSphere.SetPos(m_SpherePos);
 			cb0.mWorld = XMMatrixTranspose(m_dbgSphere.GetTransform());
 			m_cbPerFrame.Update(m_renderer, &cb0);
 			m_cbPerFrame.Bind(m_renderer);
+			
+			if (m_dbgFrustum.IsInSphere(m_dbgSphere.m_bsphere))
+			{
+				m_mtrl.InitWhite();
+			}
+			else
+			{
+				m_mtrl.InitBlack();
+			}
+			cb2 = m_mtrl.GetMaterial();
+			m_cbMaterial.Update(m_renderer, &cb2);
+			m_cbMaterial.Bind(m_renderer, 2);
 			m_dbgSphere.Render(m_renderer);
 
-			cb0.mWorld = XMMatrixTranspose(m_pyramid.m_transform.GetMatrixXM());
-			m_cbPerFrame.Update(m_renderer, &cb0);
-			m_cbPerFrame.Bind(m_renderer);
-			m_pyramid.Render(m_renderer);
 
-			cb0.mWorld = XMMatrixTranspose(m_circle.m_transform.GetMatrixXM());
+			Transform tfm;
+			tfm.pos = m_BoxPos;
+			tfm.scale = Vector3(1, 1, 1)*0.5f;
+			m_dbgBox.SetBox(tfm);
+			cb0.mWorld = XMMatrixTranspose(m_dbgBox.m_boundingBox.GetTransform());
 			m_cbPerFrame.Update(m_renderer, &cb0);
 			m_cbPerFrame.Bind(m_renderer);
-			m_circle.Render(m_renderer);
+
+			if (m_dbgFrustum.IsInBox(m_dbgBox.m_boundingBox))
+			{
+				m_mtrl.InitWhite();
+			}
+			else
+			{
+				m_mtrl.InitBlack();
+			}
+			cb2 = m_mtrl.GetMaterial();
+			m_cbMaterial.Update(m_renderer, &cb2);
+			m_cbMaterial.Bind(m_renderer, 2);
+			m_dbgBox.Render(m_renderer);
 		}
 
 		m_renderer.EndScene();
@@ -493,9 +500,19 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
 
-		if (wParam & 0x10) // middle button down
+		Vector3 orig, dir;
+		m_terrainCamera.GetRay(pos.x, pos.y, orig, dir);
+
+		if (GetAsyncKeyState(VK_LCONTROL))
 		{
+			m_BoxPos = m_groundPlane1.Pick(orig, dir);
 		}
+		else
+		{
+			m_SpherePos = m_groundPlane1.Pick(orig, dir);
+		}
+
+
 
 		if (m_LButtonDown)
 		{
