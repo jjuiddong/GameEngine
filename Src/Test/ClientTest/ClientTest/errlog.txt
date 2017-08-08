@@ -1,0 +1,8 @@
+connect() error ip=192.168.0.38, port=-858993460
+Error!! Connect TCP/IP Client ip= 192.168.0.38, port=-858993460 
+connect() error ip=010, port=-858993460
+Error!! Connect TCP/IP Client ip= 010, port=-858993460 
+connect() error ip=192.168.0.38, port=-858993460
+Error!! Connect TCP/IP Client ip= 192.168.0.38, port=-858993460 
+connect() error ip=010, port=-858993460
+Error!! Connect TCP/IP Client ip= 010, port=-858993460 
