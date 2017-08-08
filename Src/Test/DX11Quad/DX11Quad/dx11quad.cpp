@@ -32,6 +32,8 @@ public:
 	cDbgArrow m_dbgArrow;
 	cDbgBox m_dbgBox;
 	cQuad m_quad;
+	cBillboard m_billboard;
+	cDbgAxis m_axis;
 
 	cShader11 m_gridShader;
 	cShader11 m_solidShader;
@@ -133,8 +135,12 @@ bool cViewer::OnInit()
 	m_dbgBox.SetBox(bbox);
 
 	m_quad.Create(m_renderer, 1, 1, Vector3(0, 0, 0));
-	m_texture.Create(m_renderer, "../media/BoxEdgebg_Wood_black.dds");
+	m_texture.Create(m_renderer, "../media/body.dds");
+	m_quad.m_transform.rot.SetRotationX(ANGLE2RAD(90));
 	m_quad.m_texture = &m_texture;
+
+	m_billboard.Create(m_renderer, BILLBOARD_TYPE::ALL_AXIS, 1, 1, Vector3(1, 0, 1), "../media/ConveyerBelt.xFencing_Mesh_Blue.dds");
+	m_billboard.m_texture = &m_texture;
 
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
@@ -146,12 +152,18 @@ bool cViewer::OnInit()
 
 	m_mtrl.InitWhite();
 
+	cBoundingBox bbox2(Vector3(0, 0, 0), Vector3(10, 10, 10));
+	m_axis.Create(m_renderer);
+	m_axis.SetAxis(bbox2, false);
+
 	return true;
 }
 
 
 void cViewer::OnUpdate(const float deltaSeconds)
 {
+	cAutoCam cam(&m_terrainCamera);
+
 	GetMainCamera()->Update(deltaSeconds);
 }
 
@@ -201,8 +213,8 @@ void cViewer::OnRender(const float deltaSeconds)
 		{
 			m_quadShader.BeginPass(m_renderer, i);
 			m_quad.Render(m_renderer);
+			m_billboard.Render(m_renderer);
 		}
-
 
 		const int pass22 = m_solidShader.Begin();
 		for (int i = 0; i < pass22; ++i)
@@ -214,8 +226,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		for (int i = 0; i < pass3; ++i)
 		{
 			m_dbgShader.BeginPass(m_renderer, i);
-			//m_dbgBox.Render(m_renderer);
-			//m_dbgLine.Render(m_renderer);
+			m_axis.Render(m_renderer);
 		}
 
 		m_renderer.EndScene();
@@ -245,7 +256,6 @@ void cViewer::ChangeWindowSize()
 	{
 		m_renderer.ResetDevice();
 		m_terrainCamera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
-		//m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	}
 }
 
@@ -320,34 +330,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		case VK_RETURN:
 			//cResourceManager::Get()->ReloadShader(m_renderer);
 			break;
-
-			//case VK_SPACE: m_isShadow = !m_isShadow; break;
-			//case '1': m_isShowLightFrustum = !m_isShowLightFrustum; break;
-			//case '2':
-			//{
-			//	// Switching Camera Option
-			//	if (m_isFrustumTracking)
-			//	{
-			//		GetMainCamera()->SetEyePos(m_terrainCamera.GetEyePos());
-			//		GetMainCamera()->SetLookAt(m_terrainCamera.GetLookAt());
-			//	}
-			//	else
-			//	{
-			//		m_terrainCamera.SetEyePos(GetMainCamera()->GetEyePos());
-			//		m_terrainCamera.SetLookAt(GetMainCamera()->GetLookAt());
-			//	}
-			//	m_isFrustumTracking = !m_isFrustumTracking;
-			//}
-			//break;
-
-			//case '3': m_isCullingModel = !m_isCullingModel;  break;
-			//case '4': {
-			//	static bool isDbgRender = false;
-			//	isDbgRender = !isDbgRender;
-			//}
-			//		  break;
-			//case '5': m_isShowFrustum = !m_isShowFrustum; break;
-			//case '6': m_isShowFrustumQuad = !m_isShowFrustumQuad; break;
 		}
 		break;
 
