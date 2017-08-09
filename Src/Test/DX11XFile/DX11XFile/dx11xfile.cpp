@@ -28,9 +28,6 @@ public:
 public:
 	cCamera m_terrainCamera;
 	cGrid m_ground;
-	cDbgLine m_dbgLine;
-	cDbgArrow m_dbgArrow;
-	cDbgBox m_dbgBox;
 	cDbgAxis m_axis;
 
 	cShader11 m_gridShader;
@@ -39,6 +36,10 @@ public:
 	cShader11 m_dbgShader;
 
 	cTexture m_texture;
+
+	std::unique_ptr<DirectX::CommonStates> m_states;
+	std::unique_ptr<DirectX::IEffectFactory> m_fxFactory;
+	std::unique_ptr<DirectX::Model> m_model;
 
 	Transform m_world;
 	cMaterial m_mtrl;
@@ -127,18 +128,7 @@ bool cViewer::OnInit()
 	m_ground.Create(m_renderer, 10, 10, 1, eGridType::POSITION | eGridType::NORMAL | eGridType::DIFFUSE | eGridType::TEXTURE);
 	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
-	m_dbgLine.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0), 1.f, cColor::RED);
-	m_dbgBox.Create(m_renderer);
-	cBoundingBox bbox(Vector3(0, 0, 0), Vector3(1, 1, 1));
-	m_dbgBox.SetBox(bbox);
-
-	//m_quad.Create(m_renderer, 1, 1, Vector3(0, 0, 0));
 	m_texture.Create(m_renderer, "../media/body.dds");
-	//m_quad.m_transform.rot.SetRotationX(ANGLE2RAD(90));
-	//m_quad.m_texture = &m_texture;
-
-	//m_billboard.Create(m_renderer, BILLBOARD_TYPE::ALL_AXIS, 1, 1, Vector3(1, 0, 1), "../media/ConveyerBelt.xFencing_Mesh_Blue.dds");
-	//m_billboard.m_texture = &m_texture;
 
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
@@ -153,6 +143,33 @@ bool cViewer::OnInit()
 	cBoundingBox bbox2(Vector3(0, 0, 0), Vector3(10, 10, 10));
 	m_axis.Create(m_renderer);
 	m_axis.SetAxis(bbox2, false);
+
+	m_states = std::make_unique<CommonStates>(m_renderer.GetDevice());
+	m_fxFactory = std::make_unique<EffectFactory>(m_renderer.GetDevice());
+	m_model = Model::CreateFromSDKMESH(m_renderer.GetDevice(), L"../media/exoticcar/exoticcar.sdkmesh", *m_fxFactory, true);
+
+	m_model->UpdateEffects([](IEffect* effect)
+	{
+		auto lights = dynamic_cast<IEffectLights*>(effect);
+		if (lights)
+		{
+			lights->SetLightingEnabled(true);
+			lights->SetPerPixelLighting(true);
+			lights->SetLightEnabled(0, true);
+			lights->SetLightDiffuseColor(0, Colors::Gold);
+			lights->SetLightEnabled(1, false);
+			lights->SetLightEnabled(2, false);
+		}
+
+		auto fog = dynamic_cast<IEffectFog*>(effect);
+		if (fog)
+		{
+			fog->SetFogEnabled(true);
+			fog->SetFogColor(Colors::CornflowerBlue);
+			fog->SetFogStart(3.f);
+			fog->SetFogEnd(4.f);
+		}
+	});
 
 	return true;
 }
@@ -198,6 +215,8 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_renderer.m_cbLight.Update(m_renderer, 1);
 		m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
 		m_renderer.m_cbMaterial.Update(m_renderer, 2);
+
+		m_model->Draw(m_renderer.GetDevContext(), *m_states, mWorld, mView, mProj);
 
 		const int pass = m_gridShader.Begin();
 		for (int i = 0; i < pass; ++i)
@@ -399,8 +418,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		Vector3 orig, dir;
 		graphic::GetMainCamera()->GetRay(pos.x, pos.y, orig, dir);
 		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
-		//m_line.SetLine(orig + Vector3(1, 0, 0), p1, 0.3f);
-		m_dbgLine.SetLine(orig + Vector3(-1, 0, 0), p1 + Vector3(-1, 0, 0), 0.3f);
 
 		if (wParam & 0x10) // middle button down
 		{
