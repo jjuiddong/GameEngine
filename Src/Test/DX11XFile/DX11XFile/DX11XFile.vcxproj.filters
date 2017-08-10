@@ -3,4 +3,14 @@
   <ItemGroup>
     <ClCompile Include="dx11xfile.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="FX">
+      <UniqueIdentifier>{b0fb2730-d762-430e-844a-09fbeb92853f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\media\shader11\xfile.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>

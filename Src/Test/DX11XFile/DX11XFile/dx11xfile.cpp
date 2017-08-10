@@ -34,13 +34,11 @@ public:
 	cShader11 m_solidShader;
 	cShader11 m_quadShader;
 	cShader11 m_dbgShader;
+	cShader11 m_xfileShader;
 
 	cTexture m_texture;
-
-	std::unique_ptr<DirectX::CommonStates> m_states;
-	std::unique_ptr<DirectX::IEffectFactory> m_fxFactory;
-	std::unique_ptr<DirectX::Model> m_model;
-
+	cModel2 m_model;
+	
 	Transform m_world;
 	cMaterial m_mtrl;
 
@@ -80,7 +78,7 @@ bool cViewer::OnInit()
 {
 	DragAcceptFiles(m_hWnd, TRUE);
 
-	//cResourceManager::Get()->SetMediaDirectory("../media/");
+	cResourceManager::Get()->SetMediaDirectory("../media/");
 
 	const int WINSIZE_X = m_windowRect.right - m_windowRect.left;
 	const int WINSIZE_Y = m_windowRect.bottom - m_windowRect.top;
@@ -102,6 +100,14 @@ bool cViewer::OnInit()
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	m_gridShader.Create(m_renderer, "../media/shader11/grid.fxo", "LightTech", layout, ARRAYSIZE(layout));
+
+	D3D11_INPUT_ELEMENT_DESC xfileLayout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+	m_xfileShader.Create(m_renderer, "../media/shader11/xfile.fxo", "LightTech", xfileLayout, ARRAYSIZE(xfileLayout));
 
 	D3D11_INPUT_ELEMENT_DESC solidLayout[] =
 	{
@@ -144,32 +150,7 @@ bool cViewer::OnInit()
 	m_axis.Create(m_renderer);
 	m_axis.SetAxis(bbox2, false);
 
-	m_states = std::make_unique<CommonStates>(m_renderer.GetDevice());
-	m_fxFactory = std::make_unique<EffectFactory>(m_renderer.GetDevice());
-	m_model = Model::CreateFromSDKMESH(m_renderer.GetDevice(), L"../media/exoticcar/exoticcar.sdkmesh", *m_fxFactory, true);
-
-	m_model->UpdateEffects([](IEffect* effect)
-	{
-		auto lights = dynamic_cast<IEffectLights*>(effect);
-		if (lights)
-		{
-			lights->SetLightingEnabled(true);
-			lights->SetPerPixelLighting(true);
-			lights->SetLightEnabled(0, true);
-			lights->SetLightDiffuseColor(0, Colors::Gold);
-			lights->SetLightEnabled(1, false);
-			lights->SetLightEnabled(2, false);
-		}
-
-		auto fog = dynamic_cast<IEffectFog*>(effect);
-		if (fog)
-		{
-			fog->SetFogEnabled(true);
-			fog->SetFogColor(Colors::CornflowerBlue);
-			fog->SetFogStart(3.f);
-			fog->SetFogEnd(4.f);
-		}
-	});
+	m_model.Create(m_renderer, common::GenerateId(), "../media/warehouse.x");
 
 	return true;
 }
@@ -216,8 +197,6 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
 		m_renderer.m_cbMaterial.Update(m_renderer, 2);
 
-		m_model->Draw(m_renderer.GetDevContext(), *m_states, mWorld, mView, mProj);
-
 		const int pass = m_gridShader.Begin();
 		for (int i = 0; i < pass; ++i)
 		{
@@ -244,6 +223,16 @@ void cViewer::OnRender(const float deltaSeconds)
 		{
 			m_dbgShader.BeginPass(m_renderer, i);
 			m_axis.Render(m_renderer);
+		}
+
+		m_model.m_transform.scale = Vector3(1, 1, 1)*0.01f;
+		const int pass4 = m_xfileShader.Begin();
+		for (int i = 0; i < pass4; ++i)
+		{
+			m_xfileShader.BeginPass(m_renderer, i);
+			m_renderer.m_cbLight.Update(m_renderer, 1);
+			m_renderer.m_cbMaterial.Update(m_renderer, 2);
+			m_model.Render(m_renderer);
 		}
 
 		m_renderer.EndScene();
