@@ -172,28 +172,6 @@ fxgroup
                 //
                 // }
                 //
-                // cbuffer cbLight
-                // {
-                //
-                //   float4 gLight_Ambient;             // Offset:    0 Size:    16
-                //   float4 gLight_Diffuse;             // Offset:   16 Size:    16
-                //   float4 gLight_Specular;            // Offset:   32 Size:    16
-                //   float3 gLight_Direction;           // Offset:   48 Size:    12
-                //   float3 gLight_PosW;                // Offset:   64 Size:    12 [unused]
-                //
-                // }
-                //
-                // cbuffer cbMaetrial
-                // {
-                //
-                //   float4 gMtrl_Ambient;              // Offset:    0 Size:    16
-                //   float4 gMtrl_Diffuse;              // Offset:   16 Size:    16
-                //   float4 gMtrl_Specular;             // Offset:   32 Size:    16
-                //   float4 gMtrl_Emissive;             // Offset:   48 Size:    16 [unused]
-                //   float gMtrl_Pow;                   // Offset:   64 Size:     4
-                //
-                // }
-                //
                 //
                 // Resource Bindings:
                 //
@@ -202,8 +180,6 @@ fxgroup
                 // samLinear                         sampler      NA          NA    0        1
                 // txDiffuse                         texture  float4          2d    0        1
                 // cbPerFrame                        cbuffer      NA          NA    0        1
-                // cbLight                           cbuffer      NA          NA    1        1
-                // cbMaetrial                        cbuffer      NA          NA    2        1
                 //
                 //
                 //
@@ -212,10 +188,10 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xyz         1     NONE   float       
                 // TEXCOORD                 1   xy          2     NONE   float   xy  
                 // COLOR                    0   xyzw        3     NONE   float       
-                // TEXCOORD                 2   xyz         4     NONE   float   xyz 
+                // TEXCOORD                 2   xyz         4     NONE   float       
                 //
                 //
                 // Output signature:
@@ -227,15 +203,11 @@ fxgroup
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb0[1], immediateIndexed
-                dcl_constantbuffer cb1[4], immediateIndexed
-                dcl_constantbuffer cb2[5], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_input_ps linear v1.xyz
                 dcl_input_ps linear v2.xy
-                dcl_input_ps linear v4.xyz
                 dcl_output o0.xyzw
-                dcl_temps 5
+                dcl_temps 1
                 //
                 // Initial variable locations:
                 //   v0.x <- In.Pos.x; v0.y <- In.Pos.y; v0.z <- In.Pos.z; v0.w <- In.Pos.w; 
@@ -245,41 +217,11 @@ fxgroup
                 //   v4.x <- In.toEye.x; v4.y <- In.toEye.y; v4.z <- In.toEye.z; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 84 "D:\Project\GameEngine\media\shader11\grid.fx"
-                mov r0.xyz, -cb1[3].xyzx  // r0.x <- L.x; r0.y <- L.y; r0.z <- L.z
-                dp3 r0.w, v4.xyzx, v4.xyzx
-                rsq r0.w, r0.w
-                mul r1.xyz, r0.wwww, v4.xyzx
-                add r1.xyz, r0.xyzx, r1.xyzx
-                dp3 r0.w, r1.xyzx, r1.xyzx
-                rsq r0.w, r0.w
-                mul r1.xyz, r0.wwww, r1.xyzx  // r1.x <- H.x; r1.y <- H.y; r1.z <- H.z
-                dp3 r0.w, v1.xyzx, v1.xyzx
-                rsq r0.w, r0.w
-                mul r2.xyz, r0.wwww, v1.xyzx  // r2.x <- N.x; r2.y <- N.y; r2.z <- N.z
-                mul r3.xyzw, cb1[0].xyzw, cb2[0].xyzw
-                mul r4.xyzw, cb1[1].xyzw, cb2[1].xyzw
-                itof r0.w, l(0)
-                dp3 r0.x, r2.xyzx, r0.xyzx
-                max r0.x, r0.x, r0.w
-                mul r0.xyzw, r0.xxxx, r4.xyzw
-                add r0.xyzw, r0.xyzw, r3.xyzw
-                mul r3.xyzw, cb1[2].xyzw, cb2[2].xyzw
-                itof r1.w, l(0)
-                dp3 r1.x, r2.xyzx, r1.xyzx
-                max r1.x, r1.x, r1.w
-                log r1.x, r1.x
-                mul r1.x, r1.x, cb2[4].x
-                exp r1.x, r1.x
-                mul r1.xyzw, r1.xxxx, r3.xyzw
-                add r0.xyzw, r0.xyzw, r1.xyzw  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z; r0.w <- color.w
-                
-                #line 92
-                sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v2.xyxx, t0.xyzw, s0
-                mul r0.xyzw, r0.xyzw, r1.xyzw  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z; r0.w <- Out.w
+                #line 92 "D:\Project\GameEngine\media\shader11\grid.fx"
+                sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v2.xyxx, t0.xyzw, s0  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z; r0.w <- Out.w
                 mov o0.xyzw, r0.xyzw
                 ret 
-                // Approximately 31 instruction slots used
+                // Approximately 3 instruction slots used
                             
             };
         }
