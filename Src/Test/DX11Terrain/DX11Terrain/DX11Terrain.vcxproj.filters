@@ -12,5 +12,17 @@
     <CustomBuild Include="..\..\..\..\media\shader11\grid.fx">
       <Filter>FX</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-norm-color-tex.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-norm-tex.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-tex.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-color.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

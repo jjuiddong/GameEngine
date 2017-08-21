@@ -10,9 +10,9 @@
 Texture2D txDiffuse : register( t0 );
 SamplerState samLinear : register( s0 )
 {
-	Filter = ANISOTROPIC;
-	AddressU = CLAMP;
-	AddressV = CLAMP;
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = WRAP;
+	AddressV = WRAP;
 };
 
 
@@ -53,7 +53,6 @@ struct VS_OUTPUT
     float4 Pos : SV_POSITION;
     float3 Normal : TEXCOORD0;
     float2 Tex : TEXCOORD1;
-    float4 Color : COLOR0;
     float3 toEye : TEXCOORD2;
 };
 
@@ -63,7 +62,7 @@ struct VS_OUTPUT
 VS_OUTPUT VS( float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
-	, float4 Color : COLOR )
+)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     output.Pos = mul( Pos, World );
@@ -71,7 +70,6 @@ VS_OUTPUT VS( float4 Pos : POSITION
     output.Pos = mul( output.Pos, Projection );
     output.Normal = normalize( mul(Normal, (float3x3)World) );
     output.Tex = Tex;
-    output.Color = Color;
     return output;
 }
 
@@ -89,15 +87,12 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 			+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L))
 			+ gLight_Specular * gMtrl_Specular * pow( max(0, dot(N,H)), gMtrl_Pow);
 
-	float4 Out = txDiffuse.Sample(samLinear, In.Tex);
-	//return float4(Out.x, Out.y, Out.z, 1);
+	float4 Out = color * txDiffuse.Sample( samLinear, In.Tex );
 	return Out;
 }
 
 
-
-
-technique11 LightTech
+technique11 Unlit
 {
 	pass P0
 	{

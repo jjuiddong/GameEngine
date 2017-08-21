@@ -131,7 +131,7 @@ bool cViewer::OnInit()
 	};
 	m_dbgShader.Create(m_renderer, "../media/shader11/dbg.fxo", "LightTech", dbgLayout, ARRAYSIZE(dbgLayout));
 
-	m_ground.Create(m_renderer, 10, 10, 1, eGridType::POSITION | eGridType::NORMAL | eGridType::DIFFUSE | eGridType::TEXTURE);
+	m_ground.Create(m_renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
 	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
 	m_texture.Create(m_renderer, "../media/body.dds");

@@ -95,9 +95,7 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 }
 
 
-
-
-technique11 LightTech
+technique11 Unlit
 {
 	pass P0
 	{
