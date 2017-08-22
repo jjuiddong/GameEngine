@@ -32,17 +32,9 @@ public:
 	cLine m_line;
 	cCircle m_circle;
 	cPyramid m_pyramid;
-	cShader11 m_gridShader;
-	cShader11 m_cubeShader;
-	cShader11 m_solidShader;
-	cShader11 m_dbgShader;
 	cTexture m_texture;
 	cDbgBox m_dbgBox;
 	cDbgSphere m_dbgSphere;
-
-	cConstantBuffer m_cbPerFrame;
-	cConstantBuffer m_cbLight;
-	cConstantBuffer m_cbMaterial;
 
 	Transform m_world;
 	cMaterial m_mtrl;
@@ -96,65 +88,24 @@ bool cViewer::OnInit()
 
 	const int WINSIZE_X = m_windowRect.right - m_windowRect.left;
 	const int WINSIZE_Y = m_windowRect.bottom - m_windowRect.top;
-	GetMainCamera()->Init(&m_renderer);
-	GetMainCamera()->SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	GetMainCamera()->SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
-	GetMainCamera()->SetViewPort(WINSIZE_X, WINSIZE_Y);
+	GetMainCamera().Init(&m_renderer);
+	GetMainCamera().SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	GetMainCamera().SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
+	GetMainCamera().SetViewPort(WINSIZE_X, WINSIZE_Y);
 
 	m_terrainCamera.Init(&m_renderer);
 	m_terrainCamera.SetCamera(Vector3(-3, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_terrainCamera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
 	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	D3D11_INPUT_ELEMENT_DESC layout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	m_gridShader.Create(m_renderer, "../media/shader11/grid.fxo", "LightTech", layout, ARRAYSIZE(layout));
-
-
-	D3D11_INPUT_ELEMENT_DESC cubeLayout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	m_cubeShader.Create(m_renderer, "../media/shader11/cubetex-light.fxo", "LightTech", cubeLayout, ARRAYSIZE(cubeLayout));
-
-	D3D11_INPUT_ELEMENT_DESC solidLayout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	m_solidShader.Create(m_renderer, "../media/shader11/solid-light.fxo", "LightTech", solidLayout, ARRAYSIZE(solidLayout));
-	
-
-	D3D11_INPUT_ELEMENT_DESC dbgLayout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	m_dbgShader.Create(m_renderer, "../media/shader11/dbg.fxo", "LightTech", dbgLayout, ARRAYSIZE(dbgLayout));
-
-
-	// Create the constant buffer
-	m_cbPerFrame.Create(m_renderer, sizeof(sCbPerFrame));
-	m_cbLight.Create(m_renderer, sizeof(sCbLight));
-	m_cbMaterial.Create(m_renderer, sizeof(sCbMaterial));
-
-	m_ground.Create(m_renderer, 10, 10, 1, eGridType::POSITION | eGridType::NORMAL | eGridType::DIFFUSE | eGridType::TEXTURE);
+	m_ground.Create(m_renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
 	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
 	cBoundingBox bbox;
-	bbox.SetBoundingBox(Vector3(0,0,0), Vector3(1, 1, 1));
+	bbox.SetBoundingBox(Vector3(0,0,0), Vector3(1, 1, 1), Quaternion());
 	m_cube.Create(m_renderer, bbox, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
 
-	m_line.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0));
+	m_line.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0), 1.f, cColor::BLUE);
 	m_pyramid.Create(m_renderer, 1, 1, Vector3(0,0,-2), 5, cColor::RED);
 	m_circle.Create(m_renderer, Vector3(0, 0, 0), 3, 10, cColor::WHITE);
 	m_circle.m_transform.pos = Vector3(-2, 0, 0);
@@ -189,7 +140,7 @@ bool cViewer::OnInit()
 
 void cViewer::OnUpdate(const float deltaSeconds)
 {
-	GetMainCamera()->Update(deltaSeconds);
+	GetMainCamera().Update(deltaSeconds);
 }
 
 bool show_test_window = true;
@@ -208,7 +159,7 @@ void cViewer::OnRender(const float deltaSeconds)
 	{
 		m_renderer.BeginScene();
 
-		GetMainCamera()->Bind(m_renderer);
+		GetMainCamera().Bind(m_renderer);
 
 		static float t = 0;
 		t += deltaSeconds;
@@ -219,81 +170,26 @@ void cViewer::OnRender(const float deltaSeconds)
 		XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetViewMatrix());
 		XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetProjectionMatrix());
 		XMMATRIX mWorld = XMLoadFloat4x4((XMFLOAT4X4*)&m_world.GetMatrix());
-		sCbPerFrame cb0;
-		cb0.mWorld = XMMatrixTranspose(mWorld);
-		cb0.mView = XMMatrixTranspose(mView);
-		cb0.mProjection = XMMatrixTranspose(mProj);
-		m_cbPerFrame.Update(m_renderer, &cb0);
 
-		sCbLight cb1 = GetMainLight().GetLight();
-		m_cbLight.Update(m_renderer, &cb1);
+		m_renderer.m_cbPerFrame.m_v->mWorld = XMMatrixTranspose(mWorld);
+		m_renderer.m_cbPerFrame.m_v->mView = XMMatrixTranspose(mView);
+		m_renderer.m_cbPerFrame.m_v->mProjection = XMMatrixTranspose(mProj);
+		m_renderer.m_cbPerFrame.Update(m_renderer);
 
-		sCbMaterial cb2 = m_mtrl.GetMaterial();
-		m_cbMaterial.Update(m_renderer, &cb2);
+		m_renderer.m_cbLight = GetMainLight().GetLight();
+		m_renderer.m_cbLight.Update(m_renderer);
 
-		const int pass = m_gridShader.Begin();
-		for (int i = 0; i < pass; ++i)
-		{
-			m_gridShader.BeginPass(m_renderer, i);
-			m_cbPerFrame.Bind(m_renderer);
-			m_cbLight.Bind(m_renderer, 1);
-			m_cbMaterial.Bind(m_renderer, 2);
-			m_ground.Render(m_renderer);
-		}
+		m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
+		m_renderer.m_cbMaterial.Update(m_renderer);
 
-		cb0.mWorld = XMMatrixTranspose(m_cube.m_transform.GetMatrixXM());
-		m_cbPerFrame.Update(m_renderer, &cb0);
-		const int pass2 = m_cubeShader.Begin();
-		for (int i = 0; i < pass2; ++i)
-		{
-			m_cubeShader.BeginPass(m_renderer, i);
-			m_cbPerFrame.Bind(m_renderer);
-			m_cbLight.Bind(m_renderer, 1);
-			m_cbMaterial.Bind(m_renderer, 2);
-			m_cube.Render(m_renderer);
-		}
+		m_ground.Render(m_renderer);
 
-
-		const int pass22 = m_solidShader.Begin();
-		for (int i = 0; i < pass22; ++i)
-		{
-			m_solidShader.BeginPass(m_renderer, i);
-
-			cb0.mWorld = XMMatrixTranspose(m_line.m_boundingBox.GetTransform());
-			m_cbPerFrame.Update(m_renderer, &cb0);
-			m_cbPerFrame.Bind(m_renderer);
-			m_cbLight.Bind(m_renderer, 1);
-			m_cbMaterial.Bind(m_renderer, 2);
-			m_cube.Render(m_renderer);
-		}
-
-
-		m_dbgBox.SetBox(m_cube.m_transform);
-		const int pass3 = m_dbgShader.Begin();
-		for (int i = 0; i < pass3; ++i)
-		{
-			m_dbgShader.BeginPass(m_renderer, i);
-			
-			cb0.mWorld = XMMatrixTranspose(m_dbgBox.m_boundingBox.GetTransform());
-			m_cbPerFrame.Update(m_renderer, &cb0);
-			m_cbPerFrame.Bind(m_renderer);
-			m_dbgBox.Render(m_renderer);
-
-			cb0.mWorld = XMMatrixTranspose(m_dbgSphere.GetTransform());
-			m_cbPerFrame.Update(m_renderer, &cb0);
-			m_cbPerFrame.Bind(m_renderer);
-			m_dbgSphere.Render(m_renderer);
-
-			cb0.mWorld = XMMatrixTranspose(m_pyramid.m_transform.GetMatrixXM());
-			m_cbPerFrame.Update(m_renderer, &cb0);
-			m_cbPerFrame.Bind(m_renderer);
-			m_pyramid.Render(m_renderer);
-
-			cb0.mWorld = XMMatrixTranspose(m_circle.m_transform.GetMatrixXM());
-			m_cbPerFrame.Update(m_renderer, &cb0);
-			m_cbPerFrame.Bind(m_renderer);
-			m_circle.Render(m_renderer);
-		}
+		m_cube.Render(m_renderer);
+		m_line.Render(m_renderer);
+		m_dbgBox.Render(m_renderer);
+		m_dbgSphere.Render(m_renderer);
+		m_pyramid.Render(m_renderer);
+		m_circle.Render(m_renderer);
 
 		m_renderer.EndScene();
 		m_renderer.Present();
@@ -370,12 +266,12 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 		//dbg::Print("%d %d", fwKeys, zDelta);
 
-		const float len = graphic::GetMainCamera()->GetDistance();
+		const float len = graphic::GetMainCamera().GetDistance();
 		float zoomLen = (len > 100) ? 50 : (len / 4.f);
 		if (fwKeys & 0x4)
 			zoomLen = zoomLen / 10.f;
 
-		graphic::GetMainCamera()->Zoom((zDelta<0) ? -zoomLen : zoomLen);
+		graphic::GetMainCamera().Zoom((zDelta<0) ? -zoomLen : zoomLen);
 
 		if (m_isFrustumTracking)
 			cMainCamera::Get()->PopCamera();
@@ -405,13 +301,13 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			//	// Switching Camera Option
 			//	if (m_isFrustumTracking)
 			//	{
-			//		GetMainCamera()->SetEyePos(m_terrainCamera.GetEyePos());
-			//		GetMainCamera()->SetLookAt(m_terrainCamera.GetLookAt());
+			//		GetMainCamera().SetEyePos(m_terrainCamera.GetEyePos());
+			//		GetMainCamera().SetLookAt(m_terrainCamera.GetLookAt());
 			//	}
 			//	else
 			//	{
-			//		m_terrainCamera.SetEyePos(GetMainCamera()->GetEyePos());
-			//		m_terrainCamera.SetLookAt(GetMainCamera()->GetLookAt());
+			//		m_terrainCamera.SetEyePos(GetMainCamera().GetEyePos());
+			//		m_terrainCamera.SetLookAt(GetMainCamera().GetLookAt());
 			//	}
 			//	m_isFrustumTracking = !m_isFrustumTracking;
 			//}
@@ -441,10 +337,10 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		m_curPos.y = HIWORD(lParam);
 
 		Vector3 orig, dir;
-		graphic::GetMainCamera()->GetRay(pos.x, pos.y, orig, dir);
+		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
 		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
 		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
-		graphic::GetMainCamera()->MoveCancel();
+		graphic::GetMainCamera().MoveCancel();
 
 		if (m_isFrustumTracking)
 			cMainCamera::Get()->PopCamera();
@@ -464,8 +360,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		m_curPos.y = HIWORD(lParam);
 
 		Ray ray(m_curPos.x, m_curPos.y, 1024, 768,
-			GetMainCamera()->GetProjectionMatrix(),
-			GetMainCamera()->GetViewMatrix());
+			GetMainCamera().GetProjectionMatrix(),
+			GetMainCamera().GetViewMatrix());
 	}
 	break;
 
@@ -511,15 +407,15 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 			m_curPos = pos;
 
-			Vector3 dir = graphic::GetMainCamera()->GetDirection();
-			Vector3 right = graphic::GetMainCamera()->GetRight();
+			Vector3 dir = graphic::GetMainCamera().GetDirection();
+			Vector3 right = graphic::GetMainCamera().GetRight();
 			dir.y = 0;
 			dir.Normalize();
 			right.y = 0;
 			right.Normalize();
 
-			graphic::GetMainCamera()->MoveRight(-x * m_moveLen * 0.001f);
-			graphic::GetMainCamera()->MoveFrontHorizontal(y * m_moveLen * 0.001f);
+			graphic::GetMainCamera().MoveRight(-x * m_moveLen * 0.001f);
+			graphic::GetMainCamera().MoveFrontHorizontal(y * m_moveLen * 0.001f);
 		}
 		else if (m_RButtonDown)
 		{
@@ -527,8 +423,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			graphic::GetMainCamera()->Yaw2(x * 0.005f);
-			graphic::GetMainCamera()->Pitch2(y * 0.005f);
+			graphic::GetMainCamera().Yaw2(x * 0.005f);
+			graphic::GetMainCamera().Pitch2(y * 0.005f);
 
 		}
 		else if (m_MButtonDown)
@@ -536,9 +432,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const sf::Vector2i point = { pos.x - m_curPos.x, pos.y - m_curPos.y };
 			m_curPos = pos;
 
-			const float len = graphic::GetMainCamera()->GetDistance();
-			graphic::GetMainCamera()->MoveRight(-point.x * len * 0.001f);
-			graphic::GetMainCamera()->MoveUp(point.y * len * 0.001f);
+			const float len = graphic::GetMainCamera().GetDistance();
+			graphic::GetMainCamera().MoveRight(-point.x * len * 0.001f);
+			graphic::GetMainCamera().MoveUp(point.y * len * 0.001f);
 		}
 		else
 		{

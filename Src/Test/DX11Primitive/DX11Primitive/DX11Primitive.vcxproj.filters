@@ -21,5 +21,8 @@
     <CustomBuild Include="..\..\..\..\media\shader11\solid-light.fx">
       <Filter>FX</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-norm-color.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

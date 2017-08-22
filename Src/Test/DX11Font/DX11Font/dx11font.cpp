@@ -1,5 +1,5 @@
 //
-// DX11 Skybox
+// DX11 Font
 //
 
 #include "../../../../../Common/Common/common.h"
@@ -28,9 +28,14 @@ public:
 public:
 	cCamera m_terrainCamera;
 	cGrid m_ground;
+	cDbgLine m_dbgLine;
+	cDbgArrow m_dbgArrow;
+	cDbgBox m_dbgBox;
 	cDbgAxis m_axis;
 	cTexture m_texture;
-	cSkyBox m_skybox;
+	SpriteFont *m_sprFont;
+	SpriteBatch* m_sprBatch;
+
 
 	Transform m_world;
 	cMaterial m_mtrl;
@@ -50,8 +55,10 @@ INIT_FRAMEWORK(cViewer);
 
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
+	, m_sprFont(NULL)
+	, m_sprBatch(NULL)
 {
-	m_windowName = L"DX11 Skybox";
+	m_windowName = L"DX11 Font";
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 1024 };
 	m_windowRect = r;
@@ -63,6 +70,8 @@ cViewer::cViewer()
 
 cViewer::~cViewer()
 {
+	SAFE_DELETE(m_sprFont);
+	SAFE_DELETE(m_sprBatch);
 	graphic::ReleaseRenderer();
 }
 
@@ -71,7 +80,7 @@ bool cViewer::OnInit()
 {
 	DragAcceptFiles(m_hWnd, TRUE);
 
-	cResourceManager::Get()->SetMediaDirectory("../media/");
+	//cResourceManager::Get()->SetMediaDirectory("../media/");
 
 	const int WINSIZE_X = m_windowRect.right - m_windowRect.left;
 	const int WINSIZE_Y = m_windowRect.bottom - m_windowRect.top;
@@ -87,9 +96,11 @@ bool cViewer::OnInit()
 
 	m_ground.Create(m_renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
 	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-	m_ground.m_texture = &m_texture;
 
-	m_texture.Create(m_renderer, "../media/body.dds");
+	m_dbgLine.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0), 1.f, cColor::RED);
+	m_dbgBox.Create(m_renderer);
+	cBoundingBox bbox(Vector3(0, 0, 0), Vector3(1, 1, 1), Quaternion());
+	m_dbgBox.SetBox(bbox);
 
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
@@ -105,8 +116,8 @@ bool cViewer::OnInit()
 	m_axis.Create(m_renderer);
 	m_axis.SetAxis(bbox2, false);
 
-	//m_model.Create(m_renderer, common::GenerateId(), "../media/warehouse.x");
-	m_skybox.Create(m_renderer, "../media/skybox");
+	m_sprBatch = new DirectX::SpriteBatch(m_renderer.GetDevContext());
+	m_sprFont = new DirectX::SpriteFont(m_renderer.GetDevice(), L"Calibri.spritefont");
 
 	return true;
 }
@@ -118,6 +129,7 @@ void cViewer::OnUpdate(const float deltaSeconds)
 
 	GetMainCamera().Update(deltaSeconds);
 }
+
 
 void cViewer::OnRender(const float deltaSeconds)
 {
@@ -149,18 +161,24 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
 		m_renderer.m_cbMaterial.Update(m_renderer, 2);
 
-		m_skybox.Render(m_renderer);
 		m_ground.Render(m_renderer);
+		m_axis.Render(m_renderer);
 
-		//m_model.m_transform.scale = Vector3(1, 1, 1)*0.01f;
-		//const int pass4 = m_xfileShader.Begin();
-		//for (int i = 0; i < pass4; ++i)
-		//{
-		//	m_xfileShader.BeginPass(m_renderer, i);
-		//	m_renderer.m_cbLight.Update(m_renderer, 1);
-		//	m_renderer.m_cbMaterial.Update(m_renderer, 2);
-		//	m_model.Render(m_renderer);
-		//}
+		//RenderText(100.0f, 100.0f, "AA %4.2f rrr", 67.10f);
+		XMFLOAT2 position(100,100);
+		XMFLOAT2 origin;
+		m_sprBatch->Begin(SpriteSortMode_Deferred);
+		WCHAR *wbuf = L"Teaas33t";
+		if (1)
+		{
+			XMVECTOR size = m_sprFont->MeasureString(wbuf);
+			float sizeX = XMVectorGetX(size);
+			float sizeY = XMVectorGetY(size);
+			origin = XMFLOAT2(sizeX / 2, sizeY / 2);
+		}
+
+		m_sprFont->DrawString(m_sprBatch, wbuf, position, DirectX::Colors::White, 0.f, origin, 3.f);
+		m_sprBatch->End();
 
 		m_renderer.EndScene();
 		m_renderer.Present();
@@ -334,6 +352,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		Vector3 orig, dir;
 		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
 		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
+		//m_line.SetLine(orig + Vector3(1, 0, 0), p1, 0.3f);
+		m_dbgLine.SetLine(orig + Vector3(-1, 0, 0), p1 + Vector3(-1, 0, 0), 0.3f);
 
 		if (wParam & 0x10) // middle button down
 		{
@@ -392,3 +412,4 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	}
 }
+

@@ -18,5 +18,8 @@
     <CustomBuild Include="..\..\..\..\media\shader11\cubetex-light.fx">
       <Filter>FX</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-color.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
