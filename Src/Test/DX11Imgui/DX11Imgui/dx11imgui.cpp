@@ -1,5 +1,5 @@
 //
-// DX11 Font Text Designer
+// DX11 ImGui
 //
 
 #include "../../../../../Common/Common/common.h"
@@ -31,6 +31,7 @@ public:
 	cDbgArrow m_dbgArrow;
 	cDbgAxis m_axis;
 	cTexture m_texture;
+	cImGui m_imgui;
 
 	Transform m_world;
 	cMaterial m_mtrl;
@@ -51,7 +52,7 @@ INIT_FRAMEWORK(cViewer);
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
 {
-	m_windowName = L"DX11 Font Text Designer";
+	m_windowName = L"DX11 ImGui";
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 1024 };
 	m_windowRect = r;
@@ -102,6 +103,8 @@ bool cViewer::OnInit()
 	m_axis.Create(m_renderer);
 	m_axis.SetAxis(bbox2, false);
 
+	m_imgui.Init(m_hWnd, m_renderer.GetDevice(), m_renderer.GetDevContext());
+
 	return true;
 }
 
@@ -114,13 +117,34 @@ void cViewer::OnUpdate(const float deltaSeconds)
 }
 
 
+bool show_test_window = true;
+bool show_another_window = false;
+ImVec4 clear_col = ImColor(114, 144, 154);
+
+
 void cViewer::OnRender(const float deltaSeconds)
 {
 	if (m_isFrustumTracking)
 		cMainCamera::Get()->PushCamera(&m_terrainCamera);
 
+	m_imgui.NewFrame();
+
 	//GetMainLight().Bind(m_renderer, 0);
 	m_renderer.m_textMgr.NewFrame();
+
+	{
+		static float f = 0.0f;
+		ImGui::Text("Hello, world!");
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("clear color", (float*)&clear_col);
+		if (ImGui::Button("Test Window")) show_test_window ^= 1;
+		if (ImGui::Button("Another Window")) show_another_window ^= 1;
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+	static bool show_test_window = true;
+	ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+	ImGui::ShowTestWindow(&show_test_window);
 
 	// Render
 	if (m_renderer.ClearScene())
@@ -135,7 +159,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_renderer.m_textMgr.AddTextRender(m_renderer, 12345, L"Test1", cColor::BLUE, cColor::BLACK
 			, BILLBOARD_TYPE::Y_AXIS, tfm1);
 
-		m_renderer.m_textMgr.AddTextRender(m_renderer, 12346, L"Test2", cColor::BLUE, cColor::BLACK
+		m_renderer.m_textMgr.AddTextRender(m_renderer, 12346, L"Test2", cColor::RED, cColor::BLACK
 			, BILLBOARD_TYPE::Y_AXIS, tfm2);
 
 		GetMainCamera().Bind(m_renderer);
@@ -158,9 +182,10 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		m_ground.Render(m_renderer);
 		m_axis.Render(m_renderer);
-
 		m_renderer.RenderFPS();
+
 		m_renderer.EndScene();
+		m_imgui.Render();
 		m_renderer.Present();
 	}
 
@@ -190,9 +215,10 @@ void cViewer::ChangeWindowSize()
 	}
 }
 
-
 void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
+	m_imgui.WndProcHandler(m_hWnd, message, wParam, lParam);
+
 	framework::cInputManager::Get()->MouseProc(message, wParam, lParam);
 
 	static bool maximizeWnd = false;
