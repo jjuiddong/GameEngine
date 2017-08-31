@@ -10,6 +10,8 @@ using namespace common;
 
 using namespace graphic;
 using namespace framework;
+cRenderTarget g_shadowMap;
+cCamera g_lightCamera;
 
 class cViewer : public framework::cGameMain2
 {
@@ -24,12 +26,6 @@ public:
 
 
 public:
-	bool m_isFrustumTracking = true;
-	sf::Vector2i m_curPos;
-	float m_moveLen;
-	bool m_LButtonDown;
-	bool m_RButtonDown;
-	bool m_MButtonDown;
 };
 
 INIT_FRAMEWORK3(cViewer);
@@ -37,16 +33,17 @@ INIT_FRAMEWORK3(cViewer);
 class cDockView1 : public framework::cDockWindow
 {
 public:
-	cCamera m_terrainCamera;
+	cCamera m_terrainCamera;	
 	cGrid m_ground;
 	cDbgArrow m_dbgArrow;
 	cDbgAxis m_axis;
 	cRenderTarget m_renderTarget;
 	cMaterial m_mtrl;
 	Transform m_world;
+	cModel2 m_model;
 
+	bool m_isLightRender;
 	POINT m_mousePos;
-	bool m_mouseDown[3]; // Left, Right, Middle
 	POINT m_viewPos;
 	sRectf m_viewRect;
 	float m_rotateLen;
@@ -55,7 +52,8 @@ public:
 	Plane m_groundPlane2;
 
 	cDockView1(const string &name) : framework::cDockWindow(name)
-		, m_groundPlane1(Vector3(0, 1, 0), 0) {
+		, m_groundPlane1(Vector3(0, 1, 0), 0)
+		, m_isLightRender(false) {		
 	}
 	virtual ~cDockView1() {
 	}
@@ -65,23 +63,30 @@ public:
 
 		const float WINSIZE_X = m_rect.Width();
 		const float WINSIZE_Y = m_rect.Height();
-		GetMainCamera().Init(&renderer);
-		GetMainCamera().SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
-		GetMainCamera().SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
-		GetMainCamera().SetViewPort(WINSIZE_X, WINSIZE_Y);
 
 		m_terrainCamera.Init(&renderer);
 		m_terrainCamera.SetCamera(Vector3(-3, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
-		m_terrainCamera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
+		m_terrainCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
 		m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
 		GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 			Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
 			Vector4(0.2f, 0.2f, 0.2f, 1));
-		const Vector3 lightPos(-300, 300, -300);
+		const Vector3 lightPos(-10, 10, -10);
 		const Vector3 lightLookat(0, 0, 0);
 		GetMainLight().SetPosition(lightPos);
 		GetMainLight().SetDirection((lightLookat - lightPos).Normal());
+
+		if (m_isLightRender)
+		{
+			g_lightCamera.Init(&renderer);
+			g_lightCamera.SetCamera(lightPos, lightLookat, Vector3(0, 1, 0));
+			g_lightCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
+			//g_lightCamera.SetProjectionOrthogonal(1024, 10024, 0.1f, 1000.f);
+			g_lightCamera.SetViewPort(1024, 1024);
+		}
+
+		cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
 
 		m_ground.Create(renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
 		m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
@@ -92,35 +97,86 @@ public:
 		m_axis.Create(renderer);
 		m_axis.SetAxis(bbox2, false);
 
-		m_renderTarget.Create(renderer, (int)WINSIZE_X, (int)WINSIZE_Y);
+		cViewport vp = renderer.m_viewPort;
+		vp.m_vp.Width = WINSIZE_X;
+		vp.m_vp.Height = WINSIZE_Y;
+		m_renderTarget.Create(renderer, vp);
+
+		if (m_isLightRender)
+		{
+			cViewport svp = renderer.m_viewPort;
+			svp.m_vp.MinDepth = 0.f;// g_lightCamera.m_nearPlane;
+			svp.m_vp.MaxDepth = 1.f;
+			svp.m_vp.Width = g_lightCamera.m_width;
+			svp.m_vp.Height = g_lightCamera.m_height;
+			g_shadowMap.Create(renderer, svp, DXGI_FORMAT_R32G32B32A32_FLOAT);
+		}
+
+		m_model.Create(renderer, common::GenerateId(), "../media/boxlifter.x", ""
+			, m_isLightRender? "BuildShadowMap" : "ShadowMap", true);
 
 		return true;
 	}
 
 	virtual void OnUpdate(const float deltaSeconds) override {
-		cAutoCam cam(&m_terrainCamera);
+		cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
+		m_model.Update(GetRenderer(), deltaSeconds);
 		GetMainCamera().Update(deltaSeconds);
 	}
 
 	virtual void OnPreRender() override {
 		cRenderer &renderer = GetRenderer();
-		cAutoCam cam(&m_terrainCamera);
+		cAutoCam cam(m_isLightRender? &g_lightCamera : &m_terrainCamera);
 
-		m_renderTarget.SetRenderTarget(renderer);
+		if (m_isLightRender)
+		{
+			g_shadowMap.SetRenderTarget(renderer);
+			renderer.ClearScene(false, Vector4(1,1,1,1));
+		}
+		else
+		{
+			m_renderTarget.SetRenderTarget(renderer);
+			renderer.ClearScene(false);
+		}
 
-		if (renderer.ClearScene(false))
+		//if (renderer.ClearScene(false))
 		{
 			renderer.BeginScene();
 
-			XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetViewMatrix());
-			XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetProjectionMatrix());
+			XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&GetMainCamera().GetViewMatrix());
+			XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&GetMainCamera().GetProjectionMatrix());
 			XMMATRIX mWorld = XMLoadFloat4x4((XMFLOAT4X4*)&m_world.GetMatrix());
 			renderer.m_cbPerFrame.m_v->mWorld = XMMatrixTranspose(mWorld);
 			renderer.m_cbPerFrame.m_v->mView = XMMatrixTranspose(mView);
 			renderer.m_cbPerFrame.m_v->mProjection = XMMatrixTranspose(mProj);
 
-			m_ground.Render(renderer);
-			m_axis.Render(renderer);
+			const Vector3 lightPos = g_lightCamera.GetEyePos();
+			const Vector3 lightLookat = g_lightCamera.GetLookAt();
+			GetMainLight().SetPosition(lightPos);
+			GetMainLight().SetDirection((lightLookat - lightPos).Normal());
+			renderer.m_cbLight = GetMainLight().GetLight();
+
+			if (m_isLightRender)
+			{
+				//m_ground.Render(renderer);
+				m_model.Render(renderer);
+			}
+			else
+			{
+				cShader11 *shader = renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
+				Matrix44 view, proj, tt;
+				g_lightCamera.GetShadowMatrix(view, proj, tt);
+				renderer.m_cbPerFrame.m_v->mLightView = view.GetMatrixXM();
+				renderer.m_cbPerFrame.m_v->mLightProj = proj.GetMatrixXM();
+				renderer.m_cbPerFrame.m_v->mLightTT = tt.GetMatrixXM();
+
+				shader->m_shadowMap = g_shadowMap.m_texture;
+
+				m_ground.Render(renderer);
+				m_axis.Render(renderer);
+				m_model.Render(renderer);
+			}
+
 			renderer.EndScene();
 		}
 
@@ -132,7 +188,8 @@ public:
 		ImVec2 pos = ImGui::GetCursorScreenPos();
 		m_viewPos = { (int)(pos.x), (int)(pos.y) };
 		m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, pos.y + m_rect.Height() - 70 };
-		ImGui::Image(m_renderTarget.m_texture, ImVec2(m_rect.Width(), m_rect.Height() - 70));
+		ImGui::Image( m_isLightRender? g_shadowMap.m_texture : m_renderTarget.m_texture
+			, ImVec2(m_rect.Width(), m_rect.Height() - 70));
 	}
 
 	virtual void OnResizeEnd(const framework::eDockResize::Enum type, const sRectf &rect) override {
@@ -144,7 +201,7 @@ public:
 	
 	void UpdateLookAt()
 	{
-		//cAutoCam cam(&g_root.m_camWorld);
+		cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
 
 		GetMainCamera().MoveCancel();
 
@@ -202,8 +259,9 @@ public:
 	{
 		const POINT delta = { mousePt.x - m_mousePos.x, mousePt.y - m_mousePos.y };
 		m_mousePos = mousePt;
+		ImGuiIO &io = ImGui::GetIO();
 
-		if (m_mouseDown[0])
+		if (io.MouseDown[0])
 		{
 			Vector3 dir = GetMainCamera().GetDirection();
 			Vector3 right = GetMainCamera().GetRight();
@@ -215,7 +273,7 @@ public:
 			GetMainCamera().MoveRight(-delta.x * m_rotateLen * 0.001f);
 			GetMainCamera().MoveFrontHorizontal(delta.y * m_rotateLen * 0.001f);
 		}
-		else if (m_mouseDown[1])
+		else if (io.MouseDown[1])
 		{
 			GetMainCamera().Yaw4(delta.x * 0.005f, Vector3(0, 1, 0), m_rotateTarget);
 			GetMainCamera().Pitch4(delta.y * 0.005f, Vector3(0, 1, 0), m_rotateTarget);
@@ -226,7 +284,7 @@ public:
 				GetMainCamera().UpdateViewMatrix();
 			}
 		}
-		else if (m_mouseDown[2])
+		else if (io.MouseDown[2])
 		{
 			const float len = GetMainCamera().GetDistance();
 			GetMainCamera().MoveRight(-delta.x * len * 0.001f);
@@ -249,8 +307,6 @@ public:
 		{
 		case sf::Mouse::Left:
 		{
-			m_mouseDown[0] = true;
-
 			Vector3 orig, dir;
 			GetMainCamera().GetRay(mousePt.x, mousePt.y, orig, dir);
 			Vector3 p1 = m_groundPlane1.Pick(orig, dir);
@@ -259,12 +315,10 @@ public:
 		break;
 
 		case sf::Mouse::Right:
-			m_mouseDown[1] = true;
 			break;
 
 		case sf::Mouse::Middle:
 		{
-			m_mouseDown[2] = true;
 			UpdateLookAt();
 
 			Vector3 orig, dir;
@@ -288,14 +342,11 @@ public:
 		{
 		case sf::Mouse::Left:
 			ReleaseCapture();
-			m_mouseDown[0] = false;
 			break;
 		case sf::Mouse::Right:
-			m_mouseDown[1] = false;
 			ReleaseCapture();
 			break;
 		case sf::Mouse::Middle:
-			m_mouseDown[2] = false;
 			ReleaseCapture();
 			break;
 		}
@@ -318,8 +369,8 @@ public:
 
 			case sf::Keyboard::Space:
 			{
-				//DirectX::SaveWICTextureToFile(GetRenderer().GetDevContext()
-				//	, m_renderTarget.m_rawTex, GUID_ContainerFormatPng, L"ss.png");
+				DirectX::SaveWICTextureToFile(GetRenderer().GetDevContext()
+					, g_shadowMap.m_rawTex, GUID_ContainerFormatPng, L"ss.png");
 			}
 			break;
 
@@ -332,7 +383,7 @@ public:
 
 		case sf::Event::MouseMoved:
 		{
-			cAutoCam cam(&m_terrainCamera);
+			cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
 
 			POINT curPos;
 			GetCursorPos(&curPos); // sf::event mouse position has noise so we use GetCursorPos() function
@@ -345,7 +396,9 @@ public:
 		case sf::Event::MouseButtonPressed:
 		case sf::Event::MouseButtonReleased:
 		{
-			cAutoCam cam(&m_terrainCamera);
+			dbg::Log("MouseButton Press/Release \n");
+
+			cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
 
 			POINT curPos;
 			GetCursorPos(&curPos); // sf::event mouse position has noise so we use GetCursorPos() function
@@ -363,7 +416,7 @@ public:
 
 		case sf::Event::MouseWheelMoved:
 		{
-			cAutoCam cam(&m_terrainCamera);
+			cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
 
 			POINT curPos;
 			GetCursorPos(&curPos); // sf::event mouse position has noise so we use GetCursorPos() function
@@ -379,8 +432,22 @@ public:
 	}
 
 	virtual void OnResetDevice() {
-		m_terrainCamera.SetViewPort(m_rect.Width(), m_rect.Height());
-		m_renderTarget.Create(GetRenderer(), (int)m_rect.Width(), (int)m_rect.Height());
+		dbg::Log("%s ResetDevoce\n", m_name.c_str());
+
+		//cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
+		if (m_isLightRender)
+		{
+			//g_lightCamera.SetViewPort(m_rect.Width(), m_rect.Height());
+		}
+		else
+		{
+			m_terrainCamera.SetViewPort(m_rect.Width(), m_rect.Height());
+		}
+
+		cViewport vp = GetRenderer().m_viewPort;
+		vp.m_vp.Width = m_rect.Width();
+		vp.m_vp.Height = m_rect.Height();
+		m_renderTarget.Create(GetRenderer(), vp);
 	}
 
 };
@@ -390,12 +457,8 @@ cViewer::cViewer()
 {
 	m_windowName = L"DX11 Shadowmap";
 	//const RECT r = { 0, 0, 1024, 768 };
-	const RECT r = { 0, 0, 1280, 1024 };
+	const RECT r = { 0, 0, (int)(1280*1.5f), (int)(1024*1.5f) };
 	m_windowRect = r;
-	m_moveLen = 0;
-	m_LButtonDown = false;
-	m_RButtonDown = false;
-	m_MButtonDown = false;
 }
 
 cViewer::~cViewer()
@@ -411,12 +474,13 @@ bool cViewer::OnInit()
 
 	m_gui.SetContext();
 
-	cDockView1 *view1 = new cDockView1("DockView1");
+	cDockView1 *view1 = new cDockView1("Model View1");
 	view1->Create(eDockState::DOCK, eDockSlot::TAB, this, NULL);
 	view1->Init();
 
-	cDockView1 *view2 = new cDockView1("DockView2");
+	cDockView1 *view2 = new cDockView1("Light View");
 	view2->Create(eDockState::DOCK, eDockSlot::BOTTOM, this, view1);
+	view2->m_isLightRender = true;
 	view2->Init();
 
 	cDockView1 *view3 = new cDockView1("DockView3");

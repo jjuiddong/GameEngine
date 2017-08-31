@@ -95,6 +95,46 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 }
 
 
+
+//--------------------------------------------------------------------------------------
+// Vertex Shader BuildShadowMap
+//--------------------------------------------------------------------------------------
+VS_OUTPUT VS_BuildShadowMap(float4 Pos : POSITION
+	, float3 Normal : NORMAL
+	, float2 Tex : TEXCOORD0
+	, float4 Color : COLOR)
+{
+	VS_OUTPUT output = (VS_OUTPUT)0;
+	output.Pos = mul(Pos, World);
+	output.Pos = mul(output.Pos, View);
+	output.Pos = mul(output.Pos, Projection);
+	output.Normal = normalize(mul(Normal, (float3x3)World));
+	output.Tex = Tex;
+	output.Color = Color;
+	return output;
+}
+
+
+//--------------------------------------------------------------------------------------
+// Pixel Shader BuildShadowMap
+//--------------------------------------------------------------------------------------
+float4 PS_BuildShadowMap(VS_OUTPUT In) : SV_Target
+{
+	float3 L = -gLight_Direction;
+	float3 H = normalize(L + normalize(In.toEye));
+	float3 N = normalize(In.Normal);
+
+	float4 color = gLight_Ambient * gMtrl_Ambient
+		+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L))
+		+ gLight_Specular * gMtrl_Specular * pow(max(0, dot(N,H)), gMtrl_Pow);
+
+	float4 Out = txDiffuse.Sample(samLinear, In.Tex);
+	//return float4(Out.x, Out.y, Out.z, 1);
+	//return color;
+	return Out;
+}
+
+
 technique11 Unlit
 {
 	pass P0
@@ -102,6 +142,17 @@ technique11 Unlit
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
+	}
+}
+
+
+technique11 BuildShadowMap
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS_BuildShadowMap()));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS_BuildShadowMap()));
 	}
 }
 
