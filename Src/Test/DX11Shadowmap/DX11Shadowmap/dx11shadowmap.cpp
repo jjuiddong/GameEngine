@@ -12,6 +12,7 @@ using namespace graphic;
 using namespace framework;
 cRenderTarget g_shadowMap;
 cCamera g_lightCamera;
+cTexture g_unBindTex;
 
 class cViewer : public framework::cGameMain2
 {
@@ -81,9 +82,7 @@ public:
 		{
 			g_lightCamera.Init(&renderer);
 			g_lightCamera.SetCamera(lightPos, lightLookat, Vector3(0, 1, 0));
-			g_lightCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
-			//g_lightCamera.SetProjectionOrthogonal(1024, 10024, 0.1f, 1000.f);
-			g_lightCamera.SetViewPort(1024, 1024);
+			g_lightCamera.SetProjectionOrthogonal(5, 5, 0.1f, 100.f);
 		}
 
 		cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
@@ -105,11 +104,13 @@ public:
 		if (m_isLightRender)
 		{
 			cViewport svp = renderer.m_viewPort;
-			svp.m_vp.MinDepth = 0.f;// g_lightCamera.m_nearPlane;
+			svp.m_vp.MinDepth = 0.f;
 			svp.m_vp.MaxDepth = 1.f;
-			svp.m_vp.Width = g_lightCamera.m_width;
-			svp.m_vp.Height = g_lightCamera.m_height;
-			g_shadowMap.Create(renderer, svp, DXGI_FORMAT_R32G32B32A32_FLOAT);
+			svp.m_vp.Width = 1024;
+			svp.m_vp.Height = 1024;
+			g_shadowMap.Create(renderer, svp, DXGI_FORMAT_R32_FLOAT);
+
+			g_unBindTex.Create(renderer, "../media/whitetex.dds");
 		}
 
 		m_model.Create(renderer, common::GenerateId(), "../media/boxlifter.x", ""
@@ -130,6 +131,8 @@ public:
 
 		if (m_isLightRender)
 		{
+			g_unBindTex.Bind(renderer, 1);// Unbind ShaderResource
+
 			g_shadowMap.SetRenderTarget(renderer);
 			renderer.ClearScene(false, Vector4(1,1,1,1));
 		}
@@ -156,22 +159,22 @@ public:
 			GetMainLight().SetDirection((lightLookat - lightPos).Normal());
 			renderer.m_cbLight = GetMainLight().GetLight();
 
+			Matrix44 view, proj, tt;
+			g_lightCamera.GetShadowMatrix(view, proj, tt);
+			renderer.m_cbPerFrame.m_v->mLightView = XMMatrixTranspose(view.GetMatrixXM());
+			renderer.m_cbPerFrame.m_v->mLightProj = XMMatrixTranspose(proj.GetMatrixXM());
+			renderer.m_cbPerFrame.m_v->mLightTT = XMMatrixTranspose(tt.GetMatrixXM());
+
+			cShader11 *shader = renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
+
 			if (m_isLightRender)
 			{
-				//m_ground.Render(renderer);
+				shader->m_shadowMap = NULL;
 				m_model.Render(renderer);
 			}
 			else
 			{
-				cShader11 *shader = renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
-				Matrix44 view, proj, tt;
-				g_lightCamera.GetShadowMatrix(view, proj, tt);
-				renderer.m_cbPerFrame.m_v->mLightView = view.GetMatrixXM();
-				renderer.m_cbPerFrame.m_v->mLightProj = proj.GetMatrixXM();
-				renderer.m_cbPerFrame.m_v->mLightTT = tt.GetMatrixXM();
-
 				shader->m_shadowMap = g_shadowMap.m_texture;
-
 				m_ground.Render(renderer);
 				m_axis.Render(renderer);
 				m_model.Render(renderer);

@@ -73,7 +73,6 @@ struct VS_OUTPUT
 };
 
 
-
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
@@ -171,8 +170,7 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 	float fShadowTerm = 0.0f;
 	for (int i = 0; i < 9; i++)
 	{
-		//const float2 uv = vTexCoords[i].xy / vTexCoords[i].w;
-		const float2 uv = In.TexShadow.xy / In.TexShadow.w;
+		const float2 uv = vTexCoords[i].xy / vTexCoords[i].w;
 		const float D1 = txShadow.Sample(samShadow, uv).r;
 
 		fShadowTerms[i] = ((D1 < S1) ) ? 0.1f : 1.f;
@@ -186,18 +184,12 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 	float3 N = normalize(In.Normal);
 
 	float4 color = gLight_Ambient * gMtrl_Ambient
+		+ gLight_Diffuse * gMtrl_Diffuse * 0.2
 		+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L)) * fShadowTerm
 		+ gLight_Specular * gMtrl_Specular * pow(max(0, dot(N,H)), gMtrl_Pow);
 
-	//float4 Out = fShadowTerm;// color * txDiffuse.Sample(samLinear, In.Tex);
-	//return Out;
-
-	const float2 uv = In.TexShadow.xy / In.TexShadow.w;
-	const float D1 = txShadow.Sample(samShadow, uv).r;
-	return txShadow.Sample(samShadow, uv);
-	//return txDiffuse.Sample(samLinear, In.Tex);
-	//return txShadow.Sample(samShadow, In.Tex);
-	return float4(1,1,1,1)*D1;
+	float4 Out = color * txDiffuse.Sample(samLinear, In.Tex);
+	return Out;
 }
 
 

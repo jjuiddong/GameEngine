@@ -130,7 +130,7 @@ fxgroup
                 //   o1.x <- <VS return value>.Normal.x; o1.y <- <VS return value>.Normal.y; o1.z <- <VS return value>.Normal.z; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 85 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 84 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
                 dp4 r1.x, v0.xyzw, cb0[0].xyzw  // r1.x <- output.Pos.x
                 dp4 r1.y, v0.xyzw, cb0[1].xyzw  // r1.y <- output.Pos.y
@@ -251,7 +251,7 @@ fxgroup
                 //   v3.x <- In.toEye.x; v3.y <- In.toEye.y; v3.z <- In.toEye.z; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 100 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 99 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 mov r0.xyz, -cb1[3].xyzx  // r0.x <- L.x; r0.y <- L.y; r0.z <- L.z
                 dp3 r0.w, v3.xyzx, v3.xyzx
                 rsq r0.w, r0.w
@@ -280,7 +280,7 @@ fxgroup
                 mul r1.xyzw, r1.xxxx, r3.xyzw
                 add r0.xyzw, r0.xyzw, r1.xyzw  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z; r0.w <- color.w
                 
-                #line 108
+                #line 107
                 sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v2.xyxx, t0.xyzw, s0
                 mul r0.xyzw, r0.xyzw, r1.xyzw  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z; r0.w <- Out.w
                 mov o0.xyzw, r0.xyzw
@@ -370,7 +370,7 @@ fxgroup
                 //   o1.x <- <VS_ShadowMap return value>.Normal.x; o1.y <- <VS_ShadowMap return value>.Normal.y; o1.z <- <VS_ShadowMap return value>.Normal.z; 
                 //   o0.x <- <VS_ShadowMap return value>.Pos.x; o0.y <- <VS_ShadowMap return value>.Pos.y; o0.z <- <VS_ShadowMap return value>.Pos.z; o0.w <- <VS_ShadowMap return value>.Pos.w
                 //
-                #line 132 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 131 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
                 itof r1.xy, l(0, 0, 0, 0)  // r1.x <- output.Depth.z; r1.y <- output.Depth.w
                 dp4 r2.x, v0.xyzw, cb0[0].xyzw  // r2.x <- output.Pos.x
@@ -461,7 +461,7 @@ fxgroup
                 dp4 r5.z, r4.xyzw, r7.xyzw  // r5.z <- output.TexShadow.z
                 dp4 r5.w, r4.xyzw, r12.xyzw  // r5.w <- output.TexShadow.w
                 
-                #line 143
+                #line 142
                 mov r6.x, r9.z
                 mov r6.y, r10.z
                 mov r6.z, r11.z
@@ -490,14 +490,38 @@ fxgroup
                 //
                 // Buffer Definitions: 
                 //
+                // cbuffer cbPerFrame
+                // {
+                //
+                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
+                //   float4x4 gView;                    // Offset:   64 Size:    64 [unused]
+                //   float4x4 gProjection;              // Offset:  128 Size:    64 [unused]
+                //   float4x4 gLightView;               // Offset:  192 Size:    64 [unused]
+                //   float4x4 gLightProj;               // Offset:  256 Size:    64 [unused]
+                //   float4x4 gLightTT;                 // Offset:  320 Size:    64 [unused]
+                //   float3 gEyePosW;                   // Offset:  384 Size:    12 [unused]
+                //
+                // }
+                //
                 // cbuffer cbLight
                 // {
                 //
-                //   float4 gLight_Ambient;             // Offset:    0 Size:    16 [unused]
-                //   float4 gLight_Diffuse;             // Offset:   16 Size:    16 [unused]
-                //   float4 gLight_Specular;            // Offset:   32 Size:    16 [unused]
-                //   float3 gLight_Direction;           // Offset:   48 Size:    12 [unused]
+                //   float4 gLight_Ambient;             // Offset:    0 Size:    16
+                //   float4 gLight_Diffuse;             // Offset:   16 Size:    16
+                //   float4 gLight_Specular;            // Offset:   32 Size:    16
+                //   float3 gLight_Direction;           // Offset:   48 Size:    12
                 //   float3 gLight_PosW;                // Offset:   64 Size:    12 [unused]
+                //
+                // }
+                //
+                // cbuffer cbMaetrial
+                // {
+                //
+                //   float4 gMtrl_Ambient;              // Offset:    0 Size:    16
+                //   float4 gMtrl_Diffuse;              // Offset:   16 Size:    16
+                //   float4 gMtrl_Specular;             // Offset:   32 Size:    16
+                //   float4 gMtrl_Emissive;             // Offset:   48 Size:    16 [unused]
+                //   float gMtrl_Pow;                   // Offset:   64 Size:     4
                 //
                 // }
                 //
@@ -506,9 +530,13 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
+                // samLinear                         sampler      NA          NA    0        1
                 // samShadow                         sampler      NA          NA    1        1
+                // txDiffuse                         texture  float4          2d    0        1
                 // txShadow                          texture  float4          2d    1        1
+                // cbPerFrame                        cbuffer      NA          NA    0        1
                 // cbLight                           cbuffer      NA          NA    1        1
+                // cbMaetrial                        cbuffer      NA          NA    2        1
                 //
                 //
                 //
@@ -517,11 +545,11 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
-                // TEXCOORD                 0   xyz         1     NONE   float       
-                // TEXCOORD                 1   xy          2     NONE   float       
+                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 1   xy          2     NONE   float   xy  
                 // TEXCOORD                 2   xyzw        3     NONE   float   xy w
-                // TEXCOORD                 3   xyz         4     NONE   float       
-                // TEXCOORD                 4   xyzw        5     NONE   float       
+                // TEXCOORD                 3   xyz         4     NONE   float   xyz 
+                // TEXCOORD                 4   xyzw        5     NONE   float   xy  
                 //
                 //
                 // Output signature:
@@ -532,12 +560,22 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb1[1], immediateIndexed
+                dcl_constantbuffer cb0[1], immediateIndexed
+                dcl_constantbuffer cb1[4], immediateIndexed
+                dcl_constantbuffer cb2[5], immediateIndexed
+                dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_default
+                dcl_resource_texture2d (float,float,float,float) t0
                 dcl_resource_texture2d (float,float,float,float) t1
+                dcl_input_ps linear v1.xyz
+                dcl_input_ps linear v2.xy
                 dcl_input_ps linear v3.xyw
+                dcl_input_ps linear v4.xyz
+                dcl_input_ps linear v5.xy
                 dcl_output o0.xyzw
-                dcl_temps 1
+                dcl_temps 5
+                dcl_indexableTemp x0[9], 4
+                dcl_indexableTemp x1[9], 4
                 //
                 // Initial variable locations:
                 //   v0.x <- In.Pos.x; v0.y <- In.Pos.y; v0.z <- In.Pos.z; v0.w <- In.Pos.w; 
@@ -546,13 +584,106 @@ fxgroup
                 //   v3.x <- In.TexShadow.x; v3.y <- In.TexShadow.y; v3.z <- In.TexShadow.z; v3.w <- In.TexShadow.w; 
                 //   v4.x <- In.toEye.x; v4.y <- In.toEye.y; v4.z <- In.toEye.z; 
                 //   v5.x <- In.Depth.x; v5.y <- In.Depth.y; v5.z <- In.Depth.z; v5.w <- In.Depth.w; 
-                //   o0.x <- <PS_ShadowMap return value>.x; o0.y <- <PS_ShadowMap return value>.y; o0.z <- <PS_ShadowMap return value>.z; o0.w <- <PS_ShadowMap return value>.w
+                //   o0.x <- <PS_ShadowMap return value>.x; o0.y <- <PS_ShadowMap return value>.y; o0.z <- <PS_ShadowMap return value>.z; o0.w <- <PS_ShadowMap return value>.w; 
+                //   x0 <- vTexCoords; x1 <- fShadowTerms
                 //
-                #line 195 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
-                div r0.xy, v3.xyxx, v3.wwww  // r0.x <- uv.x; r0.y <- uv.y
-                sample_indexable(texture2d)(float,float,float,float) o0.xyzw, r0.xyxx, t1.xyzw, s1
+                #line 154 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                mov r0.y, l(0.000977)  // r0.y <- fTexelSize
+                div r1.x, v5.x, v5.y
+                min r1.x, r1.x, l(1.000000)  // r1.x <- depth1
+                mov x0[0].xyw, v3.xyxw
+                mov r2.x, -r0.y
+                mov r2.yz, l(0,0,0,0)
+                add r1.yzw, r2.xxyz, v3.xxyw
+                mov x0[1].xyw, r1.yzyw
+                mov r0.z, l(0)
+                add r1.yzw, r0.yyzz, v3.xxyw
+                mov x0[2].xyw, r1.yzyw
+                mov r2.y, -r0.y
+                mov r2.xz, l(0,0,0,0)
+                add r1.yzw, r2.xxyz, v3.xxyw
+                mov x0[3].xyw, r1.yzyw
+                add r1.yzw, r0.zzyz, v3.xxyw
+                mov x0[6].xyw, r1.yzyw
+                mov r2.x, -r0.y
+                mov r2.y, -r0.y
+                mov r2.z, l(0)
+                add r1.yzw, r2.xxyz, v3.xxyw
+                mov x0[4].xyw, r1.yzyw
+                mov r0.w, -r0.y
+                add r1.yzw, r0.yywz, v3.xxyw
+                mov x0[5].xyw, r1.yzyw
+                mov r0.x, -r0.y
+                add r1.yzw, r0.xxyz, v3.xxyw
+                mov x0[7].xyw, r1.yzyw
+                
+                #line 165
+                add r0.xyz, r0.yyzy, v3.xywx
+                mov x0[8].xyw, r0.xyxz
+                mov r0.x, l(-0.001000)
+                add r0.x, r0.x, r1.x  // r0.x <- S1
+                
+                #line 170
+                mov r0.y, l(0)  // r0.y <- fShadowTerm
+                mov r0.z, l(0)  // r0.z <- i
+                mov r0.w, r0.y  // r0.w <- fShadowTerm
+                mov r1.x, r0.z  // r1.x <- i
+                loop 
+                  ilt r1.y, r1.x, l(9)
+                  breakc_z r1.y
+                  mov r1.yz, x0[r1.x + 0].xxyx
+                  mov r1.w, x0[r1.x + 0].w
+                  div r1.yz, r1.yyzy, r1.wwww  // r1.y <- uv.x; r1.z <- uv.y
+                  sample_indexable(texture2d)(float,float,float,float) r1.y, r1.yzyy, t1.yxzw, s1
+                  mov r1.y, r1.y  // r1.y <- D1
+                  lt r1.y, r1.y, r0.x
+                  movc r1.y, r1.y, l(0.100000), l(1.000000)
+                  mov x1[r1.x + 0].x, r1.y
+                  mov r1.y, x1[r1.x + 0].x
+                  add r0.w, r0.w, r1.y
+                  iadd r1.x, r1.x, l(1)
+                endloop 
+                div r0.x, r0.w, l(9.000000)  // r0.x <- fShadowTerm
+                
+                #line 182
+                mov r0.yzw, -cb1[3].xxyz  // r0.y <- L.x; r0.z <- L.y; r0.w <- L.z
+                dp3 r1.x, v4.xyzx, v4.xyzx
+                rsq r1.x, r1.x
+                mul r1.xyz, r1.xxxx, v4.xyzx
+                add r1.xyz, r0.yzwy, r1.xyzx
+                dp3 r1.w, r1.xyzx, r1.xyzx
+                rsq r1.w, r1.w
+                mul r1.xyz, r1.wwww, r1.xyzx  // r1.x <- H.x; r1.y <- H.y; r1.z <- H.z
+                dp3 r1.w, v1.xyzx, v1.xyzx
+                rsq r1.w, r1.w
+                mul r2.xyz, r1.wwww, v1.xyzx  // r2.x <- N.x; r2.y <- N.y; r2.z <- N.z
+                mul r3.xyzw, cb1[0].xyzw, cb2[0].xyzw
+                mul r4.xyzw, cb1[1].xyzw, cb2[1].xyzw
+                mul r4.xyzw, r4.xyzw, l(0.200000, 0.200000, 0.200000, 0.200000)
+                add r3.xyzw, r3.xyzw, r4.xyzw
+                mul r4.xyzw, cb1[1].xyzw, cb2[1].xyzw
+                itof r1.w, l(0)
+                dp3 r0.y, r2.xyzx, r0.yzwy
+                max r0.y, r0.y, r1.w
+                mul r4.xyzw, r0.yyyy, r4.xyzw
+                mul r0.xyzw, r0.xxxx, r4.xyzw
+                add r0.xyzw, r0.xyzw, r3.xyzw
+                mul r3.xyzw, cb1[2].xyzw, cb2[2].xyzw
+                itof r1.w, l(0)
+                dp3 r1.x, r2.xyzx, r1.xyzx
+                max r1.x, r1.x, r1.w
+                log r1.x, r1.x
+                mul r1.x, r1.x, cb2[4].x
+                exp r1.x, r1.x
+                mul r1.xyzw, r1.xxxx, r3.xyzw
+                add r0.xyzw, r0.xyzw, r1.xyzw  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z; r0.w <- color.w
+                
+                #line 191
+                sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v2.xyxx, t0.xyzw, s0
+                mul r0.xyzw, r0.xyzw, r1.xyzw  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z; r0.w <- Out.w
+                mov o0.xyzw, r0.xyzw
                 ret 
-                // Approximately 3 instruction slots used
+                // Approximately 87 instruction slots used
                             
             };
         }
@@ -623,7 +754,7 @@ fxgroup
                 //   o1.x <- <VS_BuildShadowMap return value>.Depth.x; o1.y <- <VS_BuildShadowMap return value>.Depth.y; 
                 //   o0.x <- <VS_BuildShadowMap return value>.Pos.x; o0.y <- <VS_BuildShadowMap return value>.Pos.y; o0.z <- <VS_BuildShadowMap return value>.Pos.z; o0.w <- <VS_BuildShadowMap return value>.Pos.w
                 //
-                #line 220 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 212 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 dp4 r0.x, v0.xyzw, cb0[0].xyzw  // r0.x <- output.Pos.x
                 dp4 r0.y, v0.xyzw, cb0[1].xyzw  // r0.y <- output.Pos.y
                 dp4 r0.z, v0.xyzw, cb0[2].xyzw  // r0.z <- output.Pos.z
@@ -674,7 +805,7 @@ fxgroup
                 //   v1.x <- In.Depth.x; v1.y <- In.Depth.y; 
                 //   o0.x <- <PS_BuildShadowMap return value>.x; o0.y <- <PS_BuildShadowMap return value>.y; o0.z <- <PS_BuildShadowMap return value>.z; o0.w <- <PS_BuildShadowMap return value>.w
                 //
-                #line 236 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 228 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 div o0.xyzw, v1.xxxx, v1.yyyy
                 ret 
                 // Approximately 2 instruction slots used
