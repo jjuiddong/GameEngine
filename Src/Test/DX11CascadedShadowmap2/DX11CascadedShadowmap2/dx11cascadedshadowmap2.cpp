@@ -1,5 +1,5 @@
 //
-// DX11 Cascaded ShadowMap
+// DX11 Cascaded ShadowMap2
 //
 
 #include "../../../../../Common/Common/common.h"
@@ -50,7 +50,7 @@ public:
 
 	bool m_showSecondCam = false;
 	bool m_showMainFrustum = false;
-	bool m_showLightFrustum1 = false;	
+	bool m_showLightFrustum1 = false;
 	bool m_showLightFrustum2 = false;
 	bool m_showCascade = false;
 	bool m_showShadowMap = false;
@@ -120,8 +120,9 @@ bool cViewer::OnInit()
 
 	m_mtrl.InitWhite();
 
-	m_ground.Create(m_renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
-	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+	m_ground.Create(m_renderer, 10, 10, 100, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE
+		, cColor::WHITE, g_defaultTexture);
+	//m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
 	m_texture.Create(m_renderer, "../media/whitetex.dds");
 
@@ -148,18 +149,18 @@ bool cViewer::OnInit()
 	m_dbgMainFrustum.Create(m_renderer, m_mainCamera);
 	m_dbgMainFrustum.SetFrustum(m_renderer, m_dbgMainFrustum.m_viewProj);
 
-	const Vector3 billboardPos[3] = {Vector3(0,0,3), Vector3(0,0,7), Vector3(0,0,11)};
+	const Vector3 billboardPos[3] = { Vector3(0,0,3), Vector3(0,0,7), Vector3(0,0,11) };
 	for (int i = 0; i < 3; ++i)
 	{
-		m_shadowMapQuad[i].Create(m_renderer, 0, 310*i, 300, 300);
+		m_shadowMapQuad[i].Create(m_renderer, 0, 310 * i, 300, 300);
 
 		m_frustum[i].Create(m_renderer, m_lightCamera);
 		m_cascadedGround[i].Create(m_renderer);
 		m_shadowMap[i].Create(m_renderer, svp, DXGI_FORMAT_R32_FLOAT);
 	}
 
-	for (int i=0; i < 6; ++i)
-		m_text[i].Create(m_renderer);
+	for (int i = 0; i < 6; ++i)
+		m_text[i].Create(m_renderer, 18, false , "Arial", cColor::BLACK);
 
 	const Vector3 quadVtx[] = {
 		Vector3(-5,0,5)
@@ -200,7 +201,7 @@ void cViewer::OnUpdate(const float deltaSeconds)
 
 void cViewer::OnRender(const float deltaSeconds)
 {
-	cAutoCam cam(m_showSecondCam? &m_secondCamera : &m_mainCamera);
+	cAutoCam cam(m_showSecondCam ? &m_secondCamera : &m_mainCamera);
 
 	cShader11 *shader = m_renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
 
@@ -247,8 +248,6 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		RenderScene(m_isShadowRender ? "ShadowMap" : "Unlit", false, m_lightSplitCamera);
 
-		m_ground.Render(m_renderer);
-
 		if (m_showMainFrustum)
 			m_dbgMainFrustum.Render(m_renderer);
 		if (m_showLightFrustum1)
@@ -257,7 +256,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		for (int i = 0; i < 3; ++i)
 		{
 			if (m_showLightFrustum2)
-				m_frustum[0].Render(m_renderer);
+				m_frustum[i].Render(m_renderer);
 			if (m_showCascade)
 				m_cascadedGround[i].Render(m_renderer);
 		}
@@ -281,8 +280,10 @@ void cViewer::OnRender(const float deltaSeconds)
 		for (int i = 0; i < 6; ++i)
 		{
 			m_text[i].SetText(str[i].c_str());
-			m_text[i].Render(m_renderer, 150, 10 + 20 * i);
+			m_text[i].Render(m_renderer, 150, 50 + 20 * i);
 		}
+
+		m_renderer.RenderFPS();
 
 		m_renderer.EndScene();
 		m_renderer.Present();
@@ -333,7 +334,21 @@ void cViewer::RenderScene(const char *techniqueName, const bool isShadowMap
 	m_renderer.m_cbMaterial.Update(m_renderer, 2);
 
 	m_model.m_techniqueName = techniqueName;
-	m_model.Render(m_renderer);
+
+	for (int x = 0; x < 10; ++x)
+	{
+		for (int y = 0; y < 10; ++y)
+		{
+			m_model.m_transform.pos = Vector3(x*3.f, 0, y*3.f);
+			m_model.Render(m_renderer);
+		}
+	}
+
+	// White Material
+	m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
+	m_renderer.m_cbMaterial.Update(m_renderer, 2);
+	m_ground.m_techniqueName = techniqueName;
+	m_ground.Render(m_renderer);
 }
 
 
@@ -426,7 +441,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		case VK_RETURN:
 		{
 			m_isShadowRender = !m_isShadowRender;
-			//cResourceManager::Get()->ReloadShader(m_renderer);
 
 			ID3D11Resource *texture;
 			m_renderer.m_renderTargetView->GetResource(&texture);
@@ -437,10 +451,10 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		case '1': m_showSecondCam = !m_showSecondCam; break;
 		case '2': m_showMainFrustum = !m_showMainFrustum; break;
-		case '3': m_showLightFrustum1 = !m_showLightFrustum1; break;			
+		case '3': m_showLightFrustum1 = !m_showLightFrustum1; break;
 		case '4': m_showLightFrustum2 = !m_showLightFrustum2; break;
-		case '5': m_showCascade = !m_showCascade; break;			
-		case '6': m_showShadowMap = !m_showShadowMap; break;			
+		case '5': m_showCascade = !m_showCascade; break;
+		case '6': m_showShadowMap = !m_showShadowMap; break;
 		}
 		break;
 

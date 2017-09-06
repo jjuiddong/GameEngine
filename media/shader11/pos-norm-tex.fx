@@ -4,13 +4,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
 
-#define SHADOW_EPSILON 0.001f
+#define SHADOW_EPSILON 0.0001f
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
 Texture2D txDiffuse : register(t0);
-Texture2D txShadow : register(t1);
+Texture2D txShadow0 : register(t1);
+Texture2D txShadow1 : register(t2);
+Texture2D txShadow2 : register(t3);
 
 SamplerState samLinear : register(s0)
 {
@@ -24,7 +26,7 @@ SamplerState samShadow : register(s1)
 	Filter = MIN_MAG_MIP_LINEAR;
 	AddressU = Border;
 	AddressV = Border;
-	//BorderColor = 0xffffffff;
+	BorderColor = float4(1,1,1,1);
 };
 
 
@@ -34,8 +36,8 @@ cbuffer cbPerFrame : register( b0 )
 	matrix gWorld;
 	matrix gView;
 	matrix gProjection;
-	matrix gLightView;
-	matrix gLightProj;
+	matrix gLightView[3];
+	matrix gLightProj[3];
 	matrix gLightTT;
 	float3 gEyePosW;
 }
@@ -118,9 +120,12 @@ struct VS_SHADOW_OUTPUT
 	float4 Pos : SV_POSITION;
 	float3 Normal : TEXCOORD0;
 	float2 Tex : TEXCOORD1;
-	float4 TexShadow : TEXCOORD2;
-	float3 toEye : TEXCOORD3;
-	float4 Depth : TEXCOORD4;
+	float4 TexShadow0 : TEXCOORD2;
+	float4 TexShadow1 : TEXCOORD3;
+	float4 TexShadow2 : TEXCOORD4;
+	float3 toEye : TEXCOORD5;
+	float4 Depth0 : TEXCOORD6;
+	float2 Depth1 : TEXCOORD7;
 };
 
 VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
@@ -135,11 +140,24 @@ VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	output.Normal = normalize(mul(Normal, (float3x3)gWorld));
 	output.Tex = Tex;
 
+	matrix mLVP[3];
+	matrix mVPT[3];
+
 	float4 wPos = mul(Pos, gWorld);
-	matrix mLVP = mul(gLightView, gLightProj);
-	matrix mVPT = mul(mLVP, gLightTT);
-	output.TexShadow = mul(wPos, mVPT);
-	output.Depth.xy = mul(wPos, mLVP).zw;
+	mLVP[0] = mul(gLightView[0], gLightProj[0]);
+	mVPT[0] = mul(mLVP[0], gLightTT);
+	mLVP[1] = mul(gLightView[1], gLightProj[1]);
+	mVPT[1] = mul(mLVP[1], gLightTT);
+	mLVP[2] = mul(gLightView[2], gLightProj[2]);
+	mVPT[2] = mul(mLVP[2], gLightTT);
+
+	output.TexShadow0 = mul(wPos, mVPT[0]);
+	output.TexShadow1 = mul(wPos, mVPT[1]);
+	output.TexShadow2 = mul(wPos, mVPT[2]);
+
+	output.Depth0.xy = mul(wPos, mLVP[0]).zw;
+	output.Depth0.zw = mul(wPos, mLVP[1]).zw;
+	output.Depth1.xy = mul(wPos, mLVP[2]).zw;
 
 	return output;
 }
@@ -150,30 +168,62 @@ VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 //--------------------------------------------------------------------------------------
 float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 {
-	float4 vTexCoords[9];
+	float4 vTexCoords[3][9];
 	float fTexelSize = 1.0f / 1024.0f;
-	float depth1 = min(In.Depth.x / In.Depth.y, 1.0);
+	float depth0 = min(In.Depth0.x / In.Depth0.y, 1.0);
+	float depth1 = min(In.Depth0.z / In.Depth0.w, 1.0);
+	float depth2 = min(In.Depth1.x / In.Depth1.y, 1.0);
 
-	vTexCoords[0] = In.TexShadow;
-	vTexCoords[1] = In.TexShadow + float4(-fTexelSize, 0.0f, 0.0f, 0.0f);
-	vTexCoords[2] = In.TexShadow + float4(fTexelSize, 0.0f, 0.0f, 0.0f);
-	vTexCoords[3] = In.TexShadow + float4(0.0f, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[6] = In.TexShadow + float4(0.0f, fTexelSize, 0.0f, 0.0f);
-	vTexCoords[4] = In.TexShadow + float4(-fTexelSize, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[5] = In.TexShadow + float4(fTexelSize, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[7] = In.TexShadow + float4(-fTexelSize, fTexelSize, 0.0f, 0.0f);
-	vTexCoords[8] = In.TexShadow + float4(fTexelSize, fTexelSize, 0.0f, 0.0f);
+	// Generate the tecture co-ordinates for the specified depth-map size
+	// 4 3 5
+	// 1 0 2
+	// 7 6 8
+	vTexCoords[0][0] = In.TexShadow0;
+	vTexCoords[0][1] = In.TexShadow0 + float4(-fTexelSize, 0.0f, 0.0f, 0.0f);
+	vTexCoords[0][2] = In.TexShadow0 + float4(fTexelSize, 0.0f, 0.0f, 0.0f);
+	vTexCoords[0][3] = In.TexShadow0 + float4(0.0f, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[0][6] = In.TexShadow0 + float4(0.0f, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[0][4] = In.TexShadow0 + float4(-fTexelSize, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[0][5] = In.TexShadow0 + float4(fTexelSize, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[0][7] = In.TexShadow0 + float4(-fTexelSize, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[0][8] = In.TexShadow0 + float4(fTexelSize, fTexelSize, 0.0f, 0.0f);
 
+	vTexCoords[1][0] = In.TexShadow1;
+	vTexCoords[1][1] = In.TexShadow1 + float4(-fTexelSize, 0.0f, 0.0f, 0.0f);
+	vTexCoords[1][2] = In.TexShadow1 + float4(fTexelSize, 0.0f, 0.0f, 0.0f);
+	vTexCoords[1][3] = In.TexShadow1 + float4(0.0f, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[1][6] = In.TexShadow1 + float4(0.0f, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[1][4] = In.TexShadow1 + float4(-fTexelSize, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[1][5] = In.TexShadow1 + float4(fTexelSize, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[1][7] = In.TexShadow1 + float4(-fTexelSize, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[1][8] = In.TexShadow1 + float4(fTexelSize, fTexelSize, 0.0f, 0.0f);
+
+	vTexCoords[2][0] = In.TexShadow2;
+	vTexCoords[2][1] = In.TexShadow2 + float4(-fTexelSize, 0.0f, 0.0f, 0.0f);
+	vTexCoords[2][2] = In.TexShadow2 + float4(fTexelSize, 0.0f, 0.0f, 0.0f);
+	vTexCoords[2][3] = In.TexShadow2 + float4(0.0f, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[2][6] = In.TexShadow2 + float4(0.0f, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[2][4] = In.TexShadow2 + float4(-fTexelSize, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[2][5] = In.TexShadow2 + float4(fTexelSize, -fTexelSize, 0.0f, 0.0f);
+	vTexCoords[2][7] = In.TexShadow2 + float4(-fTexelSize, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[2][8] = In.TexShadow2 + float4(fTexelSize, fTexelSize, 0.0f, 0.0f);
+
+	float S0 = (depth0 - SHADOW_EPSILON);
 	float S1 = (depth1 - SHADOW_EPSILON);
+	float S2 = (depth2 - SHADOW_EPSILON);
 
 	float fShadowTerms[9];
 	float fShadowTerm = 0.0f;
 	for (int i = 0; i < 9; i++)
 	{
-		const float2 uv = vTexCoords[i].xy / vTexCoords[i].w;
-		const float D1 = txShadow.Sample(samShadow, uv).r;
+		const float2 uv0 = vTexCoords[0][i].xy / vTexCoords[0][i].w;
+		const float2 uv1 = vTexCoords[1][i].xy / vTexCoords[1][i].w;
+		const float2 uv2 = vTexCoords[2][i].xy / vTexCoords[2][i].w;
+		const float D0 = txShadow0.Sample(samShadow, uv0).r;
+		const float D1 = txShadow1.Sample(samShadow, uv1).r;
+		const float D2 = txShadow2.Sample(samShadow, uv2).r;
 
-		fShadowTerms[i] = ((D1 < S1) ) ? 0.1f : 1.f;
+		fShadowTerms[i] = ((D0 < S0) || (D1 < S1) || (D2 < S2)) ? 0.1f : 1.0f;
 		fShadowTerm += fShadowTerms[i];
 	}
 
@@ -188,7 +238,7 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 		+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L)) * fShadowTerm
 		+ gLight_Specular * gMtrl_Specular * pow(max(0, dot(N,H)), gMtrl_Pow);
 
-	float4 Out = color * txDiffuse.Sample(samLinear, In.Tex);
+	float4 Out = float4(color.xyz, gMtrl_Diffuse.w) * txDiffuse.Sample(samLinear, In.Tex);
 	return Out;
 }
 
@@ -226,6 +276,7 @@ float4 PS_BuildShadowMap(
 	) : SV_Target
 {
 	return In.Depth.x / In.Depth.y;
+	//return float4(0,0,0,1);
 }
 
 

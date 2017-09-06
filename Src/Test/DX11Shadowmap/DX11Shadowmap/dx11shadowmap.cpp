@@ -161,20 +161,22 @@ public:
 
 			Matrix44 view, proj, tt;
 			g_lightCamera.GetShadowMatrix(view, proj, tt);
-			renderer.m_cbPerFrame.m_v->mLightView = XMMatrixTranspose(view.GetMatrixXM());
-			renderer.m_cbPerFrame.m_v->mLightProj = XMMatrixTranspose(proj.GetMatrixXM());
+			renderer.m_cbPerFrame.m_v->mLightView[0] = XMMatrixTranspose(view.GetMatrixXM());
+			renderer.m_cbPerFrame.m_v->mLightProj[0] = XMMatrixTranspose(proj.GetMatrixXM());
 			renderer.m_cbPerFrame.m_v->mLightTT = XMMatrixTranspose(tt.GetMatrixXM());
 
 			cShader11 *shader = renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
 
 			if (m_isLightRender)
 			{
-				shader->m_shadowMap = NULL;
+				shader->m_shadowMap[0] = NULL;
+				shader->m_shadowMap[1] = NULL;
+				shader->m_shadowMap[2] = NULL;
 				m_model.Render(renderer);
 			}
 			else
 			{
-				shader->m_shadowMap = g_shadowMap.m_texture;
+				shader->m_shadowMap[0] = g_shadowMap.m_texture;
 				m_ground.Render(renderer);
 				m_axis.Render(renderer);
 				m_model.Render(renderer);

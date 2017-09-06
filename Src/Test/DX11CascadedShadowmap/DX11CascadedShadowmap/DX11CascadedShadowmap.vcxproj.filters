@@ -3,4 +3,20 @@
   <ItemGroup>
     <ClCompile Include="dx11cascadedshadowmap.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="FX">
+      <UniqueIdentifier>{3e34c1d8-aaac-478a-a89c-3ce378671763}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-norm-tex.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos_rhw-color.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos_rhw-color-tex.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>
