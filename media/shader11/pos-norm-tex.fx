@@ -1,10 +1,10 @@
-//--------------------------------------------------------------------------------------
-// File: Tutorial04.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
 
-#define SHADOW_EPSILON 0.0001f
+
+#define SHADOW_EPSILON 0.001f
+
+#define Instancing		true
+#define NotInstancing	false
+
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
@@ -62,7 +62,20 @@ cbuffer cbMaetrial : register( b2 )
 	float gMtrl_Pow;
 }
 
+struct sMaterial
+{
+	float4 gMtrl_Ambient;
+	float4 gMtrl_Diffuse;
+	float4 gMtrl_Specular;
+	float4 gMtrl_Emissive;
+	float gMtrl_Pow;
+};
 
+
+cbuffer cbPerFrameInstancing : register( b3 )
+{
+	matrix gWorldInst[100];
+}
 
 
 //--------------------------------------------------------------------------------------
@@ -81,13 +94,17 @@ struct VS_OUTPUT
 VS_OUTPUT VS( float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, uint instID : SV_InstanceID
+	, uniform bool IsInstancing
 )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    output.Pos = mul( Pos, gWorld );
+	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
+
+    output.Pos = mul( Pos, mWorld );
     output.Pos = mul( output.Pos, gView );
     output.Pos = mul( output.Pos, gProjection );
-    output.Normal = normalize( mul(Normal, (float3x3)gWorld) );
+    output.Normal = normalize( mul(Normal, (float3x3)mWorld) );
     output.Tex = Tex;
     return output;
 }
@@ -131,19 +148,23 @@ struct VS_SHADOW_OUTPUT
 VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, uint instID : SV_InstanceID
+	, uniform bool IsInstancing
 )
 {
 	VS_SHADOW_OUTPUT output = (VS_SHADOW_OUTPUT)0;
-	output.Pos = mul(Pos, gWorld);
+	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
+
+	output.Pos = mul(Pos, mWorld);
 	output.Pos = mul(output.Pos, gView);
 	output.Pos = mul(output.Pos, gProjection);
-	output.Normal = normalize(mul(Normal, (float3x3)gWorld));
+	output.Normal = normalize(mul(Normal, (float3x3)mWorld));
 	output.Tex = Tex;
 
 	matrix mLVP[3];
 	matrix mVPT[3];
 
-	float4 wPos = mul(Pos, gWorld);
+	float4 wPos = mul(Pos, mWorld);
 	mLVP[0] = mul(gLightView[0], gLightProj[0]);
 	mVPT[0] = mul(mLVP[0], gLightTT);
 	mLVP[1] = mul(gLightView[1], gLightProj[1]);
@@ -219,6 +240,7 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 		const float2 uv0 = vTexCoords[0][i].xy / vTexCoords[0][i].w;
 		const float2 uv1 = vTexCoords[1][i].xy / vTexCoords[1][i].w;
 		const float2 uv2 = vTexCoords[2][i].xy / vTexCoords[2][i].w;
+
 		const float D0 = txShadow0.Sample(samShadow, uv0).r;
 		const float D1 = txShadow1.Sample(samShadow, uv1).r;
 		const float D2 = txShadow2.Sample(samShadow, uv2).r;
@@ -227,6 +249,48 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 		fShadowTerm += fShadowTerms[i];
 	}
 
+	//int selectShadow0 = 0;
+	//{
+	//	const float2 uv0 = vTexCoords[0][0].xy / vTexCoords[0][0].w;
+	//	const float2 uv1 = vTexCoords[1][0].xy / vTexCoords[1][0].w;
+	//	const float2 uv2 = vTexCoords[2][0].xy / vTexCoords[2][0].w;
+	//	const float f0 = txShadow0.Sample(samShadow, uv0).r;
+	//	const float f1 = txShadow1.Sample(samShadow, uv1).r;
+	//	const float f2 = txShadow2.Sample(samShadow, uv2).r;
+
+	//	//const bool c1 = (f0 < f1) || (f1 < f2);
+	//	//selectShadow0 = c1? 0 : 1;
+	//}
+
+	//float fShadowTerms[9];
+	//float fShadowTerm = 0.0f;
+	//if (selectShadow0 == 0)
+	//{
+	//	for (int i = 0; i < 9; i++)
+	//	{
+	//		const float2 uv0 = vTexCoords[selectShadow0][i].xy / vTexCoords[selectShadow0][i].w;
+	//		const float2 uv1 = vTexCoords[selectShadow0+1][i].xy / vTexCoords[selectShadow0+1][i].w;
+
+	//		const float D0 = txShadow0.Sample(samShadow, uv0).r;
+	//		const float D1 = txShadow1.Sample(samShadow, uv1).r;
+	//		fShadowTerms[i] = ((D0 < S0) || (D1 < S1)) ? 0.1f : 1.0f;
+	//		fShadowTerm += fShadowTerms[i];
+	//	}
+	//}
+	//else
+	//{
+	//	for (int i = 0; i < 9; i++)
+	//	{
+	//		const float2 uv0 = vTexCoords[selectShadow0][i].xy / vTexCoords[selectShadow0][i].w;
+	//		const float2 uv1 = vTexCoords[selectShadow0+1][i].xy / vTexCoords[selectShadow0+1][i].w;
+
+	//		const float D0 = txShadow1.Sample(samShadow, uv0).r;
+	//		const float D1 = txShadow2.Sample(samShadow, uv1).r;
+	//		fShadowTerms[i] = ((D0 < S1) || (D1 < S2)) ? 0.1f : 1.0f;
+	//		fShadowTerm += fShadowTerms[i];
+	//	}
+	//}
+
 	fShadowTerm /= 9.0f;
 
 	float3 L = -gLight_Direction;
@@ -234,7 +298,7 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 	float3 N = normalize(In.Normal);
 
 	float4 color = gLight_Ambient * gMtrl_Ambient
-		+ gLight_Diffuse * gMtrl_Diffuse * 0.2
+		+ gLight_Diffuse * gMtrl_Diffuse * 0.1
 		+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L)) * fShadowTerm
 		+ gLight_Specular * gMtrl_Specular * pow(max(0, dot(N,H)), gMtrl_Pow);
 
@@ -256,10 +320,14 @@ struct VS_BUILDSHADOW_OUTPUT
 VS_BUILDSHADOW_OUTPUT VS_BuildShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, uint instID : SV_InstanceID
+	, uniform bool IsInstancing
 )
 {
 	VS_BUILDSHADOW_OUTPUT output = (VS_BUILDSHADOW_OUTPUT)0;
-	output.Pos = mul(Pos, gWorld);
+	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
+
+	output.Pos = mul(Pos, mWorld);
 	output.Pos = mul(output.Pos, gView);
 	output.Pos = mul(output.Pos, gProjection);
 	output.Depth.xy = output.Pos.zw;
@@ -284,7 +352,7 @@ technique11 Unlit
 {
 	pass P0
 	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetVertexShader(CompileShader(vs_5_0, VS(NotInstancing)));
 		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
@@ -295,7 +363,7 @@ technique11 ShadowMap
 {
 	pass P0
 	{
-		SetVertexShader(CompileShader(vs_5_0, VS_ShadowMap()));
+		SetVertexShader(CompileShader(vs_5_0, VS_ShadowMap(NotInstancing)));
 		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS_ShadowMap()));
 	}
@@ -306,9 +374,44 @@ technique11 BuildShadowMap
 {
 	pass P0
 	{
-		SetVertexShader(CompileShader(vs_5_0, VS_BuildShadowMap()));
+		SetVertexShader(CompileShader(vs_5_0, VS_BuildShadowMap(NotInstancing)));
 		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS_BuildShadowMap()));
 	}
 }
 
+
+//---------------------------------------------------------------------------------
+// Instancing
+
+technique11 Unlit_Instancing
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS(Instancing)));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS()));
+	}
+}
+
+
+technique11 ShadowMap_Instancing
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS_ShadowMap(Instancing)));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS_ShadowMap()));
+	}
+}
+
+
+technique11 BuildShadowMap_Instancing
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS_BuildShadowMap(Instancing)));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS_BuildShadowMap()));
+	}
+}
