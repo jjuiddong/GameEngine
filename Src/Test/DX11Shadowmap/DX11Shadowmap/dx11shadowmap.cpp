@@ -73,7 +73,7 @@ public:
 		GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 			Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
 			Vector4(0.2f, 0.2f, 0.2f, 1));
-		const Vector3 lightPos(-10, 10, -10);
+		const Vector3 lightPos(-10, 13, -10);
 		const Vector3 lightLookat(0, 0, 0);
 		GetMainLight().SetPosition(lightPos);
 		GetMainLight().SetDirection((lightLookat - lightPos).Normal());

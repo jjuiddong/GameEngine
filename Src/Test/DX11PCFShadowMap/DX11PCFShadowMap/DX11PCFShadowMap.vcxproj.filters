@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dx11pcfshadowmap.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="FX">
+      <UniqueIdentifier>{fd383497-c372-403e-9cf2-a37ef4e9f3df}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-norm-tex.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

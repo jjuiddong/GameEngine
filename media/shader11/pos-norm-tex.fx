@@ -1,5 +1,4 @@
 
-
 #define SHADOW_EPSILON 0.001f
 
 #define Instancing		true
@@ -21,12 +20,24 @@ SamplerState samLinear : register(s0)
 	AddressV = WRAP;
 };
 
-SamplerState samShadow : register(s1)
+
+SamplerComparisonState samShadow : register(s1)
 {
-	Filter = MIN_MAG_MIP_LINEAR;
+	Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+
 	AddressU = Border;
 	AddressV = Border;
+	AddressW = Border;
 	BorderColor = float4(1,1,1,1);
+	ComparisonFunc = GREATER_EQUAL;
+};
+
+
+RasterizerState Depth
+{
+	DepthBias = 10000;
+	DepthBiasClamp = 0.0f;
+	SlopeScaledDepthBias = 1.0f;
 };
 
 
@@ -190,7 +201,7 @@ VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 {
 	float4 vTexCoords[3][9];
-	float fTexelSize = 1.0f / 1024.0f;
+	float dx = 1.0f / 1024.0f;
 	float depth0 = min(In.Depth0.x / In.Depth0.y, 1.0);
 	float depth1 = min(In.Depth0.z / In.Depth0.w, 1.0);
 	float depth2 = min(In.Depth1.x / In.Depth1.y, 1.0);
@@ -200,106 +211,62 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 	// 1 0 2
 	// 7 6 8
 	vTexCoords[0][0] = In.TexShadow0;
-	vTexCoords[0][1] = In.TexShadow0 + float4(-fTexelSize, 0.0f, 0.0f, 0.0f);
-	vTexCoords[0][2] = In.TexShadow0 + float4(fTexelSize, 0.0f, 0.0f, 0.0f);
-	vTexCoords[0][3] = In.TexShadow0 + float4(0.0f, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[0][6] = In.TexShadow0 + float4(0.0f, fTexelSize, 0.0f, 0.0f);
-	vTexCoords[0][4] = In.TexShadow0 + float4(-fTexelSize, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[0][5] = In.TexShadow0 + float4(fTexelSize, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[0][7] = In.TexShadow0 + float4(-fTexelSize, fTexelSize, 0.0f, 0.0f);
-	vTexCoords[0][8] = In.TexShadow0 + float4(fTexelSize, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[0][1] = In.TexShadow0 + float4(-dx, 0.0f, 0.0f, 0.0f);
+	vTexCoords[0][2] = In.TexShadow0 + float4(dx, 0.0f, 0.0f, 0.0f);
+	vTexCoords[0][3] = In.TexShadow0 + float4(0.0f, -dx, 0.0f, 0.0f);
+	vTexCoords[0][6] = In.TexShadow0 + float4(0.0f, dx, 0.0f, 0.0f);
+	vTexCoords[0][4] = In.TexShadow0 + float4(-dx, -dx, 0.0f, 0.0f);
+	vTexCoords[0][5] = In.TexShadow0 + float4(dx, -dx, 0.0f, 0.0f);
+	vTexCoords[0][7] = In.TexShadow0 + float4(-dx, dx, 0.0f, 0.0f);
+	vTexCoords[0][8] = In.TexShadow0 + float4(dx, dx, 0.0f, 0.0f);
 
 	vTexCoords[1][0] = In.TexShadow1;
-	vTexCoords[1][1] = In.TexShadow1 + float4(-fTexelSize, 0.0f, 0.0f, 0.0f);
-	vTexCoords[1][2] = In.TexShadow1 + float4(fTexelSize, 0.0f, 0.0f, 0.0f);
-	vTexCoords[1][3] = In.TexShadow1 + float4(0.0f, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[1][6] = In.TexShadow1 + float4(0.0f, fTexelSize, 0.0f, 0.0f);
-	vTexCoords[1][4] = In.TexShadow1 + float4(-fTexelSize, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[1][5] = In.TexShadow1 + float4(fTexelSize, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[1][7] = In.TexShadow1 + float4(-fTexelSize, fTexelSize, 0.0f, 0.0f);
-	vTexCoords[1][8] = In.TexShadow1 + float4(fTexelSize, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[1][1] = In.TexShadow1 + float4(-dx, 0.0f, 0.0f, 0.0f);
+	vTexCoords[1][2] = In.TexShadow1 + float4(dx, 0.0f, 0.0f, 0.0f);
+	vTexCoords[1][3] = In.TexShadow1 + float4(0.0f, -dx, 0.0f, 0.0f);
+	vTexCoords[1][6] = In.TexShadow1 + float4(0.0f, dx, 0.0f, 0.0f);
+	vTexCoords[1][4] = In.TexShadow1 + float4(-dx, -dx, 0.0f, 0.0f);
+	vTexCoords[1][5] = In.TexShadow1 + float4(dx, -dx, 0.0f, 0.0f);
+	vTexCoords[1][7] = In.TexShadow1 + float4(-dx, dx, 0.0f, 0.0f);
+	vTexCoords[1][8] = In.TexShadow1 + float4(dx, dx, 0.0f, 0.0f);
 
 	vTexCoords[2][0] = In.TexShadow2;
-	vTexCoords[2][1] = In.TexShadow2 + float4(-fTexelSize, 0.0f, 0.0f, 0.0f);
-	vTexCoords[2][2] = In.TexShadow2 + float4(fTexelSize, 0.0f, 0.0f, 0.0f);
-	vTexCoords[2][3] = In.TexShadow2 + float4(0.0f, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[2][6] = In.TexShadow2 + float4(0.0f, fTexelSize, 0.0f, 0.0f);
-	vTexCoords[2][4] = In.TexShadow2 + float4(-fTexelSize, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[2][5] = In.TexShadow2 + float4(fTexelSize, -fTexelSize, 0.0f, 0.0f);
-	vTexCoords[2][7] = In.TexShadow2 + float4(-fTexelSize, fTexelSize, 0.0f, 0.0f);
-	vTexCoords[2][8] = In.TexShadow2 + float4(fTexelSize, fTexelSize, 0.0f, 0.0f);
+	vTexCoords[2][1] = In.TexShadow2 + float4(-dx, 0.0f, 0.0f, 0.0f);
+	vTexCoords[2][2] = In.TexShadow2 + float4(dx, 0.0f, 0.0f, 0.0f);
+	vTexCoords[2][3] = In.TexShadow2 + float4(0.0f, -dx, 0.0f, 0.0f);
+	vTexCoords[2][6] = In.TexShadow2 + float4(0.0f, dx, 0.0f, 0.0f);
+	vTexCoords[2][4] = In.TexShadow2 + float4(-dx, -dx, 0.0f, 0.0f);
+	vTexCoords[2][5] = In.TexShadow2 + float4(dx, -dx, 0.0f, 0.0f);
+	vTexCoords[2][7] = In.TexShadow2 + float4(-dx, dx, 0.0f, 0.0f);
+	vTexCoords[2][8] = In.TexShadow2 + float4(dx, dx, 0.0f, 0.0f);
 
-	float S0 = (depth0 - SHADOW_EPSILON);
-	float S1 = (depth1 - SHADOW_EPSILON);
-	float S2 = (depth2 - SHADOW_EPSILON);
+	const float S0 = (depth0 - SHADOW_EPSILON);
+	const float S1 = (depth1 - SHADOW_EPSILON);
+	const float S2 = (depth2 - SHADOW_EPSILON);
 
-	float fShadowTerms[9];
 	float fShadowTerm = 0.0f;
 	for (int i = 0; i < 9; i++)
 	{
-		const float2 uv0 = vTexCoords[0][i].xy / vTexCoords[0][i].w;
-		const float2 uv1 = vTexCoords[1][i].xy / vTexCoords[1][i].w;
-		const float2 uv2 = vTexCoords[2][i].xy / vTexCoords[2][i].w;
+		const float2 uv0 = vTexCoords[0][i].xy;
+		const float2 uv1 = vTexCoords[1][i].xy;
+		const float2 uv2 = vTexCoords[2][i].xy;
+		const float D0 = txShadow0.SampleCmpLevelZero(samShadow, uv0, S0);
+		const float D1 = txShadow1.SampleCmpLevelZero(samShadow, uv1, S1);
+		const float D2 = txShadow2.SampleCmpLevelZero(samShadow, uv2, S2);
 
-		const float D0 = txShadow0.Sample(samShadow, uv0).r;
-		const float D1 = txShadow1.Sample(samShadow, uv1).r;
-		const float D2 = txShadow2.Sample(samShadow, uv2).r;
-
-		fShadowTerms[i] = ((D0 < S0) || (D1 < S1) || (D2 < S2)) ? 0.1f : 1.0f;
-		fShadowTerm += fShadowTerms[i];
+		fShadowTerm += (1 - saturate(D0 + D1 + D2));
 	}
-
-	//int selectShadow0 = 0;
-	//{
-	//	const float2 uv0 = vTexCoords[0][0].xy / vTexCoords[0][0].w;
-	//	const float2 uv1 = vTexCoords[1][0].xy / vTexCoords[1][0].w;
-	//	const float2 uv2 = vTexCoords[2][0].xy / vTexCoords[2][0].w;
-	//	const float f0 = txShadow0.Sample(samShadow, uv0).r;
-	//	const float f1 = txShadow1.Sample(samShadow, uv1).r;
-	//	const float f2 = txShadow2.Sample(samShadow, uv2).r;
-
-	//	//const bool c1 = (f0 < f1) || (f1 < f2);
-	//	//selectShadow0 = c1? 0 : 1;
-	//}
-
-	//float fShadowTerms[9];
-	//float fShadowTerm = 0.0f;
-	//if (selectShadow0 == 0)
-	//{
-	//	for (int i = 0; i < 9; i++)
-	//	{
-	//		const float2 uv0 = vTexCoords[selectShadow0][i].xy / vTexCoords[selectShadow0][i].w;
-	//		const float2 uv1 = vTexCoords[selectShadow0+1][i].xy / vTexCoords[selectShadow0+1][i].w;
-
-	//		const float D0 = txShadow0.Sample(samShadow, uv0).r;
-	//		const float D1 = txShadow1.Sample(samShadow, uv1).r;
-	//		fShadowTerms[i] = ((D0 < S0) || (D1 < S1)) ? 0.1f : 1.0f;
-	//		fShadowTerm += fShadowTerms[i];
-	//	}
-	//}
-	//else
-	//{
-	//	for (int i = 0; i < 9; i++)
-	//	{
-	//		const float2 uv0 = vTexCoords[selectShadow0][i].xy / vTexCoords[selectShadow0][i].w;
-	//		const float2 uv1 = vTexCoords[selectShadow0+1][i].xy / vTexCoords[selectShadow0+1][i].w;
-
-	//		const float D0 = txShadow1.Sample(samShadow, uv0).r;
-	//		const float D1 = txShadow2.Sample(samShadow, uv1).r;
-	//		fShadowTerms[i] = ((D0 < S1) || (D1 < S2)) ? 0.1f : 1.0f;
-	//		fShadowTerm += fShadowTerms[i];
-	//	}
-	//}
-
 	fShadowTerm /= 9.0f;
 
-	float3 L = -gLight_Direction;
-	float3 H = normalize(L + normalize(In.toEye));
-	float3 N = normalize(In.Normal);
+	const float3 L = -gLight_Direction;
+	const float3 H = normalize(L + normalize(In.toEye));
+	const float3 N = normalize(In.Normal);
 
+	const float lightV = max(0, dot(N, L));
 	float4 color = gLight_Ambient * gMtrl_Ambient
 		+ gLight_Diffuse * gMtrl_Diffuse * 0.1
-		+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L)) * fShadowTerm
+		+ gLight_Diffuse * gMtrl_Diffuse * lightV * 0.1
+		+ gLight_Diffuse * gMtrl_Diffuse * lightV * fShadowTerm * 0.9
 		+ gLight_Specular * gMtrl_Specular * pow(max(0, dot(N,H)), gMtrl_Pow);
 
 	float4 Out = float4(color.xyz, gMtrl_Diffuse.w) * txDiffuse.Sample(samLinear, In.Tex);
@@ -344,7 +311,6 @@ float4 PS_BuildShadowMap(
 	) : SV_Target
 {
 	return In.Depth.x / In.Depth.y;
-	//return float4(0,0,0,1);
 }
 
 

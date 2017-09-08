@@ -149,7 +149,7 @@ void cViewer::OnRender(const float deltaSeconds)
 	if (m_renderer.ClearScene(false, Vector4(1, 1, 1, 1)))
 	{
 		m_renderer.BeginScene();
-		shader->m_shadowMap = NULL;
+		shader->m_shadowMap[0] = NULL;
 		RenderScene("BuildShadowMap", true);
 		m_renderer.EndScene();
 	}
@@ -163,7 +163,7 @@ void cViewer::OnRender(const float deltaSeconds)
 	{
 		m_renderer.BeginScene();
 
-		shader->m_shadowMap = m_shadowMap.m_texture;
+		shader->m_shadowMap[0] = m_shadowMap.m_texture;
 
 		RenderScene(m_isShadowRender? "ShadowMap" : "Unlit", false);
 		m_dbgShadowQuad.Render(m_renderer);
@@ -203,8 +203,8 @@ void cViewer::RenderScene(const char *techniqueName, const bool isShadowMap)
 
 		Matrix44 view, proj, tt;
 		m_lightCamera.GetShadowMatrix(view, proj, tt);
-		m_renderer.m_cbPerFrame.m_v->mLightView = XMMatrixTranspose(view.GetMatrixXM());
-		m_renderer.m_cbPerFrame.m_v->mLightProj = XMMatrixTranspose(proj.GetMatrixXM());
+		m_renderer.m_cbPerFrame.m_v->mLightView[0] = XMMatrixTranspose(view.GetMatrixXM());
+		m_renderer.m_cbPerFrame.m_v->mLightProj[0] = XMMatrixTranspose(proj.GetMatrixXM());
 		m_renderer.m_cbPerFrame.m_v->mLightTT = XMMatrixTranspose(tt.GetMatrixXM());
 	}
 
