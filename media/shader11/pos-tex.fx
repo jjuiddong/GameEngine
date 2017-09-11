@@ -1,8 +1,3 @@
-//--------------------------------------------------------------------------------------
-// File: Tutorial04.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
@@ -13,9 +8,13 @@ SamplerState samLinear : register( s0 );
 
 cbuffer ConstantBuffer : register( b0 )
 {
-	matrix World;
-	matrix View;
-	matrix Projection;
+	matrix gWorld;
+	matrix gView;
+	matrix gProjection;
+	matrix gLightView[3];
+	matrix gLightProj[3];
+	matrix gLightTT;
+	float3 gEyePosW;
 }
 
 //--------------------------------------------------------------------------------------
@@ -33,9 +32,9 @@ VS_OUTPUT VS( float4 Pos : POSITION
 	 )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    output.Pos = mul( Pos, World );
-    output.Pos = mul( output.Pos, View );
-    output.Pos = mul( output.Pos, Projection );
+    output.Pos = mul( Pos, gWorld );
+    output.Pos = mul( output.Pos, gView );
+    output.Pos = mul( output.Pos, gProjection );
     output.Tex = Tex;
     return output;
 }
@@ -46,14 +45,14 @@ VS_OUTPUT VS_Skybox( float4 Pos : POSITION
 	 )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-	matrix mView = View;
+	matrix mView = gView;
 	mView._41 = 0;
 	mView._42 = -0.4;
 	mView._43 = 0;
 
-    output.Pos = mul( Pos, World );
+    output.Pos = mul( Pos, gWorld );
     output.Pos = mul( output.Pos, mView );
-    output.Pos = mul( output.Pos, Projection );
+    output.Pos = mul( output.Pos, gProjection );
     output.Tex = Tex;
     return output;
 }

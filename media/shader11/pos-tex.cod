@@ -5,9 +5,13 @@
 //
 cbuffer ConstantBuffer : register(b0)
 {
-    float4x4 World;                     // Offset:    0, size:   64
-    float4x4 View;                      // Offset:   64, size:   64
-    float4x4 Projection;                // Offset:  128, size:   64
+    float4x4 gWorld;                    // Offset:    0, size:   64
+    float4x4 gView;                     // Offset:   64, size:   64
+    float4x4 gProjection;               // Offset:  128, size:   64
+    float4x4 gLightView[3];             // Offset:  192, size:  192
+    float4x4 gLightProj[3];             // Offset:  384, size:  192
+    float4x4 gLightTT;                  // Offset:  576, size:   64
+    float3  gEyePosW;                   // Offset:  640, size:   12
 }
 
 //
@@ -40,9 +44,13 @@ fxgroup
                 // cbuffer ConstantBuffer
                 // {
                 //
-                //   float4x4 World;                    // Offset:    0 Size:    64
-                //   float4x4 View;                     // Offset:   64 Size:    64
-                //   float4x4 Projection;               // Offset:  128 Size:    64
+                //   float4x4 gWorld;                   // Offset:    0 Size:    64
+                //   float4x4 gView;                    // Offset:   64 Size:    64
+                //   float4x4 gProjection;              // Offset:  128 Size:    64
+                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
+                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
+                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
+                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
                 //
                 // }
                 //
@@ -85,7 +93,7 @@ fxgroup
                 //   o1.x <- <VS return value>.Tex.x; o1.y <- <VS return value>.Tex.y; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 36 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 35 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
                 dp4 r0.x, v0.xyzw, cb0[0].xyzw  // r0.x <- output.Pos.x
                 dp4 r0.y, v0.xyzw, cb0[1].xyzw  // r0.y <- output.Pos.y
                 dp4 r0.z, v0.xyzw, cb0[2].xyzw  // r0.z <- output.Pos.z
@@ -116,9 +124,13 @@ fxgroup
                 // cbuffer ConstantBuffer
                 // {
                 //
-                //   float4x4 World;                    // Offset:    0 Size:    64 [unused]
-                //   float4x4 View;                     // Offset:   64 Size:    64 [unused]
-                //   float4x4 Projection;               // Offset:  128 Size:    64 [unused]
+                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
+                //   float4x4 gView;                    // Offset:   64 Size:    64 [unused]
+                //   float4x4 gProjection;              // Offset:  128 Size:    64 [unused]
+                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
+                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
+                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
+                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
                 //
                 // }
                 //
@@ -160,7 +172,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 68 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 67 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
                 sample_indexable(texture2d)(float,float,float,float) o0.xyzw, v1.xyxx, t0.xyzw, s0
                 ret 
                 // Approximately 2 instruction slots used
@@ -184,9 +196,13 @@ fxgroup
                 // cbuffer ConstantBuffer
                 // {
                 //
-                //   float4x4 World;                    // Offset:    0 Size:    64
-                //   float4x4 View;                     // Offset:   64 Size:    64
-                //   float4x4 Projection;               // Offset:  128 Size:    64
+                //   float4x4 gWorld;                   // Offset:    0 Size:    64
+                //   float4x4 gView;                    // Offset:   64 Size:    64
+                //   float4x4 gProjection;              // Offset:  128 Size:    64
+                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
+                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
+                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
+                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
                 //
                 // }
                 //
@@ -229,7 +245,7 @@ fxgroup
                 //   o1.x <- <VS_Skybox return value>.Tex.x; o1.y <- <VS_Skybox return value>.Tex.y; 
                 //   o0.x <- <VS_Skybox return value>.Pos.x; o0.y <- <VS_Skybox return value>.Pos.y; o0.z <- <VS_Skybox return value>.Pos.z; o0.w <- <VS_Skybox return value>.Pos.w
                 //
-                #line 49 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 48 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
                 mov r0.xyzw, cb0[7].xyzw  // r0.x <- mView._m03; r0.y <- mView._m13; r0.z <- mView._m23; r0.w <- mView._m33
                 mov r1.xyz, cb0[4].xyzx  // r1.x <- mView._m00; r1.y <- mView._m10; r1.z <- mView._m20
                 mov r2.xyz, cb0[5].xyzx  // r2.x <- mView._m01; r2.y <- mView._m11; r2.z <- mView._m21
@@ -267,9 +283,13 @@ fxgroup
                 // cbuffer ConstantBuffer
                 // {
                 //
-                //   float4x4 World;                    // Offset:    0 Size:    64 [unused]
-                //   float4x4 View;                     // Offset:   64 Size:    64 [unused]
-                //   float4x4 Projection;               // Offset:  128 Size:    64 [unused]
+                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
+                //   float4x4 gView;                    // Offset:   64 Size:    64 [unused]
+                //   float4x4 gProjection;              // Offset:  128 Size:    64 [unused]
+                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
+                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
+                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
+                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
                 //
                 // }
                 //
@@ -311,7 +331,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 68 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 67 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
                 sample_indexable(texture2d)(float,float,float,float) o0.xyzw, v1.xyxx, t0.xyzw, s0
                 ret 
                 // Approximately 2 instruction slots used

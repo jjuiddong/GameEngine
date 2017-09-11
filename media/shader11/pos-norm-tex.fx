@@ -41,7 +41,6 @@ RasterizerState Depth
 };
 
 
-
 cbuffer cbPerFrame : register( b0 )
 {
 	matrix gWorld;
@@ -64,7 +63,7 @@ cbuffer cbLight : register( b1 )
 }
 
 
-cbuffer cbMaetrial : register( b2 )
+cbuffer cbMaterial : register( b2 )
 {
 	float4 gMtrl_Ambient;
 	float4 gMtrl_Diffuse;
@@ -72,15 +71,6 @@ cbuffer cbMaetrial : register( b2 )
 	float4 gMtrl_Emissive;
 	float gMtrl_Pow;
 }
-
-struct sMaterial
-{
-	float4 gMtrl_Ambient;
-	float4 gMtrl_Diffuse;
-	float4 gMtrl_Specular;
-	float4 gMtrl_Emissive;
-	float gMtrl_Pow;
-};
 
 
 cbuffer cbPerFrameInstancing : register( b3 )

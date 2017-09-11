@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dx11water.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="FX">
+      <UniqueIdentifier>{ebb67ce1-f9db-449c-bf32-23ac0676a240}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-norm-tex.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\pos-tex.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\media\shader11\water.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>
