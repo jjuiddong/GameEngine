@@ -23,7 +23,9 @@ public:
 	virtual void OnShutdown() override;
 	virtual void OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 	void ChangeWindowSize();
-	void RenderScene(const char *techniqueName, const bool isShadowMap, const cCamera lightCam[3]
+	void RenderScene(const char *techniqueName
+		, const bool isShadowMap
+		, const cCamera lightCam[3]
 		, const XMMATRIX &tm=XMIdentity);
 	void RenderWater();
 
@@ -37,6 +39,8 @@ public:
 	cDbgAxis m_axis;
 	cTexture m_texture;
 	cModel2 m_model;
+	cQuad2D m_reflectTex;
+	cQuad2D m_refractTex;
 
 	cCamera m_lightCamera;
 	cDbgFrustum m_dbgLightFrustum;
@@ -48,7 +52,6 @@ public:
 	cDbgQuad m_cascadedGround[3];
 	cRenderTarget m_shadowMap[3];
 	cQuad2D m_shadowMapQuad[3];
-	cDbgQuad m_testQuad;
 
 	cText m_text[6];
 
@@ -127,7 +130,11 @@ bool cViewer::OnInit()
 	m_mtrl.InitWhite();
 
 	m_ground.Create(m_renderer, 10, 10, 100, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE
-		, cColor::WHITE, g_defaultTexture);
+		, cColor::WHITE
+		//, g_defaultTexture
+		, "tile.jpg"
+		, Vector2(0,0), Vector2(1,1), 256
+	);
 	//m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
 	m_texture.Create(m_renderer, "../media/whitetex.dds");
@@ -173,11 +180,17 @@ bool cViewer::OnInit()
 		, Vector3(5,0,-5)
 		, Vector3(-5,0,-5)
 	};
-	m_testQuad.Create(m_renderer);
-	m_testQuad.SetQuad(quadVtx, 0.05f);
 
 	m_skyBox.Create2(m_renderer, "../media/skybox/");
 	m_water.Create(m_renderer);
+
+	static cTexture tex1(m_water.m_reflectMap.m_texture);
+	m_reflectTex.Create(m_renderer, 0, 0, 300, 300);
+	m_reflectTex.m_texture = &tex1;
+
+	static cTexture tex2(m_water.m_refractMap.m_texture);
+	m_refractTex.Create(m_renderer, 0, 310, 300, 300);
+	m_refractTex.m_texture = &tex2;
 
 	return true;
 }
@@ -213,38 +226,40 @@ void cViewer::OnRender(const float deltaSeconds)
 {
 	cAutoCam cam(m_showSecondCam ? &m_secondCamera : &m_mainCamera);
 
+	GetMainLight().Bind(m_renderer);
+	GetMainCamera().Bind(m_renderer);
+
 	cShader11 *shader = m_renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
 
+	CommonStates states(m_renderer.GetDevice());
+	m_renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
+	m_renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
+	m_renderer.GetDevContext()->OMSetBlendState(states.Opaque(), 0, 0xffffffff);
+
+	m_texture.Unbind(m_renderer, 1);
+	m_texture.Unbind(m_renderer, 2);
+	m_texture.Unbind(m_renderer, 3);
+
+	//----------------------------------------------------------
+	// Build ShadowMap
+	for (int i = 0; i < 3; ++i)
+	{
+		cAutoCam lightCam(&m_lightSplitCamera[i]);
+		m_shadowMap[i].SetRenderTarget(m_renderer);
+		if (m_renderer.ClearScene(false, Vector4(1, 1, 1, 1)))
+		{
+			m_renderer.BeginScene();
+			ZeroMemory(shader->m_textureMap, sizeof(shader->m_textureMap));
+			RenderScene("BuildShadowMap", true, m_lightSplitCamera);
+			m_renderer.EndScene();
+		}
+		m_shadowMap[i].RecoveryRenderTarget(m_renderer);
+	}
+	//----------------------------------------------------------
+
+	
 	RenderWater();
 
-	//m_texture.Unbind(m_renderer, 1);
-	//m_texture.Unbind(m_renderer, 2);
-	//m_texture.Unbind(m_renderer, 3);
-
-	//for (int i = 0; i < 3; ++i)
-	//{
-	//	cAutoCam lightCam(&m_lightSplitCamera[i]);
-	//	m_shadowMap[i].SetRenderTarget(m_renderer);
-	//	if (m_renderer.ClearScene(false, Vector4(1, 1, 1, 1)))
-	//	{
-	//		m_renderer.BeginScene();
-	//		ZeroMemory(shader->m_shadowMap, sizeof(shader->m_shadowMap));
-	//		RenderScene("BuildShadowMap", true, m_lightSplitCamera);
-	//		m_renderer.EndScene();
-	//	}
-	//	m_shadowMap[i].RecoveryRenderTarget(m_renderer);
-	//}
-
-
-	//m_renderer.GetDevContext()->OMSetBlendState(states.AlphaBlend(), 0, 0xffffffff);
-	//cTexture shadowTex0(m_shadowMap[0].m_texture);
-	//cTexture shadowTex1(m_shadowMap[1].m_texture);
-	//cTexture shadowTex2(m_shadowMap[2].m_texture);
-	//m_shadowMapQuad[0].m_texture = &shadowTex0;
-	//m_shadowMapQuad[1].m_texture = &shadowTex1;
-	//m_shadowMapQuad[2].m_texture = &shadowTex2;
-
-	CommonStates states(m_renderer.GetDevice());
 	m_renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
 	m_renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
 	m_renderer.GetDevContext()->OMSetBlendState(states.Opaque(), 0, 0xffffffff);
@@ -253,14 +268,14 @@ void cViewer::OnRender(const float deltaSeconds)
 	if (m_renderer.ClearScene())
 	{
 		m_renderer.BeginScene();
-		GetMainCamera().Bind(m_renderer);
 
-		//shader->m_shadowMap[0] = shadowTex0.m_texture;
-		//shader->m_shadowMap[1] = shadowTex1.m_texture;
-		//shader->m_shadowMap[2] = shadowTex2.m_texture;
-
-		RenderScene("Unlit", false, m_lightSplitCamera);
+		RenderScene("ShadowMap", false, m_lightSplitCamera);
 		m_water.Render(m_renderer);
+
+
+		// Debug Display ---------------------------------------------------
+		m_reflectTex.Render(m_renderer);
+		m_refractTex.Render(m_renderer);
 
 		if (m_showMainFrustum)
 			m_dbgMainFrustum.Render(m_renderer);
@@ -277,11 +292,18 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		m_axis.Render(m_renderer);
 
-		//m_testQuad.Render(m_renderer);
-
 		if (m_showShadowMap)
+		{
+			cTexture shadowTex0(m_shadowMap[0].m_texture);
+			cTexture shadowTex1(m_shadowMap[1].m_texture);
+			cTexture shadowTex2(m_shadowMap[2].m_texture);
+			m_shadowMapQuad[0].m_texture = &shadowTex0;
+			m_shadowMapQuad[1].m_texture = &shadowTex1;
+			m_shadowMapQuad[2].m_texture = &shadowTex2;
+
 			for (int i = 0; i < 3; ++i)
 				m_shadowMapQuad[i].Render(m_renderer);
+		}
 
 		static WStr64 str[6];
 		str[0].Format(L"1: Show Second Camera = %d", m_showSecondCam);
@@ -296,16 +318,18 @@ void cViewer::OnRender(const float deltaSeconds)
 			m_text[i].SetText(str[i].c_str());
 			m_text[i].Render(m_renderer, 150.f, 50.f + 20.f * i);
 		}
+		//--------------------------------------------------------------------
 
 		m_renderer.RenderFPS();
-
 		m_renderer.EndScene();
 		m_renderer.Present();
 	}
 }
 
 
-void cViewer::RenderScene(const char *techniqueName, const bool isShadowMap
+void cViewer::RenderScene(
+	const char *techniqueName
+	, const bool isShadowMap
 	, const cCamera lightCam[3]
 	, const XMMATRIX &tm //=XMIdentity 
 )
@@ -314,12 +338,17 @@ void cViewer::RenderScene(const char *techniqueName, const bool isShadowMap
 	{
 		XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&GetMainCamera().GetViewMatrix());
 		XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&GetMainCamera().GetProjectionMatrix());
+
 		m_renderer.m_cbPerFrame.m_v->mView = XMMatrixTranspose(mView);
 		m_renderer.m_cbPerFrame.m_v->mProjection = XMMatrixTranspose(mProj);
 	}
 	else
 	{
-		GetMainCamera().Bind(m_renderer);
+		XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&GetMainCamera().GetViewMatrix());
+		XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&GetMainCamera().GetProjectionMatrix());
+
+		m_renderer.m_cbPerFrame.m_v->mView = XMMatrixTranspose(mView);
+		m_renderer.m_cbPerFrame.m_v->mProjection = XMMatrixTranspose(mProj);
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -343,12 +372,8 @@ void cViewer::RenderScene(const char *techniqueName, const bool isShadowMap
 	// White Material
 	m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
 	m_renderer.m_cbMaterial.Update(m_renderer, 2);
-	//m_ground.m_techniqueName = techniqueName;
-	//m_ground.Render(m_renderer);
 
 	m_skyBox.Render(m_renderer, tm);
-
-	m_model.m_techniqueName = techniqueName;
 
 	XMMATRIX tms[100];
 	for (int x = 0; x < 10; ++x)
@@ -360,7 +385,19 @@ void cViewer::RenderScene(const char *techniqueName, const bool isShadowMap
 			tms[y * 10 + x] = tfm.GetMatrixXM();
 		}
 	}
+
+	cShader11 *shader = m_renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
+	cTexture shadowTex0(m_shadowMap[0].m_texture);
+	cTexture shadowTex1(m_shadowMap[1].m_texture);
+	cTexture shadowTex2(m_shadowMap[2].m_texture);
+	shader->SetBindTexture(&shadowTex0, 1);
+	shader->SetBindTexture(&shadowTex1, 2);
+	shader->SetBindTexture(&shadowTex2, 3);
+
+	m_model.m_techniqueName = techniqueName;
 	m_model.RenderInstancing(m_renderer, 100, tms, tm);
+	m_ground.m_techniqueName = techniqueName;
+	m_ground.Render(m_renderer, tm);
 }
 
 
@@ -368,68 +405,15 @@ void cViewer::RenderWater()
 {
 	cRenderer &renderer = m_renderer;
 
-	// Reflection plane in local space.
-	Plane waterPlaneL(0, -1, 0, 0);
-
-	// Reflection plane in world space.
-	Matrix44 waterWorld;
-	waterWorld.SetTranslate(Vector3(0, 0, 0)); // 실제 물의 높이는 10이지만, 컬링을 위해 20으로 높임
-	Matrix44 WInvTrans;
-	WInvTrans = waterWorld.Inverse();
-	WInvTrans.Transpose();
-	Plane waterPlaneW = waterPlaneL * WInvTrans;
-
-	// Reflection plane in homogeneous clip space.
-	Matrix44 WVPInvTrans = (waterWorld * GetMainCamera().GetViewProjectionMatrix()).Inverse();
-	WVPInvTrans.Transpose();
-	Plane waterPlaneH = waterPlaneL * WVPInvTrans;
-
-	float f[4] = { waterPlaneH.N.x, waterPlaneH.N.y, waterPlaneH.N.z, waterPlaneH.D };
-	//renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 1);
-	//renderer.GetDevice()->SetClipPlane(0, (float*)f);
-
 	m_water.BeginRefractScene(renderer);
-	renderer.ClearScene(false);
-	renderer.BeginScene();
-	//m_skyBox.Render(renderer);
-	//renderer.SetCullMode(D3DCULL_CCW);
-	//renderer.SetZFunc(D3DCMP_ALWAYS);
-	//g_root.m_terrain.Render(renderer);
-	//RenderScene("Unlit", false, m_lightSplitCamera);
-	renderer.EndScene();
+	GetMainCamera().Bind(renderer);
+	RenderScene("ShadowMap", false, m_lightSplitCamera);
 	m_water.EndRefractScene(renderer);
 
-	// Seems like we need to reset these due to a driver bug.  It works
-	// correctly without these next two lines in the REF and another 
-	//video card, however.
-
 	m_water.BeginReflectScene(renderer);
-	renderer.ClearScene(false);
-	renderer.BeginScene();
-
 	GetMainCamera().Bind(renderer);
-	Matrix44 reflectMatrix = waterPlaneW.GetReflectMatrix();
-	//renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-	//m_skyBox.Render(renderer, reflectMatrix.GetMatrixXM());
-
-	//renderer.GetDevice()->SetClipPlane(0, (float*)f);
-	//renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 1);
-
-	CommonStates states(renderer.GetDevice());
-	renderer.GetDevContext()->RSSetState(states.CullNone());
-	renderer.GetDevContext()->OMSetDepthStencilState(states.DepthNone(), 0);
-	//renderer.SetCullMode(D3DCULL_CW);
-	//renderer.SetZFunc(D3DCMP_ALWAYS);
-	//g_root.m_terrain.Render(renderer, reflectMatrix);
-	RenderScene("Unlit", false, m_lightSplitCamera, reflectMatrix.GetMatrixXM());
-	renderer.EndScene();
+	RenderScene("ShadowMap", false, m_lightSplitCamera, m_water.GetReflectionMatrix().GetMatrixXM());
 	m_water.EndReflectScene(renderer);
-
-	//renderer.GetDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-	//renderer.SetZFunc(D3DCMP_LESSEQUAL);
-	//renderer.SetCullMode(D3DCULL_CCW);
-	renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
-	renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
 }
 
 

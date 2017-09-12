@@ -79,6 +79,13 @@ cbuffer cbPerFrameInstancing : register( b3 )
 }
 
 
+cbuffer cbClipPlane : register(b4)
+{
+	float4	gClipPlane;
+}
+
+
+
 //--------------------------------------------------------------------------------------
 struct VS_OUTPUT
 {
@@ -86,6 +93,7 @@ struct VS_OUTPUT
     float3 Normal : TEXCOORD0;
     float2 Tex : TEXCOORD1;
     float3 toEye : TEXCOORD2;
+	float clip : SV_ClipDistance0;
 };
 
 
@@ -107,6 +115,8 @@ VS_OUTPUT VS( float4 Pos : POSITION
     output.Pos = mul( output.Pos, gProjection );
     output.Normal = normalize( mul(Normal, (float3x3)mWorld) );
     output.Tex = Tex;
+	output.clip = dot(mul(Pos, mWorld), gClipPlane);
+
     return output;
 }
 
@@ -124,8 +134,8 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 			+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L))
 			+ gLight_Specular * gMtrl_Specular * pow( max(0, dot(N,H)), gMtrl_Pow);
 
-	float4 Out = color * txDiffuse.Sample( samLinear, In.Tex );
-	return Out;
+	float4 Out = color * txDiffuse.Sample(samLinear, In.Tex);
+	return float4(Out.xyz, gMtrl_Diffuse.a);
 }
 
 
@@ -144,6 +154,7 @@ struct VS_SHADOW_OUTPUT
 	float3 toEye : TEXCOORD5;
 	float4 Depth0 : TEXCOORD6;
 	float2 Depth1 : TEXCOORD7;
+	float clip : SV_ClipDistance0;
 };
 
 VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
@@ -180,6 +191,8 @@ VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	output.Depth0.xy = mul(wPos, mLVP[0]).zw;
 	output.Depth0.zw = mul(wPos, mLVP[1]).zw;
 	output.Depth1.xy = mul(wPos, mLVP[2]).zw;
+
+	output.clip = dot(mul(Pos, mWorld), gClipPlane);
 
 	return output;
 }

@@ -24,14 +24,12 @@ SamplerState samLinear : register(s0)
 	AddressV = WRAP;
 };
 
-SamplerState samWrap : register(s1)
+SamplerState samClamp : register(s1)
 {
 	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = WRAP;
-	AddressV = WRAP;
+	AddressU = CLAMP;
+	AddressV = CLAMP;
 };
-
-
 
 
 RasterizerState Depth
@@ -51,6 +49,7 @@ cbuffer cbPerFrame : register(b0)
 	matrix gLightProj[3];
 	matrix gLightTT;
 	float3 gEyePosW;
+	bool gClipEnable;
 }
 
 
@@ -79,10 +78,17 @@ cbuffer cbWater : register(b3)
 	matrix	gWorldInv;
 	float2  gWaveMapOffset0;
 	float2  gWaveMapOffset1;
+	float2  gRippleScale;
 	float   gRefractBias;
 	float   gRefractPower;
-	float2  gRippleScale;
 }
+
+
+cbuffer cbClipPlane : register(b4)
+{
+	float4	gClipPlane;
+}
+
 
 float4 g_vFog= {1, 7000, 0, 0};
 float4 g_fogColor = {96.f/255.f, 76.f/255.f, 64.f/255.f, 1}; // RGB(96, 76, 64)
@@ -90,14 +96,14 @@ float4 g_fogColor = {96.f/255.f, 76.f/255.f, 64.f/255.f, 1}; // RGB(96, 76, 64)
 
 struct OutputVS
 {
-    float4 posH        : SV_POSITION;
-    float3 toEyeT      : TEXCOORD0;
-    float3 lightDirT   : TEXCOORD1;
-    float2 tex0        : TEXCOORD2;
-    float2 tex1        : TEXCOORD3;
-    float4 projTexC    : TEXCOORD4;
-    float  eyeVertDist : TEXCOORD5;
-    float3 Eye 	       : TEXCOORD6;
+    float4 posH			: SV_POSITION;
+    float3 toEyeT		: TEXCOORD0;
+    float3 lightDirT	: TEXCOORD1;
+    float2 tex0			: TEXCOORD2;
+    float2 tex1			: TEXCOORD3;
+    float4 projTexC		: TEXCOORD4;
+    float  eyeVertDist	: TEXCOORD5;
+    float3 Eye			: TEXCOORD6;
 };
 
 
@@ -117,8 +123,8 @@ OutputVS WaterVS(
 	TBN[1] = float3(0.0f, 0.0f, -1.0f);// Binormal goes along object space -z-axis
 	TBN[2] = float3(0.0f, 1.0f, 0.0f); // Normal goes along object space y-axis
 
-	matrix mWVP = mul(gWorld, gView);
-	mWVP = mul(mWVP, gProjection);
+	//matrix mWVP = mul(gWorld, gView);
+	//mWVP = mul(mWVP, gProjection);
 	
 	// Matrix transforms from object space to tangent space.
 	float3x3 toTangentSpace = transpose(TBN);
@@ -136,7 +142,10 @@ OutputVS WaterVS(
 	outVS.lightDirT  = mul(lightDirL, toTangentSpace);
 	
 	// Transform to homogeneous clip space.
-	outVS.posH = mul(posL, mWVP);
+	outVS.posH = mul(posL, gWorld);
+	outVS.posH = mul(outVS.posH, gView);
+	outVS.posH = mul(outVS.posH, gProjection);
+	//outVS.posH = mul(posL, mWVP);
 	
 	// Scroll texture coordinates.
 	outVS.tex0 = tex0 + gWaveMapOffset0;
@@ -194,8 +203,9 @@ float4 WaterPS( OutputVS In ) : SV_Target
 	     
 	// Project the texture coordinates and scale/offset to [0,1].
 	In.projTexC.xy /= In.projTexC.w;
-	In.projTexC.x =  0.5f*In.projTexC.x + 0.5f;
-	In.projTexC.y = -0.5f*In.projTexC.y + 0.5f;
+	//In.projTexC.x =  0.5f*In.projTexC.x + 0.5f;
+	In.projTexC.x = 0.5f*In.projTexC.x + 0.53f;
+	In.projTexC.y = -0.5f*In.projTexC.y + 0.47f;
 
 	// To avoid clamping artifacts near the bottom screen edge, we 
 	// scale the perturbation magnitude of the v-coordinate so that
@@ -209,9 +219,9 @@ float4 WaterPS( OutputVS In ) : SV_Target
 	float2 perturbVec = normalT.xz*gRippleScale;
 	perturbVec.y *= vPerturbMod;
 	//float3 reflectCol = tex2D(ReflectMapS, projTexC.xy+perturbVec).rgb;
-	float3 reflectCol = txReflectMap.Sample(samLinear, In.projTexC.xy + perturbVec).rgb;
+	float3 reflectCol = txReflectMap.Sample(samClamp, In.projTexC.xy + perturbVec).rgb;
 	//float3 refractCol = tex2D(RefractMapS, projTexC.xy+perturbVec).rgb;
-	float3 refractCol = txRefractMap.Sample(samLinear, In.projTexC.xy + perturbVec).rgb;
+	float3 refractCol = txRefractMap.Sample(samClamp, In.projTexC.xy + perturbVec).rgb;
 
 	// Refract based on view angle.
 	float refractWt = saturate(gRefractBias+pow(max(dot(In.toEyeT, normalT), 0.0f), gRefractPower));
@@ -234,16 +244,18 @@ float4 WaterPS( OutputVS In ) : SV_Target
 	float4 color = float4(final, gMtrl_Diffuse.a);
 	float distance = length(In.Eye);
 	float l = saturate((distance - g_vFog.x) / (g_vFog.y - g_vFog.x));
-	l = 0;
 	float3 Out = lerp(color.xyz, g_fogColor.xyz, l);
 	return float4(Out.xyz, color.w);
 
 	//return float4(reflectCol, 1);
 	//return float4(txDiffuse.Sample(samLinear, In.tex0).rgb, 1);
-	//return float4(txReflectMap.Sample(samLinear, In.tex0).rgb, 1);
+	//return float4(refractCol,1);
+	//return float4(reflectCol,1);
+	//return float4(final, 1);
+	//return txReflectMap.Sample(samClamp, In.tex0);
 	//return float4(1,1,1,1);	
+	//return float4(final, 1);
 }
-
 
 
 technique11 Unlit

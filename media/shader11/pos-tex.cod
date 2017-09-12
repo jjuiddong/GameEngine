@@ -1,7 +1,7 @@
 //
 // FX Version: fx_5_0
 //
-// 1 local buffer(s)
+// 2 local buffer(s)
 //
 cbuffer ConstantBuffer : register(b0)
 {
@@ -12,6 +12,11 @@ cbuffer ConstantBuffer : register(b0)
     float4x4 gLightProj[3];             // Offset:  384, size:  192
     float4x4 gLightTT;                  // Offset:  576, size:   64
     float3  gEyePosW;                   // Offset:  640, size:   12
+}
+
+cbuffer cbClipPlane : register(b1)
+{
+    float4  gClipPlane;                 // Offset:    0, size:   16
 }
 
 //
@@ -54,12 +59,20 @@ fxgroup
                 //
                 // }
                 //
+                // cbuffer cbClipPlane
+                // {
+                //
+                //   float4 gClipPlane;                 // Offset:    0 Size:    16
+                //
+                // }
+                //
                 //
                 // Resource Bindings:
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // ConstantBuffer                    cbuffer      NA          NA    0        1
+                // cbClipPlane                       cbuffer      NA          NA    1        1
                 //
                 //
                 //
@@ -77,23 +90,27 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
                 // TEXCOORD                 1   xy          1     NONE   float   xy  
+                // SV_ClipDistance          0   x           2  CLIPDST   float   x   
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb0[12], immediateIndexed
+                dcl_constantbuffer cb1[1], immediateIndexed
                 dcl_input v0.xyzw
                 dcl_input v1.xy
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xy
-                dcl_temps 2
+                dcl_output_siv o2.x, clip_distance
+                dcl_temps 3
                 //
                 // Initial variable locations:
                 //   v0.x <- Pos.x; v0.y <- Pos.y; v0.z <- Pos.z; v0.w <- Pos.w; 
                 //   v1.x <- Tex.x; v1.y <- Tex.y; 
+                //   o2.x <- <VS return value>.clip; 
                 //   o1.x <- <VS return value>.Tex.x; o1.y <- <VS return value>.Tex.y; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 35 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 43 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
                 dp4 r0.x, v0.xyzw, cb0[0].xyzw  // r0.x <- output.Pos.x
                 dp4 r0.y, v0.xyzw, cb0[1].xyzw  // r0.y <- output.Pos.y
                 dp4 r0.z, v0.xyzw, cb0[2].xyzw  // r0.z <- output.Pos.z
@@ -107,10 +124,16 @@ fxgroup
                 dp4 r0.z, r1.xyzw, cb0[10].xyzw  // r0.z <- output.Pos.z
                 dp4 r0.w, r1.xyzw, cb0[11].xyzw  // r0.w <- output.Pos.w
                 mov r1.xy, v1.xyxx  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                dp4 r2.x, v0.xyzw, cb0[0].xyzw
+                dp4 r2.y, v0.xyzw, cb0[1].xyzw
+                dp4 r2.z, v0.xyzw, cb0[2].xyzw
+                dp4 r2.w, v0.xyzw, cb0[3].xyzw
+                dp4 r1.z, r2.xyzw, cb1[0].xyzw  // r1.z <- output.clip
                 mov o0.xyzw, r0.xyzw
                 mov o1.xy, r1.xyxx
+                mov o2.x, r1.z
                 ret 
-                // Approximately 16 instruction slots used
+                // Approximately 22 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -151,6 +174,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
                 // TEXCOORD                 1   xy          1     NONE   float   xy  
+                // SV_ClipDistance          0   x           2  CLIPDST   float       
                 //
                 //
                 // Output signature:
@@ -170,9 +194,10 @@ fxgroup
                 // Initial variable locations:
                 //   v0.x <- input.Pos.x; v0.y <- input.Pos.y; v0.z <- input.Pos.z; v0.w <- input.Pos.w; 
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
+                //   v2.x <- input.clip; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 67 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 77 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
                 sample_indexable(texture2d)(float,float,float,float) o0.xyzw, v1.xyxx, t0.xyzw, s0
                 ret 
                 // Approximately 2 instruction slots used
@@ -206,12 +231,20 @@ fxgroup
                 //
                 // }
                 //
+                // cbuffer cbClipPlane
+                // {
+                //
+                //   float4 gClipPlane;                 // Offset:    0 Size:    16
+                //
+                // }
+                //
                 //
                 // Resource Bindings:
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // ConstantBuffer                    cbuffer      NA          NA    0        1
+                // cbClipPlane                       cbuffer      NA          NA    1        1
                 //
                 //
                 //
@@ -229,23 +262,27 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
                 // TEXCOORD                 1   xy          1     NONE   float   xy  
+                // SV_ClipDistance          0   x           2  CLIPDST   float   x   
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb0[12], immediateIndexed
+                dcl_constantbuffer cb1[1], immediateIndexed
                 dcl_input v0.xyzw
                 dcl_input v1.xy
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xy
+                dcl_output_siv o2.x, clip_distance
                 dcl_temps 5
                 //
                 // Initial variable locations:
                 //   v0.x <- Pos.x; v0.y <- Pos.y; v0.z <- Pos.z; v0.w <- Pos.w; 
                 //   v1.x <- Tex.x; v1.y <- Tex.y; 
+                //   o2.x <- <VS_Skybox return value>.clip; 
                 //   o1.x <- <VS_Skybox return value>.Tex.x; o1.y <- <VS_Skybox return value>.Tex.y; 
                 //   o0.x <- <VS_Skybox return value>.Pos.x; o0.y <- <VS_Skybox return value>.Pos.y; o0.z <- <VS_Skybox return value>.Pos.z; o0.w <- <VS_Skybox return value>.Pos.w
                 //
-                #line 48 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 57 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
                 mov r0.xyzw, cb0[7].xyzw  // r0.x <- mView._m03; r0.y <- mView._m13; r0.z <- mView._m23; r0.w <- mView._m33
                 mov r1.xyz, cb0[4].xyzx  // r1.x <- mView._m00; r1.y <- mView._m10; r1.z <- mView._m20
                 mov r2.xyz, cb0[5].xyzx  // r2.x <- mView._m01; r2.y <- mView._m11; r2.z <- mView._m21
@@ -266,10 +303,16 @@ fxgroup
                 dp4 r0.z, r1.xyzw, cb0[10].xyzw  // r0.z <- output.Pos.z
                 dp4 r0.w, r1.xyzw, cb0[11].xyzw  // r0.w <- output.Pos.w
                 mov r1.xy, v1.xyxx  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                dp4 r2.x, v0.xyzw, cb0[0].xyzw
+                dp4 r2.y, v0.xyzw, cb0[1].xyzw
+                dp4 r2.z, v0.xyzw, cb0[2].xyzw
+                dp4 r2.w, v0.xyzw, cb0[3].xyzw
+                dp4 r1.z, r2.xyzw, cb1[0].xyzw  // r1.z <- output.clip
                 mov o0.xyzw, r0.xyzw
                 mov o1.xy, r1.xyxx
+                mov o2.x, r1.z
                 ret 
-                // Approximately 23 instruction slots used
+                // Approximately 29 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -310,6 +353,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
                 // TEXCOORD                 1   xy          1     NONE   float   xy  
+                // SV_ClipDistance          0   x           2  CLIPDST   float       
                 //
                 //
                 // Output signature:
@@ -329,9 +373,10 @@ fxgroup
                 // Initial variable locations:
                 //   v0.x <- input.Pos.x; v0.y <- input.Pos.y; v0.z <- input.Pos.z; v0.w <- input.Pos.w; 
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
+                //   v2.x <- input.clip; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 67 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 77 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
                 sample_indexable(texture2d)(float,float,float,float) o0.xyzw, v1.xyxx, t0.xyzw, s0
                 ret 
                 // Approximately 2 instruction slots used

@@ -17,11 +17,19 @@ cbuffer ConstantBuffer : register( b0 )
 	float3 gEyePosW;
 }
 
+cbuffer cbClipPlane : register(b1)
+{
+	float4	gClipPlane;
+}
+
+
+
 //--------------------------------------------------------------------------------------
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
     float2 Tex : TEXCOORD1;
+	float clip : SV_ClipDistance0;
 };
 
 //--------------------------------------------------------------------------------------
@@ -36,6 +44,7 @@ VS_OUTPUT VS( float4 Pos : POSITION
     output.Pos = mul( output.Pos, gView );
     output.Pos = mul( output.Pos, gProjection );
     output.Tex = Tex;
+	output.clip = dot(mul(Pos, gWorld), gClipPlane);
     return output;
 }
 
@@ -54,6 +63,7 @@ VS_OUTPUT VS_Skybox( float4 Pos : POSITION
     output.Pos = mul( output.Pos, mView );
     output.Pos = mul( output.Pos, gProjection );
     output.Tex = Tex;
+	output.clip = dot(mul(Pos, gWorld), gClipPlane);
     return output;
 }
 
