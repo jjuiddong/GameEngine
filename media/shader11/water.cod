@@ -57,7 +57,7 @@ cbuffer cbClipPlane : register(b4)
 // 9 local object(s)
 //
 Texture2D txDiffuse;
-Texture2D txNormal;
+Texture2D txBump;
 Texture2D txWaveMap0;
 Texture2D txWaveMap1;
 Texture2D txReflectMap;
@@ -197,7 +197,7 @@ fxgroup
                 //   o1.x <- <WaterVS return value>.toEyeT.x; o1.y <- <WaterVS return value>.toEyeT.y; o1.z <- <WaterVS return value>.toEyeT.z; o1.w <- <WaterVS return value>.eyeVertDist; 
                 //   o0.x <- <WaterVS return value>.posH.x; o0.y <- <WaterVS return value>.posH.y; o0.z <- <WaterVS return value>.posH.z; o0.w <- <WaterVS return value>.posH.w
                 //
-                #line 122 "d:\Project\GameEngine\media\shader11\water.fx"
+                #line 122 "D:\Project\GameEngine\media\shader11\water.fx"
                 mov r0.xyz, l(1.000000,0,0,0)  // r0.x <- TBN._m00; r0.y <- TBN._m01; r0.z <- TBN._m02
                 mov r1.xyz, l(0,0,-1.000000,0)  // r1.x <- TBN._m10; r1.y <- TBN._m11; r1.z <- TBN._m12
                 mov r2.xyz, l(0,1.000000,0,0)  // r2.x <- TBN._m20; r2.y <- TBN._m21; r2.z <- TBN._m22
@@ -404,7 +404,7 @@ fxgroup
                 //   v5.x <- In.Eye.x; v5.y <- In.Eye.y; v5.z <- In.Eye.z; 
                 //   o0.x <- <WaterPS return value>.x; o0.y <- <WaterPS return value>.y; o0.z <- <WaterPS return value>.z; o0.w <- <WaterPS return value>.w
                 //
-                #line 170 "d:\Project\GameEngine\media\shader11\water.fx"
+                #line 170 "D:\Project\GameEngine\media\shader11\water.fx"
                 dp3 r0.x, v1.xyzx, v1.xyzx
                 rsq r0.x, r0.x
                 mul r0.xyz, r0.xxxx, v1.xyzx  // r0.x <- In.toEyeT.x; r0.y <- In.toEyeT.y; r0.z <- In.toEyeT.z
