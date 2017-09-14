@@ -303,6 +303,8 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 		+ gLight_Specular * gMtrl_Specular * pow(max(0, dot(N,H)), gMtrl_Pow);
 
 	float4 Out = float4(color.xyz, gMtrl_Diffuse.w) * txDiffuse.Sample(samAnis, In.Tex);
+	//Out = txBump.Sample(samAnis, In.Tex).rgba;
+	//Out = txDiffuse.Sample(samAnis, In.Tex);
 	return Out;
 }
 

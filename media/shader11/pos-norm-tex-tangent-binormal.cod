@@ -1254,6 +1254,8 @@ fxgroup
                 sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v4.xyxx, t0.xyzw, s1
                 mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
                 mul r0.w, r1.w, cb2[1].w  // r0.w <- Out.w
+                
+                #line 308
                 mov o0.xyzw, r0.xyzw
                 ret 
                 // Approximately 167 instruction slots used
@@ -1329,7 +1331,7 @@ fxgroup
                 //   o1.x <- <VS_BuildShadowMap return value>.Depth.x; o1.y <- <VS_BuildShadowMap return value>.Depth.y; 
                 //   o0.x <- <VS_BuildShadowMap return value>.Pos.x; o0.y <- <VS_BuildShadowMap return value>.Pos.y; o0.z <- <VS_BuildShadowMap return value>.Pos.z; o0.w <- <VS_BuildShadowMap return value>.Pos.w
                 //
-                #line 328 "D:\Project\GameEngine\media\shader11\pos-norm-tex-tangent-binormal.fx"
+                #line 330 "D:\Project\GameEngine\media\shader11\pos-norm-tex-tangent-binormal.fx"
                 mov r0.xyzw, cb0[0].xyzw  // r0.x <- mWorld._m00; r0.y <- mWorld._m10; r0.z <- mWorld._m20; r0.w <- mWorld._m30
                 mov r1.xyzw, cb0[1].xyzw  // r1.x <- mWorld._m01; r1.y <- mWorld._m11; r1.z <- mWorld._m21; r1.w <- mWorld._m31
                 mov r2.xyzw, cb0[2].xyzw  // r2.x <- mWorld._m02; r2.y <- mWorld._m12; r2.z <- mWorld._m22; r2.w <- mWorld._m32
@@ -1384,7 +1386,7 @@ fxgroup
                 //   v1.x <- In.Depth.x; v1.y <- In.Depth.y; 
                 //   o0.x <- <PS_BuildShadowMap return value>.x; o0.y <- <PS_BuildShadowMap return value>.y; o0.z <- <PS_BuildShadowMap return value>.z; o0.w <- <PS_BuildShadowMap return value>.w
                 //
-                #line 346 "D:\Project\GameEngine\media\shader11\pos-norm-tex-tangent-binormal.fx"
+                #line 348 "D:\Project\GameEngine\media\shader11\pos-norm-tex-tangent-binormal.fx"
                 div o0.xyzw, v1.xxxx, v1.yyyy
                 ret 
                 // Approximately 2 instruction slots used
@@ -2584,6 +2586,8 @@ fxgroup
                 sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v4.xyxx, t0.xyzw, s1
                 mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
                 mul r0.w, r1.w, cb2[1].w  // r0.w <- Out.w
+                
+                #line 308
                 mov o0.xyzw, r0.xyzw
                 ret 
                 // Approximately 167 instruction slots used
@@ -2669,7 +2673,7 @@ fxgroup
                 //   o1.x <- <VS_BuildShadowMap return value>.Depth.x; o1.y <- <VS_BuildShadowMap return value>.Depth.y; 
                 //   o0.x <- <VS_BuildShadowMap return value>.Pos.x; o0.y <- <VS_BuildShadowMap return value>.Pos.y; o0.z <- <VS_BuildShadowMap return value>.Pos.z; o0.w <- <VS_BuildShadowMap return value>.Pos.w
                 //
-                #line 328 "D:\Project\GameEngine\media\shader11\pos-norm-tex-tangent-binormal.fx"
+                #line 330 "D:\Project\GameEngine\media\shader11\pos-norm-tex-tangent-binormal.fx"
                 imul null, r0.x, v3.x, l(4)
                 mov r1.xyzw, cb3[r0.x + 0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
                 mov r2.xyzw, cb3[r0.x + 1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
@@ -2725,7 +2729,7 @@ fxgroup
                 //   v1.x <- In.Depth.x; v1.y <- In.Depth.y; 
                 //   o0.x <- <PS_BuildShadowMap return value>.x; o0.y <- <PS_BuildShadowMap return value>.y; o0.z <- <PS_BuildShadowMap return value>.z; o0.w <- <PS_BuildShadowMap return value>.w
                 //
-                #line 346 "D:\Project\GameEngine\media\shader11\pos-norm-tex-tangent-binormal.fx"
+                #line 348 "D:\Project\GameEngine\media\shader11\pos-norm-tex-tangent-binormal.fx"
                 div o0.xyzw, v1.xxxx, v1.yyyy
                 ret 
                 // Approximately 2 instruction slots used

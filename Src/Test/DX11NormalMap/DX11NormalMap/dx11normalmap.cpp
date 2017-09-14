@@ -147,15 +147,20 @@ bool cViewer::OnInit()
 	m_axis.Create(m_renderer);
 	m_axis.SetAxis(bbox2, false);
 
-	m_model.Create(m_renderer, common::GenerateId(), "../media/boxlifter.x", "", "Unlit", true);
+	//m_model.Create(m_renderer, common::GenerateId(), "../media/boxlifter.x", "", "Unlit", true);
 	//m_model2.Create(m_renderer, common::GenerateId(), "../media/Stormtrooper/Stormtrooper.dae", "", "Unlit", true);
 	//m_model2.Create(m_renderer, common::GenerateId(), "../media/Lara_Croft/Lara_Croft.dae", "", "Unlit", true);
+	//m_model2.Create(m_renderer, common::GenerateId(), "../media/Office Lady in White Suit/Office Lady in White Suit.obj", "", "Unlit", true);
+	//m_model2.Create(m_renderer, common::GenerateId(), "../media/RUST_3d/RUST_3d_Low1.obj", "", "Unlit", false);
+	//m_model2.Create(m_renderer, common::GenerateId(), "../media/jerrycan/jerrycan.obj", "", "Unlit", true);
+	//m_model2.m_transform.scale = Vector3(1, 1, 1)*0.01f;
+
 	m_ground.Create(m_renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
 
 	Quaternion q;
 	q.SetRotationX(MATH_PI / 2.f);
 	//m_model2.m_transform.scale = Vector3(1, 1, 1)*0.4f;
-	m_model2.m_transform.rot = q;
+	//m_model2.m_transform.rot = q;
 
 	cViewport svp = m_renderer.m_viewPort;
 	svp.m_vp.MinDepth = 0.f;
@@ -166,52 +171,57 @@ bool cViewer::OnInit()
 	g_unBindTex.Create(m_renderer, "../media/whitetex.dds");
 
 	// Create Cube
-	cAssimpModel *assimpModel = new cAssimpModel();
-	cMesh2 *mesh = new cMesh2();
-	assimpModel->m_meshes.push_back(mesh);
-
-	using namespace std;
-	ifstream ifs("../media/cube/cube.txt");
-	assert(ifs.is_open());
-
-	char input;
-	ifs.get(input);
-	while (input != ':')
-		ifs.get(input);
-	string tmp1, tmp2;
-	int vertexCount = 0;
-	ifs >> vertexCount;
-
-	ifs.get(input);
-	while (input != ':')
-		ifs.get(input);
-	ifs.get(input);
-	ifs.get(input);
-
-	sRawMesh2 rawMesh;
-	rawMesh.vertices.resize(vertexCount);
-	rawMesh.normals.resize(vertexCount);
-	rawMesh.tex.resize(vertexCount);
-	rawMesh.indices.resize(vertexCount);
-	for (int i = 0; i < vertexCount; ++i)
+	if (1)
 	{
-		ifs >> rawMesh.vertices[i].x >> rawMesh.vertices[i].y >> rawMesh.vertices[i].z;
-		ifs >> rawMesh.tex[i].x >> rawMesh.tex[i].y;
-		ifs >> rawMesh.normals[i].x >> rawMesh.normals[i].y >> rawMesh.normals[i].z;
-		rawMesh.indices[i] = i;
+		cAssimpModel *assimpModel = new cAssimpModel();
+		cMesh2 *mesh = new cMesh2();
+		assimpModel->m_meshes.push_back(mesh);
+
+		using namespace std;
+		ifstream ifs("../media/cube/cube.txt");
+		assert(ifs.is_open());
+
+		char input;
+		ifs.get(input);
+		while (input != ':')
+			ifs.get(input);
+		string tmp1, tmp2;
+		int vertexCount = 0;
+		ifs >> vertexCount;
+
+		ifs.get(input);
+		while (input != ':')
+			ifs.get(input);
+		ifs.get(input);
+		ifs.get(input);
+
+		sRawMesh2 rawMesh;
+		rawMesh.vertices.resize(vertexCount);
+		rawMesh.normals.resize(vertexCount);
+		rawMesh.tex.resize(vertexCount);
+		rawMesh.indices.resize(vertexCount);
+		for (int i = 0; i < vertexCount; ++i)
+		{
+			ifs >> rawMesh.vertices[i].x >> rawMesh.vertices[i].y >> rawMesh.vertices[i].z;
+			ifs >> rawMesh.tex[i].x >> rawMesh.tex[i].y;
+			ifs >> rawMesh.normals[i].x >> rawMesh.normals[i].y >> rawMesh.normals[i].z;
+			rawMesh.indices[i] = i;
+		}
+		ifs.close();
+
+		rawMesh.mtrl.ambient = Vector4(0.2f, 0.2f, 0.2f, 1);
+		rawMesh.mtrl.diffuse = Vector4(0.8f, 0.8f, 0.8f, 1);
+		rawMesh.mtrl.power = 20;
+		rawMesh.mtrl.texture = "../media/cube/stone01.dds";
+		rawMesh.mtrl.bumpMap = "../media/cube/bump01.dds";
+
+		mesh->Create(m_renderer, rawMesh, NULL, true);
+		m_model2.m_model = assimpModel;
+		m_model2.m_transform.pos.y = 2.f;
 	}
-	ifs.close();
 
-	rawMesh.mtrl.ambient = Vector4(0.2f, 0.2f, 0.2f, 1);
-	rawMesh.mtrl.diffuse = Vector4(0.8f, 0.8f, 0.8f, 1);
-	rawMesh.mtrl.power = 20;
-	rawMesh.mtrl.texture = "../media/cube/stone01.dds";
-	rawMesh.mtrl.bumpMap = "../media/cube/bump01.dds";
-
-	mesh->Create(m_renderer, rawMesh, NULL, true);
-	m_model2.m_model = assimpModel;
-	m_model2.m_transform.pos.y = 2.f;
-
+	//sRawMeshGroup meshes;
+	//importer::ReadRawMeshFile("../media/sc2/zealot.dat", meshes);
 	return true;
 }
 

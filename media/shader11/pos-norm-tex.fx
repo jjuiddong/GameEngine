@@ -9,7 +9,7 @@
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
 Texture2D txDiffuse	: register(t0);
-Texture2D txNormal	: register(t1);
+Texture2D txBump	: register(t1);
 Texture2D txShadow0	: register(t2);
 Texture2D txShadow1	: register(t3);
 Texture2D txShadow2	: register(t4);
