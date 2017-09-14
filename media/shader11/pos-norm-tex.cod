@@ -43,9 +43,10 @@ cbuffer cbClipPlane : register(b4)
 }
 
 //
-// 7 local object(s)
+// 8 local object(s)
 //
 Texture2D txDiffuse;
+Texture2D txNormal;
 Texture2D txShadow0;
 Texture2D txShadow1;
 Texture2D txShadow2;
@@ -135,9 +136,9 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 2   xyz         3     NONE   float   xyz 
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 1   xyz         3     NONE   float   xyz 
                 // SV_ClipDistance          0   x           4  CLIPDST   float   x   
                 //
                 vs_5_0
@@ -165,7 +166,7 @@ fxgroup
                 //   o1.x <- <VS return value>.Normal.x; o1.y <- <VS return value>.Normal.y; o1.z <- <VS return value>.Normal.z; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 110 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 112 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
                 mov r1.xyzw, cb0[0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
                 mov r2.xyzw, cb0[1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
@@ -265,9 +266,9 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 2   xyz         3     NONE   float   xyz 
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 1   xyz         3     NONE   float   xyz 
                 // SV_ClipDistance          0   x           4  CLIPDST   float       
                 //
                 //
@@ -298,7 +299,7 @@ fxgroup
                 //   v4.x <- In.clip; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 129 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 131 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 mov r0.xyz, -cb1[3].xyzx  // r0.x <- L.x; r0.y <- L.y; r0.z <- L.z
                 dp3 r0.w, v3.xyzx, v3.xyzx
                 rsq r0.w, r0.w
@@ -327,7 +328,7 @@ fxgroup
                 mul r1.xyz, r0.wwww, r3.xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 
-                #line 137
+                #line 139
                 sample_indexable(texture2d)(float,float,float,float) r1.xyz, v2.xyxx, t0.xyzw, s0
                 mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
                 mov o0.xyz, r0.xyzx
@@ -396,14 +397,14 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 7     zw        2     NONE   float     zw
-                // TEXCOORD                 2   xyzw        3     NONE   float   xyzw
-                // TEXCOORD                 3   xyzw        4     NONE   float   xyzw
-                // TEXCOORD                 4   xyzw        5     NONE   float   xyzw
-                // TEXCOORD                 5   xyz         6     NONE   float   xyz 
-                // TEXCOORD                 6   xyzw        7     NONE   float   xyzw
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 6     zw        2     NONE   float     zw
+                // TEXCOORD                 1   xyzw        3     NONE   float   xyzw
+                // TEXCOORD                 2   xyzw        4     NONE   float   xyzw
+                // TEXCOORD                 3   xyzw        5     NONE   float   xyzw
+                // TEXCOORD                 4   xyz         6     NONE   float   xyz 
+                // TEXCOORD                 5   xyzw        7     NONE   float   xyzw
                 // SV_ClipDistance          0   x           8  CLIPDST   float   x   
                 //
                 vs_5_0
@@ -443,7 +444,7 @@ fxgroup
                 //   o0.x <- <VS_ShadowMap return value>.Pos.x; o0.y <- <VS_ShadowMap return value>.Pos.y; o0.z <- <VS_ShadowMap return value>.Pos.z; o0.w <- <VS_ShadowMap return value>.Pos.w; 
                 //   x0 <- mLVP; x1 <- mVPT
                 //
-                #line 167 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 169 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
                 mov r1.xyzw, cb0[0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
                 mov r2.xyzw, cb0[1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
@@ -469,7 +470,7 @@ fxgroup
                 mul r6.xyz, r0.wwww, r6.xyzx  // r6.x <- output.Normal.x; r6.y <- output.Normal.y; r6.z <- output.Normal.z
                 mov r7.xy, v2.xyxx  // r7.x <- output.Tex.x; r7.y <- output.Tex.y
                 
-                #line 179
+                #line 181
                 dp4 r8.x, v0.xyzw, r1.xyzw  // r8.x <- wPos.x
                 dp4 r8.y, v0.xyzw, r2.xyzw  // r8.y <- wPos.y
                 dp4 r8.z, v0.xyzw, r3.xyzw  // r8.z <- wPos.z
@@ -811,7 +812,7 @@ fxgroup
                 dp4 r11.z, r8.xyzw, r13.xyzw  // r11.z <- output.TexShadow2.z
                 dp4 r11.w, r8.xyzw, r14.xyzw  // r11.w <- output.TexShadow2.w
                 
-                #line 191
+                #line 193
                 mov r12.x, x0[2].x
                 mov r13.x, x0[3].x
                 mov r12.y, x0[2].y
@@ -912,6 +913,13 @@ fxgroup
                 //
                 // }
                 //
+                // cbuffer cbClipPlane
+                // {
+                //
+                //   float4 gClipPlane;                 // Offset:    0 Size:    16 [unused]
+                //
+                // }
+                //
                 //
                 // Resource Bindings:
                 //
@@ -920,13 +928,14 @@ fxgroup
                 // samLinear                         sampler      NA          NA    0        1
                 // samShadow                       sampler_c      NA          NA    1        1
                 // txDiffuse                         texture  float4          2d    0        1
-                // txShadow0                         texture  float4          2d    1        1
-                // txShadow1                         texture  float4          2d    2        1
-                // txShadow2                         texture  float4          2d    3        1
+                // txShadow0                         texture  float4          2d    2        1
+                // txShadow1                         texture  float4          2d    3        1
+                // txShadow2                         texture  float4          2d    4        1
                 // cbPerFrame                        cbuffer      NA          NA    0        1
                 // cbLight                           cbuffer      NA          NA    1        1
                 // cbMaterial                        cbuffer      NA          NA    2        1
                 // cbPerFrameInstancing              cbuffer      NA          NA    3        1
+                // cbClipPlane                       cbuffer      NA          NA    4        1
                 //
                 //
                 //
@@ -935,14 +944,14 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 7     zw        2     NONE   float     zw
-                // TEXCOORD                 2   xyzw        3     NONE   float   xy  
-                // TEXCOORD                 3   xyzw        4     NONE   float   xy  
-                // TEXCOORD                 4   xyzw        5     NONE   float   xy  
-                // TEXCOORD                 5   xyz         6     NONE   float   xyz 
-                // TEXCOORD                 6   xyzw        7     NONE   float   xyzw
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 6     zw        2     NONE   float     zw
+                // TEXCOORD                 1   xyzw        3     NONE   float   xy  
+                // TEXCOORD                 2   xyzw        4     NONE   float   xy  
+                // TEXCOORD                 3   xyzw        5     NONE   float   xy  
+                // TEXCOORD                 4   xyz         6     NONE   float   xyz 
+                // TEXCOORD                 5   xyzw        7     NONE   float   xyzw
                 // SV_ClipDistance          0   x           8  CLIPDST   float       
                 //
                 //
@@ -958,12 +967,13 @@ fxgroup
                 dcl_constantbuffer cb1[4], immediateIndexed
                 dcl_constantbuffer cb2[5], immediateIndexed
                 dcl_constantbuffer cb3[1], immediateIndexed
+                dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_comparison
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_resource_texture2d (float,float,float,float) t1
                 dcl_resource_texture2d (float,float,float,float) t2
                 dcl_resource_texture2d (float,float,float,float) t3
+                dcl_resource_texture2d (float,float,float,float) t4
                 dcl_input_ps linear v1.xyz
                 dcl_input_ps linear v2.xy
                 dcl_input_ps linear v2.zw
@@ -990,7 +1000,7 @@ fxgroup
                 //   o0.x <- <PS_ShadowMap return value>.x; o0.y <- <PS_ShadowMap return value>.y; o0.z <- <PS_ShadowMap return value>.z; o0.w <- <PS_ShadowMap return value>.w; 
                 //   x0 <- vTexCoords
                 //
-                #line 207 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 209 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 mov r0.y, l(0.000977)  // r0.y <- dx
                 div r1.x, v7.x, v7.y
                 min r1.x, r1.x, l(1.000000)  // r1.x <- depth0
@@ -999,7 +1009,7 @@ fxgroup
                 div r1.z, v2.z, v2.w
                 min r1.z, r1.z, l(1.000000)  // r1.z <- depth2
                 
-                #line 216
+                #line 218
                 mov x0[0].xy, v3.xyxx
                 mov r2.x, -r0.y
                 mov r2.y, l(0)
@@ -1028,7 +1038,7 @@ fxgroup
                 mov x0[8].xy, r0.xwxx
                 mov x0[9].xy, v4.xyxx
                 
-                #line 227
+                #line 229
                 mov r2.x, -r0.y
                 mov r2.y, l(0)
                 add r0.xw, r2.xxxy, v4.xxxy
@@ -1060,7 +1070,7 @@ fxgroup
                 add r0.xw, r3.xxxy, v5.xxxy
                 mov x0[19].xy, r0.xwxx
                 
-                #line 238
+                #line 240
                 add r0.xw, r0.yyyz, v5.xxxy
                 mov x0[20].xy, r0.xwxx
                 mov r3.y, -r0.y
@@ -1088,7 +1098,7 @@ fxgroup
                 mov r0.z, l(-0.001000)
                 add r0.z, r0.z, r1.z  // r0.z <- S2
                 
-                #line 250
+                #line 252
                 mov r0.w, l(0)  // r0.w <- fShadowTerm
                 mov r1.x, l(0)  // r1.x <- i
                 mov r1.y, r0.w  // r1.y <- fShadowTerm
@@ -1099,9 +1109,9 @@ fxgroup
                   mov r2.xy, x0[r1.z + 0].xyxx  // r2.x <- uv0.x; r2.y <- uv0.y
                   mov r2.zw, x0[r1.z + 9].xxxy  // r2.z <- uv1.x; r2.w <- uv1.y
                   mov r3.xy, x0[r1.z + 18].xyxx  // r3.x <- uv2.x; r3.y <- uv2.y
-                  sample_c_lz_indexable(texture2d)(float,float,float,float) r1.w, r2.xyxx, t1.xxxx, s1, r0.x  // r1.w <- D0
-                  sample_c_lz_indexable(texture2d)(float,float,float,float) r2.x, r2.zwzz, t2.xxxx, s1, r0.y  // r2.x <- D1
-                  sample_c_lz_indexable(texture2d)(float,float,float,float) r2.y, r3.xyxx, t3.xxxx, s1, r0.z  // r2.y <- D2
+                  sample_c_lz_indexable(texture2d)(float,float,float,float) r1.w, r2.xyxx, t2.xxxx, s1, r0.x  // r1.w <- D0
+                  sample_c_lz_indexable(texture2d)(float,float,float,float) r2.x, r2.zwzz, t3.xxxx, s1, r0.y  // r2.x <- D1
+                  sample_c_lz_indexable(texture2d)(float,float,float,float) r2.y, r3.xyxx, t4.xxxx, s1, r0.z  // r2.y <- D2
                   itof r2.z, l(1)
                   add r1.w, r1.w, r2.x
                   add r1.w, r2.y, r1.w
@@ -1111,7 +1121,7 @@ fxgroup
                   add r1.w, r1.w, r2.z
                   add r1.y, r1.w, r1.y
                 
-                #line 261
+                #line 263
                   iadd r1.z, r1.z, l(1)
                 endloop 
                 div r0.x, r1.y, l(9.000000)  // r0.x <- fShadowTerm
@@ -1152,7 +1162,7 @@ fxgroup
                 mul r1.xyz, r0.wwww, r3.xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 
-                #line 275
+                #line 277
                 sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v2.xyxx, t0.xyzw, s0
                 mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
                 mul r0.w, r1.w, cb2[1].w  // r0.w <- Out.w
@@ -1231,7 +1241,7 @@ fxgroup
                 //   o1.x <- <VS_BuildShadowMap return value>.Depth.x; o1.y <- <VS_BuildShadowMap return value>.Depth.y; 
                 //   o0.x <- <VS_BuildShadowMap return value>.Pos.x; o0.y <- <VS_BuildShadowMap return value>.Pos.y; o0.z <- <VS_BuildShadowMap return value>.Pos.z; o0.w <- <VS_BuildShadowMap return value>.Pos.w
                 //
-                #line 298 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 300 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 mov r0.xyzw, cb0[0].xyzw  // r0.x <- mWorld._m00; r0.y <- mWorld._m10; r0.z <- mWorld._m20; r0.w <- mWorld._m30
                 mov r1.xyzw, cb0[1].xyzw  // r1.x <- mWorld._m01; r1.y <- mWorld._m11; r1.z <- mWorld._m21; r1.w <- mWorld._m31
                 mov r2.xyzw, cb0[2].xyzw  // r2.x <- mWorld._m02; r2.y <- mWorld._m12; r2.z <- mWorld._m22; r2.w <- mWorld._m32
@@ -1286,7 +1296,7 @@ fxgroup
                 //   v1.x <- In.Depth.x; v1.y <- In.Depth.y; 
                 //   o0.x <- <PS_BuildShadowMap return value>.x; o0.y <- <PS_BuildShadowMap return value>.y; o0.z <- <PS_BuildShadowMap return value>.z; o0.w <- <PS_BuildShadowMap return value>.w
                 //
-                #line 316 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 318 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 div o0.xyzw, v1.xxxx, v1.yyyy
                 ret 
                 // Approximately 2 instruction slots used
@@ -1360,9 +1370,9 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 2   xyz         3     NONE   float   xyz 
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 1   xyz         3     NONE   float   xyz 
                 // SV_ClipDistance          0   x           4  CLIPDST   float   x   
                 //
                 vs_5_0
@@ -1392,7 +1402,7 @@ fxgroup
                 //   o1.x <- <VS return value>.Normal.x; o1.y <- <VS return value>.Normal.y; o1.z <- <VS return value>.Normal.z; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 110 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 112 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
                 imul null, r0.w, v3.x, l(4)
                 mov r1.xyzw, cb3[r0.w + 0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
@@ -1493,9 +1503,9 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 2   xyz         3     NONE   float   xyz 
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 1   xyz         3     NONE   float   xyz 
                 // SV_ClipDistance          0   x           4  CLIPDST   float       
                 //
                 //
@@ -1526,7 +1536,7 @@ fxgroup
                 //   v4.x <- In.clip; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 129 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 131 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 mov r0.xyz, -cb1[3].xyzx  // r0.x <- L.x; r0.y <- L.y; r0.z <- L.z
                 dp3 r0.w, v3.xyzx, v3.xyzx
                 rsq r0.w, r0.w
@@ -1555,7 +1565,7 @@ fxgroup
                 mul r1.xyz, r0.wwww, r3.xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 
-                #line 137
+                #line 139
                 sample_indexable(texture2d)(float,float,float,float) r1.xyz, v2.xyxx, t0.xyzw, s0
                 mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
                 mov o0.xyz, r0.xyzx
@@ -1632,14 +1642,14 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 7     zw        2     NONE   float     zw
-                // TEXCOORD                 2   xyzw        3     NONE   float   xyzw
-                // TEXCOORD                 3   xyzw        4     NONE   float   xyzw
-                // TEXCOORD                 4   xyzw        5     NONE   float   xyzw
-                // TEXCOORD                 5   xyz         6     NONE   float   xyz 
-                // TEXCOORD                 6   xyzw        7     NONE   float   xyzw
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 6     zw        2     NONE   float     zw
+                // TEXCOORD                 1   xyzw        3     NONE   float   xyzw
+                // TEXCOORD                 2   xyzw        4     NONE   float   xyzw
+                // TEXCOORD                 3   xyzw        5     NONE   float   xyzw
+                // TEXCOORD                 4   xyz         6     NONE   float   xyz 
+                // TEXCOORD                 5   xyzw        7     NONE   float   xyzw
                 // SV_ClipDistance          0   x           8  CLIPDST   float   x   
                 //
                 vs_5_0
@@ -1681,7 +1691,7 @@ fxgroup
                 //   o0.x <- <VS_ShadowMap return value>.Pos.x; o0.y <- <VS_ShadowMap return value>.Pos.y; o0.z <- <VS_ShadowMap return value>.Pos.z; o0.w <- <VS_ShadowMap return value>.Pos.w; 
                 //   x0 <- mLVP; x1 <- mVPT
                 //
-                #line 167 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 169 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
                 imul null, r0.w, v3.x, l(4)
                 mov r1.xyzw, cb3[r0.w + 0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
@@ -1708,7 +1718,7 @@ fxgroup
                 mul r6.xyz, r0.wwww, r6.xyzx  // r6.x <- output.Normal.x; r6.y <- output.Normal.y; r6.z <- output.Normal.z
                 mov r7.xy, v2.xyxx  // r7.x <- output.Tex.x; r7.y <- output.Tex.y
                 
-                #line 179
+                #line 181
                 dp4 r8.x, v0.xyzw, r1.xyzw  // r8.x <- wPos.x
                 dp4 r8.y, v0.xyzw, r2.xyzw  // r8.y <- wPos.y
                 dp4 r8.z, v0.xyzw, r3.xyzw  // r8.z <- wPos.z
@@ -2050,7 +2060,7 @@ fxgroup
                 dp4 r11.z, r8.xyzw, r13.xyzw  // r11.z <- output.TexShadow2.z
                 dp4 r11.w, r8.xyzw, r14.xyzw  // r11.w <- output.TexShadow2.w
                 
-                #line 191
+                #line 193
                 mov r12.x, x0[2].x
                 mov r13.x, x0[3].x
                 mov r12.y, x0[2].y
@@ -2151,6 +2161,13 @@ fxgroup
                 //
                 // }
                 //
+                // cbuffer cbClipPlane
+                // {
+                //
+                //   float4 gClipPlane;                 // Offset:    0 Size:    16 [unused]
+                //
+                // }
+                //
                 //
                 // Resource Bindings:
                 //
@@ -2159,13 +2176,14 @@ fxgroup
                 // samLinear                         sampler      NA          NA    0        1
                 // samShadow                       sampler_c      NA          NA    1        1
                 // txDiffuse                         texture  float4          2d    0        1
-                // txShadow0                         texture  float4          2d    1        1
-                // txShadow1                         texture  float4          2d    2        1
-                // txShadow2                         texture  float4          2d    3        1
+                // txShadow0                         texture  float4          2d    2        1
+                // txShadow1                         texture  float4          2d    3        1
+                // txShadow2                         texture  float4          2d    4        1
                 // cbPerFrame                        cbuffer      NA          NA    0        1
                 // cbLight                           cbuffer      NA          NA    1        1
                 // cbMaterial                        cbuffer      NA          NA    2        1
                 // cbPerFrameInstancing              cbuffer      NA          NA    3        1
+                // cbClipPlane                       cbuffer      NA          NA    4        1
                 //
                 //
                 //
@@ -2174,14 +2192,14 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
-                // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 7     zw        2     NONE   float     zw
-                // TEXCOORD                 2   xyzw        3     NONE   float   xy  
-                // TEXCOORD                 3   xyzw        4     NONE   float   xy  
-                // TEXCOORD                 4   xyzw        5     NONE   float   xy  
-                // TEXCOORD                 5   xyz         6     NONE   float   xyz 
-                // TEXCOORD                 6   xyzw        7     NONE   float   xyzw
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 6     zw        2     NONE   float     zw
+                // TEXCOORD                 1   xyzw        3     NONE   float   xy  
+                // TEXCOORD                 2   xyzw        4     NONE   float   xy  
+                // TEXCOORD                 3   xyzw        5     NONE   float   xy  
+                // TEXCOORD                 4   xyz         6     NONE   float   xyz 
+                // TEXCOORD                 5   xyzw        7     NONE   float   xyzw
                 // SV_ClipDistance          0   x           8  CLIPDST   float       
                 //
                 //
@@ -2197,12 +2215,13 @@ fxgroup
                 dcl_constantbuffer cb1[4], immediateIndexed
                 dcl_constantbuffer cb2[5], immediateIndexed
                 dcl_constantbuffer cb3[1], immediateIndexed
+                dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_comparison
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_resource_texture2d (float,float,float,float) t1
                 dcl_resource_texture2d (float,float,float,float) t2
                 dcl_resource_texture2d (float,float,float,float) t3
+                dcl_resource_texture2d (float,float,float,float) t4
                 dcl_input_ps linear v1.xyz
                 dcl_input_ps linear v2.xy
                 dcl_input_ps linear v2.zw
@@ -2229,7 +2248,7 @@ fxgroup
                 //   o0.x <- <PS_ShadowMap return value>.x; o0.y <- <PS_ShadowMap return value>.y; o0.z <- <PS_ShadowMap return value>.z; o0.w <- <PS_ShadowMap return value>.w; 
                 //   x0 <- vTexCoords
                 //
-                #line 207 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 209 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 mov r0.y, l(0.000977)  // r0.y <- dx
                 div r1.x, v7.x, v7.y
                 min r1.x, r1.x, l(1.000000)  // r1.x <- depth0
@@ -2238,7 +2257,7 @@ fxgroup
                 div r1.z, v2.z, v2.w
                 min r1.z, r1.z, l(1.000000)  // r1.z <- depth2
                 
-                #line 216
+                #line 218
                 mov x0[0].xy, v3.xyxx
                 mov r2.x, -r0.y
                 mov r2.y, l(0)
@@ -2267,7 +2286,7 @@ fxgroup
                 mov x0[8].xy, r0.xwxx
                 mov x0[9].xy, v4.xyxx
                 
-                #line 227
+                #line 229
                 mov r2.x, -r0.y
                 mov r2.y, l(0)
                 add r0.xw, r2.xxxy, v4.xxxy
@@ -2299,7 +2318,7 @@ fxgroup
                 add r0.xw, r3.xxxy, v5.xxxy
                 mov x0[19].xy, r0.xwxx
                 
-                #line 238
+                #line 240
                 add r0.xw, r0.yyyz, v5.xxxy
                 mov x0[20].xy, r0.xwxx
                 mov r3.y, -r0.y
@@ -2327,7 +2346,7 @@ fxgroup
                 mov r0.z, l(-0.001000)
                 add r0.z, r0.z, r1.z  // r0.z <- S2
                 
-                #line 250
+                #line 252
                 mov r0.w, l(0)  // r0.w <- fShadowTerm
                 mov r1.x, l(0)  // r1.x <- i
                 mov r1.y, r0.w  // r1.y <- fShadowTerm
@@ -2338,9 +2357,9 @@ fxgroup
                   mov r2.xy, x0[r1.z + 0].xyxx  // r2.x <- uv0.x; r2.y <- uv0.y
                   mov r2.zw, x0[r1.z + 9].xxxy  // r2.z <- uv1.x; r2.w <- uv1.y
                   mov r3.xy, x0[r1.z + 18].xyxx  // r3.x <- uv2.x; r3.y <- uv2.y
-                  sample_c_lz_indexable(texture2d)(float,float,float,float) r1.w, r2.xyxx, t1.xxxx, s1, r0.x  // r1.w <- D0
-                  sample_c_lz_indexable(texture2d)(float,float,float,float) r2.x, r2.zwzz, t2.xxxx, s1, r0.y  // r2.x <- D1
-                  sample_c_lz_indexable(texture2d)(float,float,float,float) r2.y, r3.xyxx, t3.xxxx, s1, r0.z  // r2.y <- D2
+                  sample_c_lz_indexable(texture2d)(float,float,float,float) r1.w, r2.xyxx, t2.xxxx, s1, r0.x  // r1.w <- D0
+                  sample_c_lz_indexable(texture2d)(float,float,float,float) r2.x, r2.zwzz, t3.xxxx, s1, r0.y  // r2.x <- D1
+                  sample_c_lz_indexable(texture2d)(float,float,float,float) r2.y, r3.xyxx, t4.xxxx, s1, r0.z  // r2.y <- D2
                   itof r2.z, l(1)
                   add r1.w, r1.w, r2.x
                   add r1.w, r2.y, r1.w
@@ -2350,7 +2369,7 @@ fxgroup
                   add r1.w, r1.w, r2.z
                   add r1.y, r1.w, r1.y
                 
-                #line 261
+                #line 263
                   iadd r1.z, r1.z, l(1)
                 endloop 
                 div r0.x, r1.y, l(9.000000)  // r0.x <- fShadowTerm
@@ -2391,7 +2410,7 @@ fxgroup
                 mul r1.xyz, r0.wwww, r3.xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 
-                #line 275
+                #line 277
                 sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v2.xyxx, t0.xyzw, s0
                 mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
                 mul r0.w, r1.w, cb2[1].w  // r0.w <- Out.w
@@ -2480,7 +2499,7 @@ fxgroup
                 //   o1.x <- <VS_BuildShadowMap return value>.Depth.x; o1.y <- <VS_BuildShadowMap return value>.Depth.y; 
                 //   o0.x <- <VS_BuildShadowMap return value>.Pos.x; o0.y <- <VS_BuildShadowMap return value>.Pos.y; o0.z <- <VS_BuildShadowMap return value>.Pos.z; o0.w <- <VS_BuildShadowMap return value>.Pos.w
                 //
-                #line 298 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 300 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 imul null, r0.x, v3.x, l(4)
                 mov r1.xyzw, cb3[r0.x + 0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
                 mov r2.xyzw, cb3[r0.x + 1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
@@ -2536,7 +2555,7 @@ fxgroup
                 //   v1.x <- In.Depth.x; v1.y <- In.Depth.y; 
                 //   o0.x <- <PS_BuildShadowMap return value>.x; o0.y <- <PS_BuildShadowMap return value>.y; o0.z <- <PS_BuildShadowMap return value>.z; o0.w <- <PS_BuildShadowMap return value>.w
                 //
-                #line 316 "D:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
+                #line 318 "d:\Project\GameEngine\media\shader11\pos-norm-tex.fx"
                 div o0.xyzw, v1.xxxx, v1.yyyy
                 ret 
                 // Approximately 2 instruction slots used

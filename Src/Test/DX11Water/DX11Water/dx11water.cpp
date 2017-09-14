@@ -27,7 +27,7 @@ public:
 		, const bool isShadowMap
 		, const cCamera lightCam[3]
 		, const XMMATRIX &tm=XMIdentity);
-	void RenderWater();
+	void BuildWater();
 
 
 public:
@@ -236,6 +236,7 @@ void cViewer::OnRender(const float deltaSeconds)
 	m_renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
 	m_renderer.GetDevContext()->OMSetBlendState(states.Opaque(), 0, 0xffffffff);
 
+	m_texture.Unbind(m_renderer, 0);
 	m_texture.Unbind(m_renderer, 1);
 	m_texture.Unbind(m_renderer, 2);
 	m_texture.Unbind(m_renderer, 3);
@@ -249,7 +250,8 @@ void cViewer::OnRender(const float deltaSeconds)
 		if (m_renderer.ClearScene(false, Vector4(1, 1, 1, 1)))
 		{
 			m_renderer.BeginScene();
-			ZeroMemory(shader->m_textureMap, sizeof(shader->m_textureMap));
+			//ZeroMemory(shader->m_textureMap, sizeof(shader->m_textureMap));
+			m_renderer.UnbindTextureAll();
 			RenderScene("BuildShadowMap", true, m_lightSplitCamera);
 			m_renderer.EndScene();
 		}
@@ -258,7 +260,7 @@ void cViewer::OnRender(const float deltaSeconds)
 	//----------------------------------------------------------
 
 	
-	RenderWater();
+	BuildWater();
 
 	m_renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
 	m_renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
@@ -390,9 +392,9 @@ void cViewer::RenderScene(
 	cTexture shadowTex0(m_shadowMap[0].m_texture);
 	cTexture shadowTex1(m_shadowMap[1].m_texture);
 	cTexture shadowTex2(m_shadowMap[2].m_texture);
-	shader->SetBindTexture(&shadowTex0, 1);
-	shader->SetBindTexture(&shadowTex1, 2);
-	shader->SetBindTexture(&shadowTex2, 3);
+	m_renderer.BindTexture(&shadowTex0, 2);
+	m_renderer.BindTexture(&shadowTex1, 3);
+	m_renderer.BindTexture(&shadowTex2, 4);
 
 	m_model.m_techniqueName = techniqueName;
 	m_model.RenderInstancing(m_renderer, 100, tms, tm);
@@ -401,17 +403,15 @@ void cViewer::RenderScene(
 }
 
 
-void cViewer::RenderWater()
+void cViewer::BuildWater()
 {
 	cRenderer &renderer = m_renderer;
 
 	m_water.BeginRefractScene(renderer);
-	GetMainCamera().Bind(renderer);
 	RenderScene("ShadowMap", false, m_lightSplitCamera);
 	m_water.EndRefractScene(renderer);
 
 	m_water.BeginReflectScene(renderer);
-	GetMainCamera().Bind(renderer);
 	RenderScene("ShadowMap", false, m_lightSplitCamera, m_water.GetReflectionMatrix().GetMatrixXM());
 	m_water.EndReflectScene(renderer);
 }

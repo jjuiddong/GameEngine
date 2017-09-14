@@ -169,14 +169,12 @@ public:
 
 			if (m_isLightRender)
 			{
-				shader->m_shadowMap[0] = NULL;
-				shader->m_shadowMap[1] = NULL;
-				shader->m_shadowMap[2] = NULL;
+				shader->UbindTextureAll();
 				m_model.Render(renderer);
 			}
 			else
 			{
-				shader->m_shadowMap[0] = g_shadowMap.m_texture;
+				shader->BindTexture(g_shadowMap, 1);
 				m_ground.Render(renderer);
 				m_axis.Render(renderer);
 				m_model.Render(renderer);
@@ -204,6 +202,7 @@ public:
 		}
 	}
 	
+
 	void UpdateLookAt()
 	{
 		cAutoCam cam(m_isLightRender ? &g_lightCamera : &m_terrainCamera);
@@ -233,6 +232,9 @@ public:
 	// 카메라 앞에 박스가 있다면, 박스 정면에서 멈춘다.
 	void OnWheelMove(const int delta, const POINT mousePt)
 	{
+		if (m_isLightRender)
+			return;
+
 		UpdateLookAt();
 
 		float len = 0;
@@ -275,8 +277,11 @@ public:
 			right.y = 0;
 			right.Normalize();
 
-			GetMainCamera().MoveRight(-delta.x * m_rotateLen * 0.001f);
-			GetMainCamera().MoveFrontHorizontal(delta.y * m_rotateLen * 0.001f);
+			if (!m_isLightRender)
+			{
+				GetMainCamera().MoveRight(-delta.x * m_rotateLen * 0.001f);
+				GetMainCamera().MoveFrontHorizontal(delta.y * m_rotateLen * 0.001f);
+			}
 		}
 		else if (io.MouseDown[1])
 		{

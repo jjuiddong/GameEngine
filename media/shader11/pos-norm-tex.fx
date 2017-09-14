@@ -8,10 +8,12 @@
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
-Texture2D txDiffuse : register(t0);
-Texture2D txShadow0 : register(t1);
-Texture2D txShadow1 : register(t2);
-Texture2D txShadow2 : register(t3);
+Texture2D txDiffuse	: register(t0);
+Texture2D txNormal	: register(t1);
+Texture2D txShadow0	: register(t2);
+Texture2D txShadow1	: register(t3);
+Texture2D txShadow2	: register(t4);
+
 
 SamplerState samLinear : register(s0)
 {
@@ -90,9 +92,9 @@ cbuffer cbClipPlane : register(b4)
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
-    float3 Normal : TEXCOORD0;
-    float2 Tex : TEXCOORD1;
-    float3 toEye : TEXCOORD2;
+    float3 Normal : NORMAL;
+    float2 Tex : TEXCOORD0;
+    float3 toEye : TEXCOORD1;
 	float clip : SV_ClipDistance0;
 };
 
@@ -146,14 +148,14 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 struct VS_SHADOW_OUTPUT
 {
 	float4 Pos : SV_POSITION;
-	float3 Normal : TEXCOORD0;
-	float2 Tex : TEXCOORD1;
-	float4 TexShadow0 : TEXCOORD2;
-	float4 TexShadow1 : TEXCOORD3;
-	float4 TexShadow2 : TEXCOORD4;
-	float3 toEye : TEXCOORD5;
-	float4 Depth0 : TEXCOORD6;
-	float2 Depth1 : TEXCOORD7;
+	float3 Normal : NORMAL;
+	float2 Tex : TEXCOORD0;
+	float4 TexShadow0 : TEXCOORD1;
+	float4 TexShadow1 : TEXCOORD2;
+	float4 TexShadow2 : TEXCOORD3;
+	float3 toEye : TEXCOORD4;
+	float4 Depth0 : TEXCOORD5;
+	float2 Depth1 : TEXCOORD6;
 	float clip : SV_ClipDistance0;
 };
 

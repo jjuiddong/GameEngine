@@ -223,7 +223,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		if (m_renderer.ClearScene(false, Vector4(1, 1, 1, 1)))
 		{
 			m_renderer.BeginScene();
-			ZeroMemory(shader->m_shadowMap, sizeof(shader->m_shadowMap));
+			ZeroMemory(shader->m_textureMap, sizeof(shader->m_textureMap));
 			RenderScene("BuildShadowMap", true, m_lightSplitCamera);
 			m_renderer.EndScene();
 		}
@@ -244,9 +244,9 @@ void cViewer::OnRender(const float deltaSeconds)
 	{
 		m_renderer.BeginScene();
 
-		shader->m_shadowMap[0] = shadowTex0.m_texture;
-		shader->m_shadowMap[1] = shadowTex1.m_texture;
-		shader->m_shadowMap[2] = shadowTex2.m_texture;
+		shader->SetBindTexture(&shadowTex0, 1);
+		shader->SetBindTexture(&shadowTex1, 2);
+		shader->SetBindTexture(&shadowTex2, 3);
 
 		RenderScene(m_isShadowRender ? "ShadowMap" : "Unlit", false, m_lightSplitCamera);
 

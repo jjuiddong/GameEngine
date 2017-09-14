@@ -18,7 +18,6 @@ cbuffer cbPerFrame : register(b0)
     float4x4 gLightProj[3];             // Offset:  384, size:  192
     float4x4 gLightTT;                  // Offset:  576, size:   64
     float3  gEyePosW;                   // Offset:  640, size:   12
-    bool    gClipEnable;                // Offset:  652, size:    4
 }
 
 cbuffer cbLight : register(b1)
@@ -55,9 +54,10 @@ cbuffer cbClipPlane : register(b4)
 }
 
 //
-// 8 local object(s)
+// 9 local object(s)
 //
 Texture2D txDiffuse;
+Texture2D txNormal;
 Texture2D txWaveMap0;
 Texture2D txWaveMap1;
 Texture2D txReflectMap;
@@ -110,7 +110,6 @@ fxgroup
                 //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
                 //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
                 //   float3 gEyePosW;                   // Offset:  640 Size:    12
-                //   bool gClipEnable;                  // Offset:  652 Size:     4 [unused]
                 //
                 // }
                 //
@@ -198,7 +197,7 @@ fxgroup
                 //   o1.x <- <WaterVS return value>.toEyeT.x; o1.y <- <WaterVS return value>.toEyeT.y; o1.z <- <WaterVS return value>.toEyeT.z; o1.w <- <WaterVS return value>.eyeVertDist; 
                 //   o0.x <- <WaterVS return value>.posH.x; o0.y <- <WaterVS return value>.posH.y; o0.z <- <WaterVS return value>.posH.z; o0.w <- <WaterVS return value>.posH.w
                 //
-                #line 122 "D:\Project\GameEngine\media\shader11\water.fx"
+                #line 122 "d:\Project\GameEngine\media\shader11\water.fx"
                 mov r0.xyz, l(1.000000,0,0,0)  // r0.x <- TBN._m00; r0.y <- TBN._m01; r0.z <- TBN._m02
                 mov r1.xyz, l(0,0,-1.000000,0)  // r1.x <- TBN._m10; r1.y <- TBN._m11; r1.z <- TBN._m12
                 mov r2.xyz, l(0,1.000000,0,0)  // r2.x <- TBN._m20; r2.y <- TBN._m21; r2.z <- TBN._m22
@@ -341,10 +340,10 @@ fxgroup
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // samLinear                         sampler      NA          NA    0        1
                 // samClamp                          sampler      NA          NA    1        1
-                // txWaveMap0                        texture  float4          2d    1        1
-                // txWaveMap1                        texture  float4          2d    2        1
-                // txReflectMap                      texture  float4          2d    3        1
-                // txRefractMap                      texture  float4          2d    4        1
+                // txWaveMap0                        texture  float4          2d    2        1
+                // txWaveMap1                        texture  float4          2d    3        1
+                // txReflectMap                      texture  float4          2d    4        1
+                // txRefractMap                      texture  float4          2d    5        1
                 // cbLight                           cbuffer      NA          NA    1        1
                 // cbMaterial                        cbuffer      NA          NA    2        1
                 // cbWater                           cbuffer      NA          NA    3        1
@@ -382,10 +381,10 @@ fxgroup
                 dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_default
-                dcl_resource_texture2d (float,float,float,float) t1
                 dcl_resource_texture2d (float,float,float,float) t2
                 dcl_resource_texture2d (float,float,float,float) t3
                 dcl_resource_texture2d (float,float,float,float) t4
+                dcl_resource_texture2d (float,float,float,float) t5
                 dcl_input_ps linear v1.xyz
                 dcl_input_ps linear v2.xyz
                 dcl_input_ps linear v3.xy
@@ -405,7 +404,7 @@ fxgroup
                 //   v5.x <- In.Eye.x; v5.y <- In.Eye.y; v5.z <- In.Eye.z; 
                 //   o0.x <- <WaterPS return value>.x; o0.y <- <WaterPS return value>.y; o0.z <- <WaterPS return value>.z; o0.w <- <WaterPS return value>.w
                 //
-                #line 170 "D:\Project\GameEngine\media\shader11\water.fx"
+                #line 170 "d:\Project\GameEngine\media\shader11\water.fx"
                 dp3 r0.x, v1.xyzx, v1.xyzx
                 rsq r0.x, r0.x
                 mul r0.xyz, r0.xxxx, v1.xyzx  // r0.x <- In.toEyeT.x; r0.y <- In.toEyeT.y; r0.z <- In.toEyeT.z
@@ -417,9 +416,9 @@ fxgroup
                 mov r1.xyz, -r1.xyzx  // r1.x <- lightVecT.x; r1.y <- lightVecT.y; r1.z <- lightVecT.z
                 
                 #line 178
-                sample_indexable(texture2d)(float,float,float,float) r2.xyz, v3.xyxx, t1.xyzw, s0
+                sample_indexable(texture2d)(float,float,float,float) r2.xyz, v3.xyxx, t2.xyzw, s0
                 mov r2.xyz, r2.xyzx  // r2.x <- normalT0.x; r2.y <- normalT0.y; r2.z <- normalT0.z
-                sample_indexable(texture2d)(float,float,float,float) r3.xyz, v3.zwzz, t2.xyzw, s0
+                sample_indexable(texture2d)(float,float,float,float) r3.xyz, v3.zwzz, t3.xyzw, s0
                 mov r3.xyz, r3.xyzx  // r3.x <- normalT1.x; r3.y <- normalT1.y; r3.z <- normalT1.z
                 
                 #line 183
@@ -482,10 +481,10 @@ fxgroup
                 mul r4.xy, r2.xzxx, cb3[5].xyxx  // r4.x <- perturbVec.x; r4.y <- perturbVec.y
                 mul r4.z, r1.x, r4.y  // r4.z <- perturbVec.y
                 add r1.xy, r3.xyxx, r4.xzxx
-                sample_indexable(texture2d)(float,float,float,float) r1.xyz, r1.xyxx, t3.xyzw, s1
+                sample_indexable(texture2d)(float,float,float,float) r1.xyz, r1.xyxx, t4.xyzw, s1
                 mov r1.xyz, r1.xyzx  // r1.x <- reflectCol.x; r1.y <- reflectCol.y; r1.z <- reflectCol.z
                 add r3.xy, r3.xyxx, r4.xzxx
-                sample_indexable(texture2d)(float,float,float,float) r3.xyz, r3.xyxx, t4.xyzw, s1
+                sample_indexable(texture2d)(float,float,float,float) r3.xyz, r3.xyxx, t5.xyzw, s1
                 mov r3.xyz, r3.xyzx  // r3.x <- refractCol.x; r3.y <- refractCol.y; r3.z <- refractCol.z
                 
                 #line 227

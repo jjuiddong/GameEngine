@@ -12,10 +12,11 @@
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
 Texture2D txDiffuse : register(t0);
-Texture2D txWaveMap0 : register(t1);
-Texture2D txWaveMap1 : register(t2);
-Texture2D txReflectMap : register(t3);
-Texture2D txRefractMap : register(t4);
+Texture2D txNormal	: register(t1);
+Texture2D txWaveMap0 : register(t2);
+Texture2D txWaveMap1 : register(t3);
+Texture2D txReflectMap : register(t4);
+Texture2D txRefractMap : register(t5);
 
 SamplerState samLinear : register(s0)
 {
@@ -49,7 +50,6 @@ cbuffer cbPerFrame : register(b0)
 	matrix gLightProj[3];
 	matrix gLightTT;
 	float3 gEyePosW;
-	bool gClipEnable;
 }
 
 
