@@ -1,0 +1,22 @@
+Error : Error LoadTextureParallel tile.jpg 
+Error : Err LoadAssimpModel ../media/boxlifter.x 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTextureParallel ../media/skybox//ThickCloudsWaterFront2048.png 
+Error : Error LoadTextureParallel ../media/skybox//ThickCloudsWaterBack2048.png 
+Error : Error LoadTextureParallel ../media/skybox//ThickCloudsWaterRight2048.png 
+Error : Error LoadTextureParallel ../media/skybox//ThickCloudsWaterLeft2048.png 
+Error : Error LoadTextureParallel ../media/skybox//ThickCloudsWaterUp2048.png 
+Error : Error LoadTextureParallel ../media/skybox//ThickCloudsWaterDown2048.png 
+Error : Error LoadTextureParallel white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadTexture1 white.dds 
+Error : Error LoadShader ../media/shader11/pos-color.fxo 파일이 존재하지 않습니다.
+Error : Error LoadShader ../media/shader11/pos_rhw-color.fxo 파일이 존재하지 않습니다.
+Error : Error LoadShader ../media/shader11/pos-tex.fxo 파일이 존재하지 않습니다.
