@@ -1,8 +1,3 @@
-//--------------------------------------------------------------------------------------
-// File: Tutorial04.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
@@ -18,9 +13,12 @@ SamplerState samLinear : register( s0 )
 
 cbuffer cbPerFrame : register( b0 )
 {
-	matrix World;
-	matrix View;
-	matrix Projection;
+	matrix gWorld;
+	matrix gView;
+	matrix gProjection;
+	matrix gLightView[3];
+	matrix gLightProj[3];
+	matrix gLightTT;
 	float3 gEyePosW;
 }
 
@@ -60,9 +58,9 @@ VS_OUTPUT VS( float4 Pos : POSITION
 	, float4 Color : COLOR )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    output.Pos = mul( Pos, World );
-    output.Pos = mul( output.Pos, View );
-    output.Pos = mul( output.Pos, Projection );
+    output.Pos = mul( Pos, gWorld );
+    output.Pos = mul( output.Pos, gView );
+    output.Pos = mul( output.Pos, gProjection );
     output.Color = Color;
     return output;
 }

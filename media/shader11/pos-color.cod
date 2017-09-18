@@ -5,10 +5,13 @@
 //
 cbuffer cbPerFrame : register(b0)
 {
-    float4x4 World;                     // Offset:    0, size:   64
-    float4x4 View;                      // Offset:   64, size:   64
-    float4x4 Projection;                // Offset:  128, size:   64
-    float3  gEyePosW;                   // Offset:  192, size:   12
+    float4x4 gWorld;                    // Offset:    0, size:   64
+    float4x4 gView;                     // Offset:   64, size:   64
+    float4x4 gProjection;               // Offset:  128, size:   64
+    float4x4 gLightView[3];             // Offset:  192, size:  192
+    float4x4 gLightProj[3];             // Offset:  384, size:  192
+    float4x4 gLightTT;                  // Offset:  576, size:   64
+    float3  gEyePosW;                   // Offset:  640, size:   12
 }
 
 cbuffer cbLight : register(b1)
@@ -62,10 +65,13 @@ fxgroup
                 // cbuffer cbPerFrame
                 // {
                 //
-                //   float4x4 World;                    // Offset:    0 Size:    64
-                //   float4x4 View;                     // Offset:   64 Size:    64
-                //   float4x4 Projection;               // Offset:  128 Size:    64
-                //   float3 gEyePosW;                   // Offset:  192 Size:    12 [unused]
+                //   float4x4 gWorld;                   // Offset:    0 Size:    64
+                //   float4x4 gView;                    // Offset:   64 Size:    64
+                //   float4x4 gProjection;              // Offset:  128 Size:    64
+                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
+                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
+                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
+                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
                 //
                 // }
                 //
@@ -108,7 +114,7 @@ fxgroup
                 //   o1.x <- <VS return value>.Color.x; o1.y <- <VS return value>.Color.y; o1.z <- <VS return value>.Color.z; o1.w <- <VS return value>.Color.w; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 63 "d:\Project\GameEngine\media\shader11\pos-color.fx"
+                #line 61 "d:\Project\GameEngine\media\shader11\pos-color.fx"
                 dp4 r0.x, v0.xyzw, cb0[0].xyzw  // r0.x <- output.Pos.x
                 dp4 r0.y, v0.xyzw, cb0[1].xyzw  // r0.y <- output.Pos.y
                 dp4 r0.z, v0.xyzw, cb0[2].xyzw  // r0.z <- output.Pos.z
@@ -159,7 +165,7 @@ fxgroup
                 //   v1.x <- In.Color.x; v1.y <- In.Color.y; v1.z <- In.Color.z; v1.w <- In.Color.w; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 77 "d:\Project\GameEngine\media\shader11\pos-color.fx"
+                #line 75 "d:\Project\GameEngine\media\shader11\pos-color.fx"
                 mov o0.xyzw, v1.xyzw
                 ret 
                 // Approximately 2 instruction slots used
