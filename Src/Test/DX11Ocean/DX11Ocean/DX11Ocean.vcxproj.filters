@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dx11ocean.cpp" />
+    <ClCompile Include="skybox.cpp" />
+    <ClCompile Include="CFW1StateSaver.cpp" />
+    <ClCompile Include="ocean_simulator.cpp" />
+    <ClCompile Include="CSFFT\fft_512x512.cpp">
+      <Filter>CSFFT</Filter>
+    </ClCompile>
+    <ClCompile Include="render.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="skybox.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="CFW1StateSaver.h" />
+    <ClInclude Include="ocean_simulator.h" />
+    <ClInclude Include="CSFFT\fft_512x512.h">
+      <Filter>CSFFT</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="FX">
+      <UniqueIdentifier>{36303bfe-0f25-4428-a216-330fb2be1a5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CSFFT">
+      <UniqueIdentifier>{d3be70f5-67e0-45bf-8b05-b8c9ab5bdd52}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\media\ocean\skybox.hlsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="..\..\..\..\media\ocean\ocean_shading.hlsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="..\..\..\..\media\ocean\ocean_simulator_vs_ps.hlsl">
+      <Filter>FX</Filter>
+    </None>
+  </ItemGroup>
+</Project>
