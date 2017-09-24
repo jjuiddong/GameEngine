@@ -195,7 +195,7 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		// Debug Display ----------------------------------------------------
 		//m_axis.Render(m_renderer);
-		//--------------------------------------------------------------------
+		//-------------------------------------------------------------------
 
 		//m_renderer.RenderFPS();
 		m_renderer.EndScene();
