@@ -91,7 +91,9 @@ technique11 Unlit
     pass P0
     {
         SetVertexShader( CompileShader( vs_5_0, VS() ) );
-	SetGeometryShader( NULL );
+		SetGeometryShader( NULL );
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
         SetPixelShader( CompileShader( ps_5_0, PS() ) );
     }
 }
