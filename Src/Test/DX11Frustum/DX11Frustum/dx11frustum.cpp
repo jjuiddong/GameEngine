@@ -43,7 +43,8 @@ public:
 	Vector3 m_SpherePos;
 	Vector3 m_BoxPos;
 
-	bool m_isFrustumTracking = true;
+	bool m_isFrustumCameraMoving = false;
+
 	sf::Vector2i m_curPos;
 	Plane m_groundPlane1, m_groundPlane2;
 	float m_moveLen;
@@ -135,7 +136,7 @@ bool cViewer::OnInit()
 	m_dbgSphere2.Create(m_renderer, 0.5f, 10, 10, cColor::RED);
 	m_dbgSphere2.m_bsphere.SetPos(Vector3(0.f, 0, 3.1f));
 
-	m_dbgFrustum.Create(m_renderer, m_testCam, cColor::WHITE);
+	m_dbgFrustum.Create(m_renderer, m_testCam.GetViewProjectionMatrix(), cColor::WHITE);
 	m_dbgArrow.Create(m_renderer, Vector3(0, 0, 0), Vector3(1, 1, 1));
 
 	//m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
@@ -153,8 +154,7 @@ void cViewer::OnUpdate(const float deltaSeconds)
 
 void cViewer::OnRender(const float deltaSeconds)
 {
-	if (m_isFrustumTracking)
-		cMainCamera::Get()->PushCamera(&m_terrainCamera);
+	cMainCamera::Get()->PushCamera(m_isFrustumCameraMoving ? &m_testCam : &m_terrainCamera);
 
 	//GetMainLight().Bind(m_renderer, 0);
 
@@ -171,8 +171,8 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_cube.m_boundingBox.SetBoundingBox(m_cube.m_transform);
 		//m_world.rot.SetRotationY(t);
 
-		XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetViewMatrix());
-		XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetProjectionMatrix());
+		XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&GetMainCamera().GetViewMatrix());
+		XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&GetMainCamera().GetProjectionMatrix());
 		XMMATRIX mWorld = XMLoadFloat4x4((XMFLOAT4X4*)&m_world.GetMatrix());
 		m_renderer.m_cbPerFrame.m_v->mWorld = XMMatrixTranspose(mWorld);
 		m_renderer.m_cbPerFrame.m_v->mView = XMMatrixTranspose(mView);
@@ -188,6 +188,8 @@ void cViewer::OnRender(const float deltaSeconds)
 		Vector3 p2 = p1 * m_testCam.GetViewMatrix().GetQuaternion().GetMatrix();
 		m_dbgArrow.SetDirection(p0, p0 + p2, 0.2f);		
 		m_dbgArrow.Render(m_renderer);
+
+		m_dbgFrustum.SetFrustum(m_renderer, m_testCam.GetViewProjectionMatrix());
 
 		m_mtrl.InitWhite();
 		m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
@@ -219,12 +221,12 @@ void cViewer::OnRender(const float deltaSeconds)
 			m_dbgBox1.Render(m_renderer);
 		}
 
+		m_renderer.RenderFPS();
 		m_renderer.EndScene();
 		m_renderer.Present();
 	}
 
-	if (m_isFrustumTracking)
-		cMainCamera::Get()->PopCamera();
+	cMainCamera::Get()->PopCamera();
 }
 
 
@@ -287,8 +289,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEWHEEL:
 	{
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+		cMainCamera::Get()->PushCamera(m_isFrustumCameraMoving ? &m_testCam : &m_terrainCamera);
 
 		int fwKeys = GET_KEYSTATE_WPARAM(wParam);
 		int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
@@ -301,8 +302,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		graphic::GetMainCamera().Zoom((zDelta<0) ? -zoomLen : zoomLen);
 
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PopCamera();
+		cMainCamera::Get()->PopCamera();
 	}
 	break;
 
@@ -321,6 +321,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		case VK_RETURN:
 			//cResourceManager::Get()->ReloadShader(m_renderer);
 			break;
+
+		case '1': m_isFrustumCameraMoving = !m_isFrustumCameraMoving; break;
 
 			//case VK_SPACE: m_isShadow = !m_isShadow; break;
 			//case '1': m_isShowLightFrustum = !m_isShowLightFrustum; break;
@@ -354,8 +356,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONDOWN:
 	{
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+		cMainCamera::Get()->PushCamera(m_isFrustumCameraMoving? &m_testCam : &m_terrainCamera);
 
 		POINT pos = { (short)LOWORD(lParam), (short)HIWORD(lParam) };
 
@@ -370,8 +371,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
 		graphic::GetMainCamera().MoveCancel();
 
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PopCamera();
+		cMainCamera::Get()->PopCamera();
 	}
 	break;
 
@@ -412,8 +412,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEMOVE:
 	{
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+		cMainCamera::Get()->PushCamera(m_isFrustumCameraMoving ? &m_testCam : &m_terrainCamera);
 
 		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
 
@@ -438,8 +437,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 			if ((abs(x) > 1000) || (abs(y) > 1000))
 			{
-				if (m_isFrustumTracking)
-					cMainCamera::Get()->PopCamera();
+				cMainCamera::Get()->PopCamera();
 				break;
 			}
 
@@ -478,8 +476,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		}
 
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PopCamera();
+		cMainCamera::Get()->PopCamera();
 	}
 	break;
 	}
