@@ -96,6 +96,8 @@ technique11 Skybox
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS_Skybox()));
 		SetGeometryShader(NULL);
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }

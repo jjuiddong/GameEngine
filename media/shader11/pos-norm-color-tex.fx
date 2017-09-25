@@ -152,6 +152,8 @@ technique11 BuildShadowMap
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS_BuildShadowMap()));
 		SetGeometryShader(NULL);
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS_BuildShadowMap()));
 	}
 }

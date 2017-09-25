@@ -325,6 +325,8 @@ technique11 Unlit
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS(NotInstancing)));
 		SetGeometryShader(NULL);
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }
@@ -336,6 +338,8 @@ technique11 ShadowMap
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS_ShadowMap(NotInstancing)));
 		SetGeometryShader(NULL);
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS_ShadowMap()));
 	}
 }
@@ -347,6 +351,8 @@ technique11 BuildShadowMap
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS_BuildShadowMap(NotInstancing)));
 		SetGeometryShader(NULL);
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS_BuildShadowMap()));
 	}
 }
@@ -361,6 +367,8 @@ technique11 Unlit_Instancing
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS(Instancing)));
 		SetGeometryShader(NULL);
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }
@@ -372,6 +380,8 @@ technique11 ShadowMap_Instancing
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS_ShadowMap(Instancing)));
 		SetGeometryShader(NULL);
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS_ShadowMap()));
 	}
 }
@@ -383,6 +393,8 @@ technique11 BuildShadowMap_Instancing
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS_BuildShadowMap(Instancing)));
 		SetGeometryShader(NULL);
+		SetHullShader(NULL);
+		SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS_BuildShadowMap()));
 	}
 }
