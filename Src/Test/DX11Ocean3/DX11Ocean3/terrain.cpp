@@ -1065,7 +1065,7 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	water_normalmap_resource_viewport.TopLeftX=0;
 	water_normalmap_resource_viewport.TopLeftY=0;
 
-
+	//1
 	//saving scene color buffer and back buffer to constants
 	pContext->RSGetViewports( &cRT, &currentViewport);
     pContext->OMGetRenderTargets( 1, &colorBuffer, &backBuffer );
@@ -1077,24 +1077,24 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
     pContext->ClearDepthStencilView( shadowmap_resourceDSV, D3D11_CLEAR_DEPTH, 1.0, 0 );
 
 	//drawing terrain to depth buffer
-	SetupLightView(cam);
-	
-	pEffect->GetVariableByName("g_TerrainBeingRendered")->AsScalar()->SetFloat(1.0f);
-	pEffect->GetVariableByName("g_SkipCausticsCalculation")->AsScalar()->SetFloat(1.0f);
+	//SetupLightView(cam);
+	//
+	//pEffect->GetVariableByName("g_TerrainBeingRendered")->AsScalar()->SetFloat(1.0f);
+	//pEffect->GetVariableByName("g_SkipCausticsCalculation")->AsScalar()->SetFloat(1.0f);
 
-	pContext->IASetInputLayout(heightfield_inputlayout);
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
-	pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(2)->Apply(0, pContext);
-	stride=sizeof(float)*4;
-	pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
-	pContext->Draw(terrain_numpatches_1d*terrain_numpatches_1d, 0);
+	//pContext->IASetInputLayout(heightfield_inputlayout);
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
+	//pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(2)->Apply(0, pContext);
+	//stride=sizeof(float)*4;
+	//pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
+	//pContext->Draw(terrain_numpatches_1d*terrain_numpatches_1d, 0);
 	
 
 
 	pEffect->GetTechniqueByName("Default")->GetPassByIndex(0)->Apply(0, pContext);
 
 	//if(g_RenderCaustics)
-	if (1)
+	if (0)
 	{
 		// selecting water_normalmap_resource rendertarget
 		pContext->RSSetViewports(1,&water_normalmap_resource_viewport);
@@ -1113,33 +1113,35 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	}
 
 
+	//2
 	// setting up reflection rendertarget	
 	pContext->RSSetViewports(1,&reflection_Viewport);
     pContext->OMSetRenderTargets( 1, &reflection_color_resourceRTV, reflection_depth_resourceDSV);
     pContext->ClearRenderTargetView( reflection_color_resourceRTV, RefractionClearColor );
     pContext->ClearDepthStencilView( reflection_depth_resourceDSV, D3D11_CLEAR_DEPTH, 1.0, 0 );
-	
-	SetupReflectionView(cam);
-	// drawing sky to reflection RT
+	//
+	//SetupReflectionView(cam);
+	//// drawing sky to reflection RT
 
-	pEffect->GetTechniqueByName("RenderSky")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
-	pContext->IASetInputLayout(trianglestrip_inputlayout);
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	stride=sizeof(float)*6;
-	pContext->IASetVertexBuffers(0,1,&sky_vertexbuffer,&stride,&offset);
-	pContext->Draw(sky_gridpoints*(sky_gridpoints+2)*2, 0);
-	
+	//pEffect->GetTechniqueByName("RenderSky")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
+	//pContext->IASetInputLayout(trianglestrip_inputlayout);
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	//stride=sizeof(float)*6;
+	//pContext->IASetVertexBuffers(0,1,&sky_vertexbuffer,&stride,&offset);
+	//pContext->Draw(sky_gridpoints*(sky_gridpoints+2)*2, 0);
+
+	//3
 	// drawing terrain to reflection RT
-	tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
-	tex_variable->SetResource(shadowmap_resourceSRV);
+	//tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
+	//tex_variable->SetResource(shadowmap_resourceSRV);
 
-	pEffect->GetVariableByName("g_SkipCausticsCalculation")->AsScalar()->SetFloat(1.0f);
-	pContext->IASetInputLayout(heightfield_inputlayout);
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
-	pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
-	stride=sizeof(float)*4;
-	pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
-	pContext->Draw(terrain_numpatches_1d*terrain_numpatches_1d, 0);
+	//pEffect->GetVariableByName("g_SkipCausticsCalculation")->AsScalar()->SetFloat(1.0f);
+	//pContext->IASetInputLayout(heightfield_inputlayout);
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
+	//pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
+	//stride=sizeof(float)*4;
+	//pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
+	//pContext->Draw(terrain_numpatches_1d*terrain_numpatches_1d, 0);
 
 	tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
 	tex_variable->SetResource(NULL);
@@ -1156,17 +1158,18 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	tex_variable=pEffect->GetVariableByName("g_WaterNormalMapTexture")->AsShaderResource();
 	tex_variable->SetResource(water_normalmap_resourceSRV);
 
+	// 4
 	// drawing terrain to main buffer
-	tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
-	tex_variable->SetResource(shadowmap_resourceSRV);
-	pEffect->GetVariableByName("g_TerrainBeingRendered")->AsScalar()->SetFloat(1.0f);
-	pEffect->GetVariableByName("g_SkipCausticsCalculation")->AsScalar()->SetFloat(0.0f);
-	pContext->IASetInputLayout(heightfield_inputlayout);
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
-	pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
-	stride=sizeof(float)*4;
-	pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
-	pContext->Draw(terrain_numpatches_1d*terrain_numpatches_1d, 0);
+	//tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
+	//tex_variable->SetResource(shadowmap_resourceSRV);
+	//pEffect->GetVariableByName("g_TerrainBeingRendered")->AsScalar()->SetFloat(1.0f);
+	//pEffect->GetVariableByName("g_SkipCausticsCalculation")->AsScalar()->SetFloat(0.0f);
+	//pContext->IASetInputLayout(heightfield_inputlayout);
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
+	//pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
+	//stride=sizeof(float)*4;
+	//pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
+	//pContext->Draw(terrain_numpatches_1d*terrain_numpatches_1d, 0);
 
 	tex_variable=pEffect->GetVariableByName("g_WaterNormalMapTexture")->AsShaderResource();
 	tex_variable->SetResource(NULL);
@@ -1180,67 +1183,64 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	// resolving main buffer depth to refraction depth resource manually
     pContext->RSSetViewports( 1, &main_Viewport );
 	pContext->OMSetRenderTargets( 1, &refraction_depth_resourceRTV, NULL);
+	float depthClear[4] = { 1,1,1,1 };
+	pContext->ClearRenderTargetView(refraction_depth_resourceRTV, depthClear); // add test code
 
-	pContext->IASetInputLayout(trianglestrip_inputlayout);
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	// 5
+	//pContext->IASetInputLayout(trianglestrip_inputlayout);
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	switch(MultiSampleCount)
-	{
-		case 1:
-			tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS1")->AsShaderResource();
-			tex_variable->SetResource(main_depth_resourceSRV);
-			pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(0)->Apply(0, pContext);
-			break;
-		case 2:
-			tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS2")->AsShaderResource();
-			tex_variable->SetResource(main_depth_resourceSRV);
-			pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(1)->Apply(0, pContext);
-			break;
-		case 4:
-			tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS4")->AsShaderResource();
-			tex_variable->SetResource(main_depth_resourceSRV);
-			pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(2)->Apply(0, pContext);
-			break;
-		default:
-			tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS1")->AsShaderResource();
-			tex_variable->SetResource(main_depth_resourceSRV);
-			pEffect->GetTechniqueByName("RefractionDepthManualResolve1")->GetPassByIndex(0)->Apply(0, pContext);
-			break;
-	}
+	//switch(MultiSampleCount)
+	//{
+	//	case 1:
+	//		tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS1")->AsShaderResource();
+	//		tex_variable->SetResource(main_depth_resourceSRV);
+	//		pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(0)->Apply(0, pContext);
+	//		break;
+	//	case 2:
+	//		tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS2")->AsShaderResource();
+	//		tex_variable->SetResource(main_depth_resourceSRV);
+	//		pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(1)->Apply(0, pContext);
+	//		break;
+	//	case 4:
+	//		tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS4")->AsShaderResource();
+	//		tex_variable->SetResource(main_depth_resourceSRV);
+	//		pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(2)->Apply(0, pContext);
+	//		break;
+	//	default:
+	//		tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS1")->AsShaderResource();
+	//		tex_variable->SetResource(main_depth_resourceSRV);
+	//		pEffect->GetTechniqueByName("RefractionDepthManualResolve1")->GetPassByIndex(0)->Apply(0, pContext);
+	//		break;
+	//}
 
+	//stride=sizeof(float)*6;
+	//pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
+	//pContext->Draw(4, 0); // just need to pass 4 vertices to shader
 
-
-	stride=sizeof(float)*6;
-	pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
-	pContext->Draw(4, 0); // just need to pass 4 vertices to shader
-
-
-	switch(MultiSampleCount)
-	{
-		case 1:
-			tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS1")->AsShaderResource();
-			tex_variable->SetResource(NULL);
-			pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(0)->Apply(0, pContext);
-			break;
-		case 2:
-			tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS2")->AsShaderResource();
-			tex_variable->SetResource(NULL);
-			pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(1)->Apply(0, pContext);
-			break;
-		case 4:
-			tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS4")->AsShaderResource();
-			tex_variable->SetResource(NULL);
-			pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(2)->Apply(0, pContext);
-			break;
-		default:
-			tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS1")->AsShaderResource();
-			tex_variable->SetResource(NULL);
-			pEffect->GetTechniqueByName("RefractionDepthManualResolve1")->GetPassByIndex(0)->Apply(0, pContext);
-			break;
-	}
-
-
-
+	//switch(MultiSampleCount)
+	//{
+	//	case 1:
+	//		tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS1")->AsShaderResource();
+	//		tex_variable->SetResource(NULL);
+	//		pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(0)->Apply(0, pContext);
+	//		break;
+	//	case 2:
+	//		tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS2")->AsShaderResource();
+	//		tex_variable->SetResource(NULL);
+	//		pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(1)->Apply(0, pContext);
+	//		break;
+	//	case 4:
+	//		tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS4")->AsShaderResource();
+	//		tex_variable->SetResource(NULL);
+	//		pEffect->GetTechniqueByName("RefractionDepthManualResolve")->GetPassByIndex(2)->Apply(0, pContext);
+	//		break;
+	//	default:
+	//		tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureMS1")->AsShaderResource();
+	//		tex_variable->SetResource(NULL);
+	//		pEffect->GetTechniqueByName("RefractionDepthManualResolve1")->GetPassByIndex(0)->Apply(0, pContext);
+	//		break;
+	//}
 
 	// getting back to rendering to main buffer 
 	pContext->RSSetViewports(1,&main_Viewport);
@@ -1249,15 +1249,20 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	// drawing water surface to main buffer
 
 	tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
-	tex_variable->SetResource(shadowmap_resourceSRV);
+	//tex_variable->SetResource(shadowmap_resourceSRV);
+	tex_variable->SetResource(NULL);
 	tex_variable=pEffect->GetVariableByName("g_ReflectionTexture")->AsShaderResource();
 	tex_variable->SetResource(reflection_color_resourceSRV);
+	//tex_variable->SetResource(NULL);
 	tex_variable=pEffect->GetVariableByName("g_RefractionTexture")->AsShaderResource();
-	tex_variable->SetResource(refraction_color_resourceSRV);
+	//tex_variable->SetResource(refraction_color_resourceSRV);
+	tex_variable->SetResource(NULL);
 	tex_variable=pEffect->GetVariableByName("g_RefractionDepthTextureResolved")->AsShaderResource();
 	tex_variable->SetResource(refraction_depth_resourceSRV);
+	//tex_variable->SetResource(NULL);
 	tex_variable=pEffect->GetVariableByName("g_WaterNormalMapTexture")->AsShaderResource();
-	tex_variable->SetResource(water_normalmap_resourceSRV);
+	//tex_variable->SetResource(water_normalmap_resourceSRV);
+	tex_variable->SetResource(NULL); // add test code
 
 	pEffect->GetVariableByName("g_TerrainBeingRendered")->AsScalar()->SetFloat(0.0f);
 	pEffect->GetTechniqueByName("RenderWater")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
@@ -1268,6 +1273,8 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	pContext->IASetVertexBuffers(0,1,&heightfield_vertexbuffer,&stride,&offset);
 	pContext->Draw(terrain_numpatches_1d*terrain_numpatches_1d, 0);
 
+
+
 	tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
 	tex_variable->SetResource(NULL);
 	tex_variable=pEffect->GetVariableByName("g_ReflectionTexture")->AsShaderResource();
@@ -1280,15 +1287,16 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	tex_variable->SetResource(NULL);
 	pEffect->GetTechniqueByName("RenderWater")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
 
+	// 6
 	//drawing sky to main buffer
-	pEffect->GetTechniqueByName("RenderSky")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
+	//pEffect->GetTechniqueByName("RenderSky")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
 
-	pContext->IASetInputLayout(trianglestrip_inputlayout);
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	//pContext->IASetInputLayout(trianglestrip_inputlayout);
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	stride=sizeof(float)*6;
-	pContext->IASetVertexBuffers(0,1,&sky_vertexbuffer,&stride,&offset);
-	pContext->Draw(sky_gridpoints*(sky_gridpoints+2)*2, 0);
+	//stride=sizeof(float)*6;
+	//pContext->IASetVertexBuffers(0,1,&sky_vertexbuffer,&stride,&offset);
+	//pContext->Draw(sky_gridpoints*(sky_gridpoints+2)*2, 0);
 
 	pEffect->GetTechniqueByName("Default")->GetPassByIndex(0)->Apply(0, pContext);
 

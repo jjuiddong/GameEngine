@@ -1,12 +1,16 @@
-//--------------------------------------------------------------------------------------
-// File: Tutorial04.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
+
+#define Instancing		true
+#define NotInstancing	false
+
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
+Texture2D txDiffuse	: register(t0);
+Texture2D txBump	: register(t1);
+Texture2D txShadow0	: register(t2);
+Texture2D txShadow1	: register(t3);
+Texture2D txShadow2	: register(t4);
 
 
 cbuffer cbPerFrame : register( b0 )
@@ -37,6 +41,17 @@ cbuffer cbMaetrial : register( b2 )
 	float gMtrl_Pow;
 }
 
+cbuffer cbPerFrameInstancing : register( b3 )
+{
+	matrix gWorldInst[100];
+}
+
+
+cbuffer cbClipPlane : register(b4)
+{
+	float4	gClipPlane;
+}
+
 
 
 //--------------------------------------------------------------------------------------
@@ -54,6 +69,7 @@ struct VS_OUTPUT
 VS_OUTPUT VS( float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float4 Color : COLOR
+	, uniform bool IsInstancing
 	 )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
@@ -85,18 +101,84 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 }
 
 
+//--------------------------------------------------------------------------------------
+// Vertex Shader BuildShadowMap
+//--------------------------------------------------------------------------------------
+struct VS_BUILDSHADOW_OUTPUT
+{
+	float4 Pos : SV_POSITION;
+	float2 Depth : TEXCOORD0;
+};
+
+
+VS_BUILDSHADOW_OUTPUT VS_BuildShadowMap(float4 Pos : POSITION
+	, float3 Normal : NORMAL
+	, float4 Color : COLOR
+	, uint instID : SV_InstanceID
+	, uniform bool IsInstancing
+)
+{
+	VS_BUILDSHADOW_OUTPUT output = (VS_BUILDSHADOW_OUTPUT)0;
+	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
+
+	output.Pos = mul(Pos, mWorld);
+	output.Pos = mul(output.Pos, gView);
+	output.Pos = mul(output.Pos, gProjection);
+	output.Depth.xy = output.Pos.zw;
+
+	return output;
+}
+
+
+//--------------------------------------------------------------------------------------
+// Pixel Shader BuildShadowMap
+//--------------------------------------------------------------------------------------
+float4 PS_BuildShadowMap(
+	VS_BUILDSHADOW_OUTPUT In
+	) : SV_Target
+{
+	return In.Depth.x / In.Depth.y;
+}
+
+
+
 
 technique11 Unlit
 {
     pass P0
     {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
-		SetGeometryShader( NULL );
-		SetHullShader(NULL);
-		SetDomainShader(NULL);
+        SetVertexShader( CompileShader( vs_5_0, VS(NotInstancing) ) );
+	SetGeometryShader( NULL );
+        SetHullShader(NULL);
+      	SetDomainShader(NULL);
         SetPixelShader( CompileShader( ps_5_0, PS() ) );
     }
 }
 
+
+technique11 ShadowMap
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS(NotInstancing)));
+		SetGeometryShader(NULL);
+ 	        SetHullShader(NULL);
+        	SetDomainShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS()));
+	}
+}
+
+
+technique11 BuildShadowMap
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS_BuildShadowMap(NotInstancing)));
+		SetGeometryShader(NULL);
+ 	        SetHullShader(NULL);
+        	SetDomainShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS_BuildShadowMap()));
+	}
+}
 
 

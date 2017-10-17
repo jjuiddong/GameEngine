@@ -10,11 +10,9 @@
 //--------------------------------------------------------------------------------------
 Texture2D txDiffuse	: register(t0);
 Texture2D txBump	: register(t1);
-Texture2D txSpecular : register(t2);
-Texture2D txEmissive : register(t3);
-Texture2D txShadow0	: register(t4);
-Texture2D txShadow1	: register(t5);
-Texture2D txShadow2	: register(t6);
+Texture2D txShadow0	: register(t2);
+Texture2D txShadow1	: register(t3);
+Texture2D txShadow2	: register(t4);
 
 
 SamplerState samLinear : register(s0)
@@ -88,6 +86,10 @@ cbuffer cbClipPlane : register(b4)
 	float4	gClipPlane;
 }
 
+cbuffer cbSkinning : register(b5)
+{
+	matrix gPalette[64];
+}
 
 
 //--------------------------------------------------------------------------------------
@@ -101,23 +103,42 @@ struct VS_OUTPUT
 };
 
 
+
 //--------------------------------------------------------------------------------------
-// Vertex Shader
+// Skinning Vertex Shader
 //--------------------------------------------------------------------------------------
 VS_OUTPUT VS( float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, uint4 BlendId : BLENDINDICES0
+	, float4 BlendWeight : BLENDWEIGHT0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
+    const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
 
-    output.Pos = mul( Pos, mWorld );
+    float3 p = {0,0,0};
+    float3 n = {0,0,0};
+
+    p += mul(Pos, gPalette[ BlendId.x]) * BlendWeight.x;
+    p += mul(Pos, gPalette[ BlendId.y]) * BlendWeight.y;
+    p += mul(Pos, gPalette[ BlendId.z]) * BlendWeight.z;
+    p += mul(Pos, gPalette[ BlendId.w]) * BlendWeight.w;
+
+    n += mul(Normal, gPalette[ BlendId.x]) * BlendWeight.x;
+    n += mul(Normal, gPalette[ BlendId.y]) * BlendWeight.y;
+    n += mul(Normal, gPalette[ BlendId.z]) * BlendWeight.z;
+    n += mul(Normal, gPalette[ BlendId.w]) * BlendWeight.w;
+
+    n = normalize(n);
+
+    output.Pos = mul( float4(p,1), mWorld );
     output.Pos = mul( output.Pos, gView );
     output.Pos = mul( output.Pos, gProjection );
-    output.Normal = normalize( mul(Normal, (float3x3)mWorld) );
+
+    output.Normal = normalize( mul(n, (float3x3)mWorld) );
     output.Tex = Tex;
     output.clip = dot(mul(Pos, mWorld), gClipPlane);
 
@@ -126,7 +147,7 @@ VS_OUTPUT VS( float4 Pos : POSITION
 
 
 //--------------------------------------------------------------------------------------
-// Pixel Shader
+// Skinning Pixel Shader
 //--------------------------------------------------------------------------------------
 float4 PS( VS_OUTPUT In ) : SV_Target
 {
@@ -134,16 +155,15 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 	float3 H = normalize(L + normalize(In.toEye));
 	float3 N = normalize(In.Normal);
 
-	const float lightV = max(0, dot(N, L));
 	float4 color  = gLight_Ambient * gMtrl_Ambient
-			+ gLight_Diffuse * gMtrl_Diffuse * 0.1
-			+ gLight_Diffuse * gMtrl_Diffuse * lightV * 0.1
-			+ gLight_Diffuse * gMtrl_Diffuse * lightV
+			+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L))
 			+ gLight_Specular * gMtrl_Specular * pow( max(0, dot(N,H)), gMtrl_Pow);
 
 	float4 Out = color * txDiffuse.Sample(samLinear, In.Tex);
 	return float4(Out.xyz, gMtrl_Diffuse.a);
 }
+
+
 
 
 
@@ -167,6 +187,8 @@ struct VS_SHADOW_OUTPUT
 VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, uint4 BlendId : BLENDINDICES0
+	, float4 BlendWeight : BLENDWEIGHT0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
@@ -174,10 +196,25 @@ VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	VS_SHADOW_OUTPUT output = (VS_SHADOW_OUTPUT)0;
 	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
 
-	output.Pos = mul(Pos, mWorld);
+	float3 p = {0,0,0};
+	float3 n = {0,0,0};
+
+	p += mul(Pos, gPalette[ BlendId.x]) * BlendWeight.x;
+	p += mul(Pos, gPalette[ BlendId.y]) * BlendWeight.y;
+	p += mul(Pos, gPalette[ BlendId.z]) * BlendWeight.z;
+	p += mul(Pos, gPalette[ BlendId.w]) * BlendWeight.w;
+
+	n += mul(Normal, gPalette[ BlendId.x]) * BlendWeight.x;
+	n += mul(Normal, gPalette[ BlendId.y]) * BlendWeight.y;
+	n += mul(Normal, gPalette[ BlendId.z]) * BlendWeight.z;
+	n += mul(Normal, gPalette[ BlendId.w]) * BlendWeight.w;
+
+	n = normalize(n);
+
+	output.Pos = mul(float4(p,1), mWorld);
 	output.Pos = mul(output.Pos, gView);
 	output.Pos = mul(output.Pos, gProjection);
-	output.Normal = normalize(mul(Normal, (float3x3)mWorld));
+	output.Normal = normalize(mul(n, (float3x3)mWorld));
 	output.Tex = Tex;
 
 	matrix mLVP[3];
@@ -297,6 +334,8 @@ struct VS_BUILDSHADOW_OUTPUT
 VS_BUILDSHADOW_OUTPUT VS_BuildShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, uint4 BlendId : BLENDINDICES0
+	, float4 BlendWeight : BLENDWEIGHT0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
@@ -304,7 +343,22 @@ VS_BUILDSHADOW_OUTPUT VS_BuildShadowMap(float4 Pos : POSITION
 	VS_BUILDSHADOW_OUTPUT output = (VS_BUILDSHADOW_OUTPUT)0;
 	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
 
-	output.Pos = mul(Pos, mWorld);
+	float3 p = {0,0,0};
+	float3 n = {0,0,0};
+
+	p += mul(Pos, gPalette[ BlendId.x]) * BlendWeight.x;
+	p += mul(Pos, gPalette[ BlendId.y]) * BlendWeight.y;
+	p += mul(Pos, gPalette[ BlendId.z]) * BlendWeight.z;
+	p += mul(Pos, gPalette[ BlendId.w]) * BlendWeight.w;
+
+	n += mul(Normal, gPalette[ BlendId.x]) * BlendWeight.x;
+	n += mul(Normal, gPalette[ BlendId.y]) * BlendWeight.y;
+	n += mul(Normal, gPalette[ BlendId.z]) * BlendWeight.z;
+	n += mul(Normal, gPalette[ BlendId.w]) * BlendWeight.w;
+
+	n = normalize(n);
+
+	output.Pos = mul(float4(p,1), mWorld);
 	output.Pos = mul(output.Pos, gView);
 	output.Pos = mul(output.Pos, gProjection);
 	output.Depth.xy = output.Pos.zw;

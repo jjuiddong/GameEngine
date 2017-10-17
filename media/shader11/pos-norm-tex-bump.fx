@@ -10,11 +10,10 @@
 //--------------------------------------------------------------------------------------
 Texture2D txDiffuse	: register(t0);
 Texture2D txBump	: register(t1);
-Texture2D txSpecular : register(t2);
-Texture2D txEmissive : register(t3);
-Texture2D txShadow0	: register(t4);
-Texture2D txShadow1	: register(t5);
-Texture2D txShadow2	: register(t6);
+Texture2D txSpecular: register(t2);
+Texture2D txShadow0	: register(t3);
+Texture2D txShadow1	: register(t4);
+Texture2D txShadow2	: register(t5);
 
 
 SamplerState samLinear : register(s0)
@@ -24,8 +23,14 @@ SamplerState samLinear : register(s0)
 	AddressV = WRAP;
 };
 
+SamplerState samAnis : register(s1)
+{
+	Filter = ANISOTROPIC;
+	AddressU = WRAP;
+	AddressV = WRAP;
+};
 
-SamplerComparisonState samShadow : register(s1)
+SamplerComparisonState samShadow : register(s2)
 {
 	Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 
@@ -94,10 +99,12 @@ cbuffer cbClipPlane : register(b4)
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
-    float3 Normal : TEXCOORD0;
-    float2 Tex : TEXCOORD1;
-    float3 toEye : TEXCOORD2;
-    float clip : SV_ClipDistance0;
+    float3 Normal : NORMAL;
+	float3 Tangent : TANGENT;
+	float3 Binormal : BINORMAL;
+    float2 Tex : TEXCOORD0;
+    float3 toEye : TEXCOORD1;
+	float clip : SV_ClipDistance0;
 };
 
 
@@ -107,6 +114,8 @@ struct VS_OUTPUT
 VS_OUTPUT VS( float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, float3 Tangent : TANGENT
+	, float3 Binormal : BINORMAL
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
@@ -118,8 +127,10 @@ VS_OUTPUT VS( float4 Pos : POSITION
     output.Pos = mul( output.Pos, gView );
     output.Pos = mul( output.Pos, gProjection );
     output.Normal = normalize( mul(Normal, (float3x3)mWorld) );
+	output.Tangent = normalize(mul(Tangent, (float3x3)mWorld));
+	output.Binormal = normalize(mul(Binormal, (float3x3)mWorld));
     output.Tex = Tex;
-    output.clip = dot(mul(Pos, mWorld), gClipPlane);
+	output.clip = dot(mul(Pos, mWorld), gClipPlane);
 
     return output;
 }
@@ -134,11 +145,8 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 	float3 H = normalize(L + normalize(In.toEye));
 	float3 N = normalize(In.Normal);
 
-	const float lightV = max(0, dot(N, L));
 	float4 color  = gLight_Ambient * gMtrl_Ambient
-			+ gLight_Diffuse * gMtrl_Diffuse * 0.1
-			+ gLight_Diffuse * gMtrl_Diffuse * lightV * 0.1
-			+ gLight_Diffuse * gMtrl_Diffuse * lightV
+			+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L))
 			+ gLight_Specular * gMtrl_Specular * pow( max(0, dot(N,H)), gMtrl_Pow);
 
 	float4 Out = color * txDiffuse.Sample(samLinear, In.Tex);
@@ -154,6 +162,8 @@ struct VS_SHADOW_OUTPUT
 {
 	float4 Pos : SV_POSITION;
 	float3 Normal : NORMAL;
+	float3 Tangent : TANGENT;
+	float3 Binormal : BINORMAL;
 	float2 Tex : TEXCOORD0;
 	float4 TexShadow0 : TEXCOORD1;
 	float4 TexShadow1 : TEXCOORD2;
@@ -167,6 +177,8 @@ struct VS_SHADOW_OUTPUT
 VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, float3 Tangent : TANGENT
+	, float3 Binormal : BINORMAL
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
@@ -178,6 +190,8 @@ VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	output.Pos = mul(output.Pos, gView);
 	output.Pos = mul(output.Pos, gProjection);
 	output.Normal = normalize(mul(Normal, (float3x3)mWorld));
+	output.Tangent = normalize(mul(Tangent, (float3x3)mWorld));
+	output.Binormal = normalize(mul(Binormal, (float3x3)mWorld));
 	output.Tex = Tex;
 
 	matrix mLVP[3];
@@ -268,9 +282,19 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 	}
 	fShadowTerm /= 9.0f;
 
+	float4 bumpMap = txBump.Sample(samAnis, In.Tex);
+	// Expand the range of the normal value from (0, +1) to (-1, +1). 
+	bumpMap = (bumpMap * 2.0f) - 1.0f;
+
+	// Calculate the normal from the data in the bump map.
+	float3 bumpNormal = In.Normal + bumpMap.x * In.Tangent + bumpMap.y * In.Binormal;
+
+	// Normalize the resulting bump normal.
+	bumpNormal = normalize(bumpNormal);
+
 	const float3 L = -gLight_Direction;
 	const float3 H = normalize(L + normalize(In.toEye));
-	const float3 N = normalize(In.Normal);
+	const float3 N = normalize(bumpNormal);
 
 	const float lightV = max(0, dot(N, L));
 	float4 color = gLight_Ambient * gMtrl_Ambient
@@ -279,7 +303,9 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 		+ gLight_Diffuse * gMtrl_Diffuse * lightV * fShadowTerm * 0.9
 		+ gLight_Specular * gMtrl_Specular * pow(max(0, dot(N,H)), gMtrl_Pow);
 
-	float4 Out = float4(color.xyz, gMtrl_Diffuse.w) * txDiffuse.Sample(samLinear, In.Tex);
+	float4 Out = float4(color.xyz, gMtrl_Diffuse.w) * txDiffuse.Sample(samAnis, In.Tex);
+	//Out = txBump.Sample(samAnis, In.Tex).rgba;
+	//Out = txDiffuse.Sample(samAnis, In.Tex);
 	return Out;
 }
 

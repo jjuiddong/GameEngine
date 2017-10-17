@@ -68,7 +68,7 @@ VS_OUTPUT VS( float4 Pos : POSITION
 //--------------------------------------------------------------------------------------
 float4 PS( VS_OUTPUT In ) : SV_Target
 {
-	return In.Color * txDiffuse.Sample( samLinear, In.Tex );
+	return txDiffuse.Sample( samLinear, In.Tex );
 }
 
 
@@ -78,8 +78,8 @@ technique11 Unlit
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
-		SetHullShader(NULL);
-		SetDomainShader(NULL);
+        SetHullShader(NULL);
+      	SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }

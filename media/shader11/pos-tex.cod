@@ -1,7 +1,7 @@
 //
 // FX Version: fx_5_0
 //
-// 2 local buffer(s)
+// 4 local buffer(s)
 //
 cbuffer ConstantBuffer : register(b0)
 {
@@ -14,7 +14,25 @@ cbuffer ConstantBuffer : register(b0)
     float3  gEyePosW;                   // Offset:  640, size:   12
 }
 
-cbuffer cbClipPlane : register(b1)
+cbuffer cbLight : register(b1)
+{
+    float4  gLight_Ambient;             // Offset:    0, size:   16
+    float4  gLight_Diffuse;             // Offset:   16, size:   16
+    float4  gLight_Specular;            // Offset:   32, size:   16
+    float3  gLight_Direction;           // Offset:   48, size:   12
+    float3  gLight_PosW;                // Offset:   64, size:   12
+}
+
+cbuffer cbMaterial : register(b2)
+{
+    float4  gMtrl_Ambient;              // Offset:    0, size:   16
+    float4  gMtrl_Diffuse;              // Offset:   16, size:   16
+    float4  gMtrl_Specular;             // Offset:   32, size:   16
+    float4  gMtrl_Emissive;             // Offset:   48, size:   16
+    float   gMtrl_Pow;                  // Offset:   64, size:    4
+}
+
+cbuffer cbClipPlane : register(b4)
 {
     float4  gClipPlane;                 // Offset:    0, size:   16
 }
@@ -72,7 +90,7 @@ fxgroup
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // ConstantBuffer                    cbuffer      NA          NA    0        1
-                // cbClipPlane                       cbuffer      NA          NA    1        1
+                // cbClipPlane                       cbuffer      NA          NA    4        1
                 //
                 //
                 //
@@ -95,7 +113,7 @@ fxgroup
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb0[12], immediateIndexed
-                dcl_constantbuffer cb1[1], immediateIndexed
+                dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_input v0.xyzw
                 dcl_input v1.xy
                 dcl_output_siv o0.xyzw, position
@@ -110,7 +128,7 @@ fxgroup
                 //   o1.x <- <VS return value>.Tex.x; o1.y <- <VS return value>.Tex.y; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 43 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 63 "D:\Project\Media\shader11\pos-tex.fx"
                 dp4 r0.x, v0.xyzw, cb0[0].xyzw  // r0.x <- output.Pos.x
                 dp4 r0.y, v0.xyzw, cb0[1].xyzw  // r0.y <- output.Pos.y
                 dp4 r0.z, v0.xyzw, cb0[2].xyzw  // r0.z <- output.Pos.z
@@ -128,7 +146,7 @@ fxgroup
                 dp4 r2.y, v0.xyzw, cb0[1].xyzw
                 dp4 r2.z, v0.xyzw, cb0[2].xyzw
                 dp4 r2.w, v0.xyzw, cb0[3].xyzw
-                dp4 r1.z, r2.xyzw, cb1[0].xyzw  // r1.z <- output.clip
+                dp4 r1.z, r2.xyzw, cb4[0].xyzw  // r1.z <- output.clip
                 mov o0.xyzw, r0.xyzw
                 mov o1.xy, r1.xyxx
                 mov o2.x, r1.z
@@ -197,7 +215,7 @@ fxgroup
                 //   v2.x <- input.clip; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 77 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 97 "D:\Project\Media\shader11\pos-tex.fx"
                 sample_indexable(texture2d)(float,float,float,float) o0.xyzw, v1.xyxx, t0.xyzw, s0
                 ret 
                 // Approximately 2 instruction slots used
@@ -244,7 +262,7 @@ fxgroup
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // ConstantBuffer                    cbuffer      NA          NA    0        1
-                // cbClipPlane                       cbuffer      NA          NA    1        1
+                // cbClipPlane                       cbuffer      NA          NA    4        1
                 //
                 //
                 //
@@ -267,7 +285,7 @@ fxgroup
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb0[12], immediateIndexed
-                dcl_constantbuffer cb1[1], immediateIndexed
+                dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_input v0.xyzw
                 dcl_input v1.xy
                 dcl_output_siv o0.xyzw, position
@@ -282,7 +300,7 @@ fxgroup
                 //   o1.x <- <VS_Skybox return value>.Tex.x; o1.y <- <VS_Skybox return value>.Tex.y; 
                 //   o0.x <- <VS_Skybox return value>.Pos.x; o0.y <- <VS_Skybox return value>.Pos.y; o0.z <- <VS_Skybox return value>.Pos.z; o0.w <- <VS_Skybox return value>.Pos.w
                 //
-                #line 57 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 77 "D:\Project\Media\shader11\pos-tex.fx"
                 mov r0.xyzw, cb0[7].xyzw  // r0.x <- mView._m03; r0.y <- mView._m13; r0.z <- mView._m23; r0.w <- mView._m33
                 mov r1.xyz, cb0[4].xyzx  // r1.x <- mView._m00; r1.y <- mView._m10; r1.z <- mView._m20
                 mov r2.xyz, cb0[5].xyzx  // r2.x <- mView._m01; r2.y <- mView._m11; r2.z <- mView._m21
@@ -307,7 +325,7 @@ fxgroup
                 dp4 r2.y, v0.xyzw, cb0[1].xyzw
                 dp4 r2.z, v0.xyzw, cb0[2].xyzw
                 dp4 r2.w, v0.xyzw, cb0[3].xyzw
-                dp4 r1.z, r2.xyzw, cb1[0].xyzw  // r1.z <- output.clip
+                dp4 r1.z, r2.xyzw, cb4[0].xyzw  // r1.z <- output.clip
                 mov o0.xyzw, r0.xyzw
                 mov o1.xy, r1.xyxx
                 mov o2.x, r1.z
@@ -378,7 +396,7 @@ fxgroup
                 //   v2.x <- input.clip; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 77 "D:\Project\GameEngine\media\shader11\pos-tex.fx"
+                #line 97 "D:\Project\Media\shader11\pos-tex.fx"
                 sample_indexable(texture2d)(float,float,float,float) o0.xyzw, v1.xyxx, t0.xyzw, s0
                 ret 
                 // Approximately 2 instruction slots used

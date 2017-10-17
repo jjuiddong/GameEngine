@@ -13,9 +13,9 @@ SamplerState samLinear : register( s0 )
 
 cbuffer cbPerFrame : register( b0 )
 {
-	matrix gWorld;
-	matrix gView;
-	matrix gProjection;
+	matrix World;
+	matrix View;
+	matrix Projection;
 	float3 gEyePosW;
 }
 
@@ -40,22 +40,22 @@ cbuffer cbMaetrial : register( b2 )
 }
 
 
+
 //--------------------------------------------------------------------------------------
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
-    float4 Color : COLOR0;
 };
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
-VS_OUTPUT VS( float4 Pos : POSITION
-	, float4 Color : COLOR )
+VS_OUTPUT VS( float4 Pos : POSITION )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    output.Pos = mul( Pos, gWorld );
-    output.Color = Color;
+    output.Pos = mul( Pos, World );
+    output.Pos = mul( output.Pos, View );
+    output.Pos = mul( output.Pos, Projection );
     return output;
 }
 
@@ -65,7 +65,8 @@ VS_OUTPUT VS( float4 Pos : POSITION
 //--------------------------------------------------------------------------------------
 float4 PS( VS_OUTPUT In ) : SV_Target
 {
-	return In.Color;
+	//return gLight_Diffuse * gMtrl_Diffuse;
+	return gMtrl_Diffuse;
 }
 
 
@@ -75,8 +76,8 @@ technique11 Unlit
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
- 	        SetHullShader(NULL);
-        	SetDomainShader(NULL);
+        SetHullShader(NULL);
+      	SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }

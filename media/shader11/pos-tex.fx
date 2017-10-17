@@ -17,7 +17,27 @@ cbuffer ConstantBuffer : register( b0 )
 	float3 gEyePosW;
 }
 
-cbuffer cbClipPlane : register(b1)
+cbuffer cbLight : register(b1)
+{
+	float4 gLight_Ambient;
+	float4 gLight_Diffuse;
+	float4 gLight_Specular;
+	float3 gLight_Direction;
+	float3 gLight_PosW;
+}
+
+
+cbuffer cbMaterial : register(b2)
+{
+	float4 gMtrl_Ambient;
+	float4 gMtrl_Diffuse;
+	float4 gMtrl_Specular;
+	float4 gMtrl_Emissive;
+	float gMtrl_Pow;
+}
+
+
+cbuffer cbClipPlane : register(b4)
 {
 	float4	gClipPlane;
 }
@@ -96,8 +116,8 @@ technique11 Skybox
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS_Skybox()));
 		SetGeometryShader(NULL);
-		SetHullShader(NULL);
-		SetDomainShader(NULL);
+	        SetHullShader(NULL);
+        	SetDomainShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }

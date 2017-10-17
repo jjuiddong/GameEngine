@@ -10,8 +10,8 @@
 //--------------------------------------------------------------------------------------
 Texture2D txDiffuse	: register(t0);
 Texture2D txBump	: register(t1);
-Texture2D txSpecular : register(t2);
-Texture2D txEmissive : register(t3);
+Texture2D txSpecular	: register(t2);
+Texture2D txEmissive	: register(t3);
 Texture2D txShadow0	: register(t4);
 Texture2D txShadow1	: register(t5);
 Texture2D txShadow2	: register(t6);
@@ -24,8 +24,14 @@ SamplerState samLinear : register(s0)
 	AddressV = WRAP;
 };
 
+SamplerState samAnis : register(s1)
+{
+	Filter = ANISOTROPIC;
+	AddressU = WRAP;
+	AddressV = WRAP;
+};
 
-SamplerComparisonState samShadow : register(s1)
+SamplerComparisonState samShadow : register(s2)
 {
 	Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 
@@ -88,6 +94,10 @@ cbuffer cbClipPlane : register(b4)
 	float4	gClipPlane;
 }
 
+cbuffer cbSkinning : register(b5)
+{
+	matrix gPalette[64];
+}
 
 
 //--------------------------------------------------------------------------------------
@@ -95,29 +105,53 @@ struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
     float3 Normal : TEXCOORD0;
+    float3 Tangent : TANGENT;
+    float3 Binormal : BINORMAL;
     float2 Tex : TEXCOORD1;
-    float3 toEye : TEXCOORD2;
     float clip : SV_ClipDistance0;
 };
 
 
+
 //--------------------------------------------------------------------------------------
-// Vertex Shader
+// Skinning Vertex Shader
 //--------------------------------------------------------------------------------------
 VS_OUTPUT VS( float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, float3 Tangent : TANGENT
+	, float3 Binormal : BINORMAL
+	, uint4 BlendId : BLENDINDICES0
+	, float4 BlendWeight : BLENDWEIGHT0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
+    const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
 
-    output.Pos = mul( Pos, mWorld );
+    float3 p = {0,0,0};
+    float3 n = {0,0,0};
+
+    p += mul(Pos, gPalette[ BlendId.x]) * BlendWeight.x;
+    p += mul(Pos, gPalette[ BlendId.y]) * BlendWeight.y;
+    p += mul(Pos, gPalette[ BlendId.z]) * BlendWeight.z;
+    p += mul(Pos, gPalette[ BlendId.w]) * BlendWeight.w;
+
+    n += mul(Normal, gPalette[ BlendId.x]) * BlendWeight.x;
+    n += mul(Normal, gPalette[ BlendId.y]) * BlendWeight.y;
+    n += mul(Normal, gPalette[ BlendId.z]) * BlendWeight.z;
+    n += mul(Normal, gPalette[ BlendId.w]) * BlendWeight.w;
+
+    n = normalize(n);
+
+    output.Pos = mul( float4(p,1), mWorld );
     output.Pos = mul( output.Pos, gView );
     output.Pos = mul( output.Pos, gProjection );
-    output.Normal = normalize( mul(Normal, (float3x3)mWorld) );
+
+    output.Normal = normalize( mul(n, (float3x3)mWorld) );
+	output.Tangent = normalize(mul(Tangent, (float3x3)mWorld));
+	output.Binormal = normalize(mul(Binormal, (float3x3)mWorld));
     output.Tex = Tex;
     output.clip = dot(mul(Pos, mWorld), gClipPlane);
 
@@ -126,24 +160,41 @@ VS_OUTPUT VS( float4 Pos : POSITION
 
 
 //--------------------------------------------------------------------------------------
-// Pixel Shader
+// Skinning Pixel Shader
 //--------------------------------------------------------------------------------------
 float4 PS( VS_OUTPUT In ) : SV_Target
 {
+	// 스타2 노멀맵은 rgba 순서로 저장된게 아니라. bgxr 형태로 저장되어 있다.
+	// 그래서 노멀값을 제대로 가져오려먼 agr 값을 가져와야 rgb즉 xyz 순서대로 
+	// 가져오게 된다.
+	// http://blog.naver.com/scahp/130109083917
+	// http://forum.xentax.com/viewtopic.php?f=16&t=6119&start=15
+	float4 bumpMap = txBump.Sample(samAnis, In.Tex).agrb;
+	// Expand the range of the normal value from (0, +1) to (-1, +1). 
+	bumpMap = (bumpMap * 2.0f) - 1.0f;
+
+	// Calculate the normal from the data in the bump map.
+	float3 bumpNormal = In.Normal + bumpMap.x * In.Tangent + bumpMap.y * In.Binormal;
+
+	// Normalize the resulting bump normal.
+	bumpNormal = normalize(bumpNormal);
+
 	float3 L = -gLight_Direction;
-	float3 H = normalize(L + normalize(In.toEye));
-	float3 N = normalize(In.Normal);
+	float3 H = normalize(L + normalize(gEyePosW));
+	float3 N = normalize(bumpNormal);
 
-	const float lightV = max(0, dot(N, L));
 	float4 color  = gLight_Ambient * gMtrl_Ambient
-			+ gLight_Diffuse * gMtrl_Diffuse * 0.1
-			+ gLight_Diffuse * gMtrl_Diffuse * lightV * 0.1
-			+ gLight_Diffuse * gMtrl_Diffuse * lightV
-			+ gLight_Specular * gMtrl_Specular * pow( max(0, dot(N,H)), gMtrl_Pow);
+			+ gLight_Diffuse * gMtrl_Diffuse * max(0, dot(N,L))
+			;
 
-	float4 Out = color * txDiffuse.Sample(samLinear, In.Tex);
+	float4 Out = color * txDiffuse.Sample(samLinear, In.Tex)
+		+ gLight_Specular * pow( max(0, dot(N,H)), gMtrl_Pow*10) * txSpecular.Sample(samAnis, In.Tex)
+		+ float4(0.8,0,0,1) * txEmissive.Sample(samAnis, In.Tex).a
+		;
+
 	return float4(Out.xyz, gMtrl_Diffuse.a);
 }
+
 
 
 
@@ -167,6 +218,10 @@ struct VS_SHADOW_OUTPUT
 VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, float3 Tangent : TANGENT
+	, float3 Binormal : BINORMAL
+	, uint4 BlendId : BLENDINDICES0
+	, float4 BlendWeight : BLENDWEIGHT0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
@@ -174,10 +229,25 @@ VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	VS_SHADOW_OUTPUT output = (VS_SHADOW_OUTPUT)0;
 	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
 
-	output.Pos = mul(Pos, mWorld);
+	float3 p = {0,0,0};
+	float3 n = {0,0,0};
+
+	p += mul(Pos, gPalette[ BlendId.x]) * BlendWeight.x;
+	p += mul(Pos, gPalette[ BlendId.y]) * BlendWeight.y;
+	p += mul(Pos, gPalette[ BlendId.z]) * BlendWeight.z;
+	p += mul(Pos, gPalette[ BlendId.w]) * BlendWeight.w;
+
+	n += mul(Normal, gPalette[ BlendId.x]) * BlendWeight.x;
+	n += mul(Normal, gPalette[ BlendId.y]) * BlendWeight.y;
+	n += mul(Normal, gPalette[ BlendId.z]) * BlendWeight.z;
+	n += mul(Normal, gPalette[ BlendId.w]) * BlendWeight.w;
+
+	n = normalize(n);
+
+	output.Pos = mul(float4(p,1), mWorld);
 	output.Pos = mul(output.Pos, gView);
 	output.Pos = mul(output.Pos, gProjection);
-	output.Normal = normalize(mul(Normal, (float3x3)mWorld));
+	output.Normal = normalize(mul(n, (float3x3)mWorld));
 	output.Tex = Tex;
 
 	matrix mLVP[3];
@@ -297,6 +367,10 @@ struct VS_BUILDSHADOW_OUTPUT
 VS_BUILDSHADOW_OUTPUT VS_BuildShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
 	, float2 Tex : TEXCOORD0
+	, float3 Tangent : TANGENT
+	, float3 Binormal : BINORMAL
+	, uint4 BlendId : BLENDINDICES0
+	, float4 BlendWeight : BLENDWEIGHT0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
@@ -304,7 +378,22 @@ VS_BUILDSHADOW_OUTPUT VS_BuildShadowMap(float4 Pos : POSITION
 	VS_BUILDSHADOW_OUTPUT output = (VS_BUILDSHADOW_OUTPUT)0;
 	const matrix mWorld = IsInstancing ? gWorldInst[instID] : gWorld;
 
-	output.Pos = mul(Pos, mWorld);
+	float3 p = {0,0,0};
+	float3 n = {0,0,0};
+
+	p += mul(Pos, gPalette[ BlendId.x]) * BlendWeight.x;
+	p += mul(Pos, gPalette[ BlendId.y]) * BlendWeight.y;
+	p += mul(Pos, gPalette[ BlendId.z]) * BlendWeight.z;
+	p += mul(Pos, gPalette[ BlendId.w]) * BlendWeight.w;
+
+	n += mul(Normal, gPalette[ BlendId.x]) * BlendWeight.x;
+	n += mul(Normal, gPalette[ BlendId.y]) * BlendWeight.y;
+	n += mul(Normal, gPalette[ BlendId.z]) * BlendWeight.z;
+	n += mul(Normal, gPalette[ BlendId.w]) * BlendWeight.w;
+
+	n = normalize(n);
+
+	output.Pos = mul(float4(p,1), mWorld);
 	output.Pos = mul(output.Pos, gView);
 	output.Pos = mul(output.Pos, gProjection);
 	output.Depth.xy = output.Pos.zw;

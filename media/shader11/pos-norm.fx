@@ -95,8 +95,7 @@ struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
     float3 Normal : TEXCOORD0;
-    float2 Tex : TEXCOORD1;
-    float3 toEye : TEXCOORD2;
+    float3 toEye : TEXCOORD1;
     float clip : SV_ClipDistance0;
 };
 
@@ -106,7 +105,6 @@ struct VS_OUTPUT
 //--------------------------------------------------------------------------------------
 VS_OUTPUT VS( float4 Pos : POSITION
 	, float3 Normal : NORMAL
-	, float2 Tex : TEXCOORD0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
@@ -118,7 +116,6 @@ VS_OUTPUT VS( float4 Pos : POSITION
     output.Pos = mul( output.Pos, gView );
     output.Pos = mul( output.Pos, gProjection );
     output.Normal = normalize( mul(Normal, (float3x3)mWorld) );
-    output.Tex = Tex;
     output.clip = dot(mul(Pos, mWorld), gClipPlane);
 
     return output;
@@ -141,7 +138,7 @@ float4 PS( VS_OUTPUT In ) : SV_Target
 			+ gLight_Diffuse * gMtrl_Diffuse * lightV
 			+ gLight_Specular * gMtrl_Specular * pow( max(0, dot(N,H)), gMtrl_Pow);
 
-	float4 Out = color * txDiffuse.Sample(samLinear, In.Tex);
+	float4 Out = color;
 	return float4(Out.xyz, gMtrl_Diffuse.a);
 }
 
@@ -166,7 +163,6 @@ struct VS_SHADOW_OUTPUT
 
 VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
-	, float2 Tex : TEXCOORD0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )
@@ -178,7 +174,6 @@ VS_SHADOW_OUTPUT VS_ShadowMap(float4 Pos : POSITION
 	output.Pos = mul(output.Pos, gView);
 	output.Pos = mul(output.Pos, gProjection);
 	output.Normal = normalize(mul(Normal, (float3x3)mWorld));
-	output.Tex = Tex;
 
 	matrix mLVP[3];
 	matrix mVPT[3];
@@ -279,7 +274,7 @@ float4 PS_ShadowMap(VS_SHADOW_OUTPUT In) : SV_Target
 		+ gLight_Diffuse * gMtrl_Diffuse * lightV * fShadowTerm * 0.9
 		+ gLight_Specular * gMtrl_Specular * pow(max(0, dot(N,H)), gMtrl_Pow);
 
-	float4 Out = float4(color.xyz, gMtrl_Diffuse.w) * txDiffuse.Sample(samLinear, In.Tex);
+	float4 Out = float4(color.xyz, gMtrl_Diffuse.w);
 	return Out;
 }
 
@@ -296,7 +291,6 @@ struct VS_BUILDSHADOW_OUTPUT
 
 VS_BUILDSHADOW_OUTPUT VS_BuildShadowMap(float4 Pos : POSITION
 	, float3 Normal : NORMAL
-	, float2 Tex : TEXCOORD0
 	, uint instID : SV_InstanceID
 	, uniform bool IsInstancing
 )

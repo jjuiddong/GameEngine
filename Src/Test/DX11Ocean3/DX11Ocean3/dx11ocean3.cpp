@@ -1,5 +1,5 @@
 //
-// DX11 Ocean2 (Nvidia Island)
+// DX11 Ocean3 (Nvidia Island Modify)
 //
 
 #include "stdafx.h"
@@ -61,7 +61,7 @@ cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
 	, m_mainCamera("main")
 {
-	m_windowName = L"DX11 Ocean2";
+	m_windowName = L"DX11 Ocean3";
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 1024};
 	m_windowRect = r;

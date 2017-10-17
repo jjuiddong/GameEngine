@@ -129,8 +129,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // POSITION                 0   xyzw        0     NONE   float   xyzw
                 // NORMAL                   0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 0   xy          2     NONE   float   xy  
-                // SV_InstanceID            0   x           3   INSTID    uint       
+                // SV_InstanceID            0   x           2   INSTID    uint       
                 //
                 //
                 // Output signature:
@@ -139,9 +138,8 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
                 // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 2   xyz         3     NONE   float   xyz 
-                // SV_ClipDistance          0   x           4  CLIPDST   float   x   
+                // TEXCOORD                 1   xyz         2     NONE   float   xyz 
+                // SV_ClipDistance          0   x           3  CLIPDST   float   x   
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
@@ -149,26 +147,22 @@ fxgroup
                 dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_input v0.xyzw
                 dcl_input v1.xyz
-                dcl_input v2.xy
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xyz
-                dcl_output o2.xy
-                dcl_output o3.xyz
-                dcl_output_siv o4.x, clip_distance
-                dcl_temps 8
+                dcl_output o2.xyz
+                dcl_output_siv o3.x, clip_distance
+                dcl_temps 7
                 //
                 // Initial variable locations:
                 //   v0.x <- Pos.x; v0.y <- Pos.y; v0.z <- Pos.z; v0.w <- Pos.w; 
                 //   v1.x <- Normal.x; v1.y <- Normal.y; v1.z <- Normal.z; 
-                //   v2.x <- Tex.x; v2.y <- Tex.y; 
-                //   v3.x <- instID; 
-                //   o4.x <- <VS return value>.clip; 
-                //   o3.x <- <VS return value>.toEye.x; o3.y <- <VS return value>.toEye.y; o3.z <- <VS return value>.toEye.z; 
-                //   o2.x <- <VS return value>.Tex.x; o2.y <- <VS return value>.Tex.y; 
+                //   v2.x <- instID; 
+                //   o3.x <- <VS return value>.clip; 
+                //   o2.x <- <VS return value>.toEye.x; o2.y <- <VS return value>.toEye.y; o2.z <- <VS return value>.toEye.z; 
                 //   o1.x <- <VS return value>.Normal.x; o1.y <- <VS return value>.Normal.y; o1.z <- <VS return value>.Normal.z; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 114 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 112 "D:\Project\Media\shader11\pos-norm.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
                 mov r1.xyzw, cb0[0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
                 mov r2.xyzw, cb0[1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
@@ -192,7 +186,6 @@ fxgroup
                 dp3 r0.w, r6.xyzx, r6.xyzx
                 rsq r0.w, r0.w
                 mul r6.xyz, r0.wwww, r6.xyzx  // r6.x <- output.Normal.x; r6.y <- output.Normal.y; r6.z <- output.Normal.z
-                mov r7.xy, v2.xyxx  // r7.x <- output.Tex.x; r7.y <- output.Tex.y
                 dp4 r1.x, v0.xyzw, r1.xyzw
                 dp4 r1.y, v0.xyzw, r2.xyzw
                 dp4 r1.z, v0.xyzw, r3.xyzw
@@ -200,11 +193,10 @@ fxgroup
                 dp4 r0.w, r1.xyzw, cb4[0].xyzw  // r0.w <- output.clip
                 mov o0.xyzw, r5.xyzw
                 mov o1.xyz, r6.xyzx
-                mov o3.xyz, r0.xyzx
-                mov o2.xy, r7.xyxx
-                mov o4.x, r0.w
+                mov o2.xyz, r0.xyzx
+                mov o3.x, r0.w
                 ret 
-                // Approximately 35 instruction slots used
+                // Approximately 33 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -216,19 +208,6 @@ fxgroup
                 //
                 //
                 // Buffer Definitions: 
-                //
-                // cbuffer cbPerFrame
-                // {
-                //
-                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
-                //   float4x4 gView;                    // Offset:   64 Size:    64 [unused]
-                //   float4x4 gProjection;              // Offset:  128 Size:    64 [unused]
-                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
-                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
-                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
-                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
-                //
-                // }
                 //
                 // cbuffer cbLight
                 // {
@@ -257,9 +236,6 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
-                // samLinear                         sampler      NA          NA    0        1
-                // txDiffuse                         texture  float4          2d    0        1
-                // cbPerFrame                        cbuffer      NA          NA    0        1
                 // cbLight                           cbuffer      NA          NA    1        1
                 // cbMaterial                        cbuffer      NA          NA    2        1
                 //
@@ -271,9 +247,8 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
                 // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 2   xyz         3     NONE   float   xyz 
-                // SV_ClipDistance          0   x           4  CLIPDST   float       
+                // TEXCOORD                 1   xyz         2     NONE   float   xyz 
+                // SV_ClipDistance          0   x           3  CLIPDST   float       
                 //
                 //
                 // Output signature:
@@ -284,30 +259,25 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[1], immediateIndexed
                 dcl_constantbuffer cb1[4], immediateIndexed
                 dcl_constantbuffer cb2[5], immediateIndexed
-                dcl_sampler s0, mode_default
-                dcl_resource_texture2d (float,float,float,float) t0
                 dcl_input_ps linear v1.xyz
-                dcl_input_ps linear v2.xy
-                dcl_input_ps linear v3.xyz
+                dcl_input_ps linear v2.xyz
                 dcl_output o0.xyzw
                 dcl_temps 4
                 //
                 // Initial variable locations:
                 //   v0.x <- In.Pos.x; v0.y <- In.Pos.y; v0.z <- In.Pos.z; v0.w <- In.Pos.w; 
                 //   v1.x <- In.Normal.x; v1.y <- In.Normal.y; v1.z <- In.Normal.z; 
-                //   v2.x <- In.Tex.x; v2.y <- In.Tex.y; 
-                //   v3.x <- In.toEye.x; v3.y <- In.toEye.y; v3.z <- In.toEye.z; 
-                //   v4.x <- In.clip; 
+                //   v2.x <- In.toEye.x; v2.y <- In.toEye.y; v2.z <- In.toEye.z; 
+                //   v3.x <- In.clip; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 133 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 130 "D:\Project\Media\shader11\pos-norm.fx"
                 mov r0.xyz, -cb1[3].xyzx  // r0.x <- L.x; r0.y <- L.y; r0.z <- L.z
-                dp3 r0.w, v3.xyzx, v3.xyzx
+                dp3 r0.w, v2.xyzx, v2.xyzx
                 rsq r0.w, r0.w
-                mul r1.xyz, r0.wwww, v3.xyzx
+                mul r1.xyz, r0.wwww, v2.xyzx
                 add r1.xyz, r0.xyzx, r1.xyzx
                 dp3 r0.w, r1.xyzx, r1.xyzx
                 rsq r0.w, r0.w
@@ -339,13 +309,12 @@ fxgroup
                 mul r1.xyz, r0.wwww, r3.xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 
-                #line 144
-                sample_indexable(texture2d)(float,float,float,float) r1.xyz, v2.xyxx, t0.xyzw, s0
-                mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
+                #line 141
+                mov r0.xyz, r0.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
                 mov o0.xyz, r0.xyzx
                 mov o0.w, cb2[1].w
                 ret 
-                // Approximately 39 instruction slots used
+                // Approximately 38 instruction slots used
                             
             };
         }
@@ -399,8 +368,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // POSITION                 0   xyzw        0     NONE   float   xyzw
                 // NORMAL                   0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 0   xy          2     NONE   float   xy  
-                // SV_InstanceID            0   x           3   INSTID    uint       
+                // SV_InstanceID            0   x           2   INSTID    uint       
                 //
                 //
                 // Output signature:
@@ -424,7 +392,6 @@ fxgroup
                 dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_input v0.xyzw
                 dcl_input v1.xyz
-                dcl_input v2.xy
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xyz
                 dcl_output o2.xy
@@ -442,8 +409,7 @@ fxgroup
                 // Initial variable locations:
                 //   v0.x <- Pos.x; v0.y <- Pos.y; v0.z <- Pos.z; v0.w <- Pos.w; 
                 //   v1.x <- Normal.x; v1.y <- Normal.y; v1.z <- Normal.z; 
-                //   v2.x <- Tex.x; v2.y <- Tex.y; 
-                //   v3.x <- instID; 
+                //   v2.x <- instID; 
                 //   o8.x <- <VS_ShadowMap return value>.clip; 
                 //   o7.x <- <VS_ShadowMap return value>.Depth0.x; o7.y <- <VS_ShadowMap return value>.Depth0.y; o7.z <- <VS_ShadowMap return value>.Depth0.z; o7.w <- <VS_ShadowMap return value>.Depth0.w; 
                 //   o6.x <- <VS_ShadowMap return value>.toEye.x; o6.y <- <VS_ShadowMap return value>.toEye.y; o6.z <- <VS_ShadowMap return value>.toEye.z; 
@@ -455,37 +421,37 @@ fxgroup
                 //   o0.x <- <VS_ShadowMap return value>.Pos.x; o0.y <- <VS_ShadowMap return value>.Pos.y; o0.z <- <VS_ShadowMap return value>.Pos.z; o0.w <- <VS_ShadowMap return value>.Pos.w; 
                 //   x0 <- mLVP; x1 <- mVPT
                 //
-                #line 174 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 170 "D:\Project\Media\shader11\pos-norm.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
-                mov r1.xyzw, cb0[0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
-                mov r2.xyzw, cb0[1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
-                mov r3.xyzw, cb0[2].xyzw  // r3.x <- mWorld._m02; r3.y <- mWorld._m12; r3.z <- mWorld._m22; r3.w <- mWorld._m32
-                mov r4.xyzw, cb0[3].xyzw  // r4.x <- mWorld._m03; r4.y <- mWorld._m13; r4.z <- mWorld._m23; r4.w <- mWorld._m33
-                dp4 r5.x, v0.xyzw, r1.xyzw  // r5.x <- output.Pos.x
-                dp4 r5.y, v0.xyzw, r2.xyzw  // r5.y <- output.Pos.y
-                dp4 r5.z, v0.xyzw, r3.xyzw  // r5.z <- output.Pos.z
-                dp4 r5.w, v0.xyzw, r4.xyzw  // r5.w <- output.Pos.w
-                dp4 r6.x, r5.xyzw, cb0[4].xyzw  // r6.x <- output.Pos.x
-                dp4 r6.y, r5.xyzw, cb0[5].xyzw  // r6.y <- output.Pos.y
-                dp4 r6.z, r5.xyzw, cb0[6].xyzw  // r6.z <- output.Pos.z
-                dp4 r6.w, r5.xyzw, cb0[7].xyzw  // r6.w <- output.Pos.w
-                dp4 r5.x, r6.xyzw, cb0[8].xyzw  // r5.x <- output.Pos.x
-                dp4 r5.y, r6.xyzw, cb0[9].xyzw  // r5.y <- output.Pos.y
-                dp4 r5.z, r6.xyzw, cb0[10].xyzw  // r5.z <- output.Pos.z
-                dp4 r5.w, r6.xyzw, cb0[11].xyzw  // r5.w <- output.Pos.w
-                dp3 r6.x, v1.xyzx, r1.xyzx
-                dp3 r6.y, v1.xyzx, r2.xyzx
-                dp3 r6.z, v1.xyzx, r3.xyzx
-                dp3 r0.w, r6.xyzx, r6.xyzx
+                itof r1.xy, l(0, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                mov r2.xyzw, cb0[0].xyzw  // r2.x <- mWorld._m00; r2.y <- mWorld._m10; r2.z <- mWorld._m20; r2.w <- mWorld._m30
+                mov r3.xyzw, cb0[1].xyzw  // r3.x <- mWorld._m01; r3.y <- mWorld._m11; r3.z <- mWorld._m21; r3.w <- mWorld._m31
+                mov r4.xyzw, cb0[2].xyzw  // r4.x <- mWorld._m02; r4.y <- mWorld._m12; r4.z <- mWorld._m22; r4.w <- mWorld._m32
+                mov r5.xyzw, cb0[3].xyzw  // r5.x <- mWorld._m03; r5.y <- mWorld._m13; r5.z <- mWorld._m23; r5.w <- mWorld._m33
+                dp4 r6.x, v0.xyzw, r2.xyzw  // r6.x <- output.Pos.x
+                dp4 r6.y, v0.xyzw, r3.xyzw  // r6.y <- output.Pos.y
+                dp4 r6.z, v0.xyzw, r4.xyzw  // r6.z <- output.Pos.z
+                dp4 r6.w, v0.xyzw, r5.xyzw  // r6.w <- output.Pos.w
+                dp4 r7.x, r6.xyzw, cb0[4].xyzw  // r7.x <- output.Pos.x
+                dp4 r7.y, r6.xyzw, cb0[5].xyzw  // r7.y <- output.Pos.y
+                dp4 r7.z, r6.xyzw, cb0[6].xyzw  // r7.z <- output.Pos.z
+                dp4 r7.w, r6.xyzw, cb0[7].xyzw  // r7.w <- output.Pos.w
+                dp4 r6.x, r7.xyzw, cb0[8].xyzw  // r6.x <- output.Pos.x
+                dp4 r6.y, r7.xyzw, cb0[9].xyzw  // r6.y <- output.Pos.y
+                dp4 r6.z, r7.xyzw, cb0[10].xyzw  // r6.z <- output.Pos.z
+                dp4 r6.w, r7.xyzw, cb0[11].xyzw  // r6.w <- output.Pos.w
+                dp3 r7.x, v1.xyzx, r2.xyzx
+                dp3 r7.y, v1.xyzx, r3.xyzx
+                dp3 r7.z, v1.xyzx, r4.xyzx
+                dp3 r0.w, r7.xyzx, r7.xyzx
                 rsq r0.w, r0.w
-                mul r6.xyz, r0.wwww, r6.xyzx  // r6.x <- output.Normal.x; r6.y <- output.Normal.y; r6.z <- output.Normal.z
-                mov r7.xy, v2.xyxx  // r7.x <- output.Tex.x; r7.y <- output.Tex.y
+                mul r7.xyz, r0.wwww, r7.xyzx  // r7.x <- output.Normal.x; r7.y <- output.Normal.y; r7.z <- output.Normal.z
                 
-                #line 186
-                dp4 r8.x, v0.xyzw, r1.xyzw  // r8.x <- wPos.x
-                dp4 r8.y, v0.xyzw, r2.xyzw  // r8.y <- wPos.y
-                dp4 r8.z, v0.xyzw, r3.xyzw  // r8.z <- wPos.z
-                dp4 r8.w, v0.xyzw, r4.xyzw  // r8.w <- wPos.w
+                #line 181
+                dp4 r8.x, v0.xyzw, r2.xyzw  // r8.x <- wPos.x
+                dp4 r8.y, v0.xyzw, r3.xyzw  // r8.y <- wPos.y
+                dp4 r8.z, v0.xyzw, r4.xyzw  // r8.z <- wPos.z
+                dp4 r8.w, v0.xyzw, r5.xyzw  // r8.w <- wPos.w
                 mul r9.xyzw, cb0[12].xyzw, cb0[24].xxxx
                 mul r10.xyzw, cb0[13].xyzw, cb0[24].yyyy
                 add r9.xyzw, r9.xyzw, r10.xyzw
@@ -547,8 +513,8 @@ fxgroup
                 mov r12.z, x0[2].w
                 mov r12.w, x0[3].w
                 dp4 r0.w, r9.xyzw, cb0[36].xyzw
-                dp4 r6.w, r9.xyzw, cb0[37].xyzw
-                dp4 r7.z, r9.xyzw, cb0[38].xyzw
+                dp4 r1.z, r9.xyzw, cb0[37].xyzw
+                dp4 r1.w, r9.xyzw, cb0[38].xyzw
                 dp4 r7.w, r9.xyzw, cb0[39].xyzw
                 dp4 r9.x, r10.xyzw, cb0[36].xyzw
                 dp4 r9.y, r10.xyzw, cb0[37].xyzw
@@ -563,8 +529,8 @@ fxgroup
                 dp4 r11.z, r12.xyzw, cb0[38].xyzw
                 dp4 r11.w, r12.xyzw, cb0[39].xyzw
                 mov x1[0].x, r0.w
-                mov x1[1].x, r6.w
-                mov x1[2].x, r7.z
+                mov x1[1].x, r1.z
+                mov x1[2].x, r1.w
                 mov x1[3].x, r7.w
                 mov x1[0].y, r9.x
                 mov x1[1].y, r9.y
@@ -639,8 +605,8 @@ fxgroup
                 mov r12.z, x0[6].w
                 mov r12.w, x0[7].w
                 dp4 r0.w, r9.xyzw, cb0[36].xyzw
-                dp4 r6.w, r9.xyzw, cb0[37].xyzw
-                dp4 r7.z, r9.xyzw, cb0[38].xyzw
+                dp4 r1.z, r9.xyzw, cb0[37].xyzw
+                dp4 r1.w, r9.xyzw, cb0[38].xyzw
                 dp4 r7.w, r9.xyzw, cb0[39].xyzw
                 dp4 r9.x, r10.xyzw, cb0[36].xyzw
                 dp4 r9.y, r10.xyzw, cb0[37].xyzw
@@ -655,8 +621,8 @@ fxgroup
                 dp4 r11.z, r12.xyzw, cb0[38].xyzw
                 dp4 r11.w, r12.xyzw, cb0[39].xyzw
                 mov x1[4].x, r0.w
-                mov x1[5].x, r6.w
-                mov x1[6].x, r7.z
+                mov x1[5].x, r1.z
+                mov x1[6].x, r1.w
                 mov x1[7].x, r7.w
                 mov x1[4].y, r9.x
                 mov x1[5].y, r9.y
@@ -731,8 +697,8 @@ fxgroup
                 mov r12.z, x0[10].w
                 mov r12.w, x0[11].w
                 dp4 r0.w, r9.xyzw, cb0[36].xyzw
-                dp4 r6.w, r9.xyzw, cb0[37].xyzw
-                dp4 r7.z, r9.xyzw, cb0[38].xyzw
+                dp4 r1.z, r9.xyzw, cb0[37].xyzw
+                dp4 r1.w, r9.xyzw, cb0[38].xyzw
                 dp4 r7.w, r9.xyzw, cb0[39].xyzw
                 dp4 r9.x, r10.xyzw, cb0[36].xyzw
                 dp4 r9.y, r10.xyzw, cb0[37].xyzw
@@ -747,8 +713,8 @@ fxgroup
                 dp4 r11.z, r12.xyzw, cb0[38].xyzw
                 dp4 r11.w, r12.xyzw, cb0[39].xyzw
                 mov x1[8].x, r0.w
-                mov x1[9].x, r6.w
-                mov x1[10].x, r7.z
+                mov x1[9].x, r1.z
+                mov x1[10].x, r1.w
                 mov x1[11].x, r7.w
                 mov x1[8].y, r9.x
                 mov x1[9].y, r9.y
@@ -823,7 +789,7 @@ fxgroup
                 dp4 r11.z, r8.xyzw, r13.xyzw  // r11.z <- output.TexShadow2.z
                 dp4 r11.w, r8.xyzw, r14.xyzw  // r11.w <- output.TexShadow2.w
                 
-                #line 198
+                #line 193
                 mov r12.x, x0[2].x
                 mov r13.x, x0[3].x
                 mov r12.y, x0[2].y
@@ -842,8 +808,8 @@ fxgroup
                 mov r14.z, x0[7].z
                 mov r13.w, x0[6].w
                 mov r14.w, x0[7].w
-                dp4 r7.z, r8.xyzw, r13.xyzw  // r7.z <- output.Depth0.z
-                dp4 r7.w, r8.xyzw, r14.xyzw  // r7.w <- output.Depth0.w
+                dp4 r1.z, r8.xyzw, r13.xyzw  // r1.z <- output.Depth0.z
+                dp4 r1.w, r8.xyzw, r14.xyzw  // r1.w <- output.Depth0.w
                 mov r13.x, x0[10].x
                 mov r14.x, x0[11].x
                 mov r13.y, x0[10].y
@@ -854,20 +820,20 @@ fxgroup
                 mov r14.w, x0[11].w
                 dp4 r12.z, r8.xyzw, r13.xyzw  // r12.z <- output.Depth1.x
                 dp4 r12.w, r8.xyzw, r14.xyzw  // r12.w <- output.Depth1.y
-                dp4 r1.x, v0.xyzw, r1.xyzw
-                dp4 r1.y, v0.xyzw, r2.xyzw
-                dp4 r1.z, v0.xyzw, r3.xyzw
-                dp4 r1.w, v0.xyzw, r4.xyzw
-                dp4 r0.w, r1.xyzw, cb4[0].xyzw  // r0.w <- output.clip
-                mov o0.xyzw, r5.xyzw
-                mov o2.xy, r7.xyxx
+                dp4 r2.x, v0.xyzw, r2.xyzw
+                dp4 r2.y, v0.xyzw, r3.xyzw
+                dp4 r2.z, v0.xyzw, r4.xyzw
+                dp4 r2.w, v0.xyzw, r5.xyzw
+                dp4 r0.w, r2.xyzw, cb4[0].xyzw  // r0.w <- output.clip
+                mov o0.xyzw, r6.xyzw
+                mov o2.xy, r1.xyxx
                 mov o2.zw, r12.zzzw
                 mov o3.xyzw, r9.xyzw
                 mov o4.xyzw, r10.xyzw
                 mov o5.xyzw, r11.xyzw
                 mov o7.xy, r12.xyxx
-                mov o7.zw, r7.zzzw
-                mov o1.xyz, r6.xyzx
+                mov o7.zw, r1.zzzw
+                mov o1.xyz, r7.xyzx
                 mov o6.xyz, r0.xyzx
                 mov o8.x, r0.w
                 ret 
@@ -883,19 +849,6 @@ fxgroup
                 //
                 //
                 // Buffer Definitions: 
-                //
-                // cbuffer cbPerFrame
-                // {
-                //
-                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
-                //   float4x4 gView;                    // Offset:   64 Size:    64 [unused]
-                //   float4x4 gProjection;              // Offset:  128 Size:    64 [unused]
-                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
-                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
-                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
-                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
-                //
-                // }
                 //
                 // cbuffer cbLight
                 // {
@@ -931,13 +884,10 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
-                // samLinear                         sampler      NA          NA    0        1
                 // samShadow                       sampler_c      NA          NA    1        1
-                // txDiffuse                         texture  float4          2d    0        1
                 // txShadow0                         texture  float4          2d    4        1
                 // txShadow1                         texture  float4          2d    5        1
                 // txShadow2                         texture  float4          2d    6        1
-                // cbPerFrame                        cbuffer      NA          NA    0        1
                 // cbLight                           cbuffer      NA          NA    1        1
                 // cbMaterial                        cbuffer      NA          NA    2        1
                 // cbClipPlane                       cbuffer      NA          NA    4        1
@@ -950,7 +900,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
                 // NORMAL                   0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 0   xy          2     NONE   float       
                 // TEXCOORD                 6     zw        2     NONE   float     zw
                 // TEXCOORD                 1   xyzw        3     NONE   float   xy  
                 // TEXCOORD                 2   xyzw        4     NONE   float   xy  
@@ -968,18 +918,14 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[1], immediateIndexed
                 dcl_constantbuffer cb1[4], immediateIndexed
                 dcl_constantbuffer cb2[5], immediateIndexed
                 dcl_constantbuffer cb4[1], immediateIndexed
-                dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_comparison
-                dcl_resource_texture2d (float,float,float,float) t0
                 dcl_resource_texture2d (float,float,float,float) t4
                 dcl_resource_texture2d (float,float,float,float) t5
                 dcl_resource_texture2d (float,float,float,float) t6
                 dcl_input_ps linear v1.xyz
-                dcl_input_ps linear v2.xy
                 dcl_input_ps linear v2.zw
                 dcl_input_ps linear v3.xy
                 dcl_input_ps linear v4.xy
@@ -1004,7 +950,7 @@ fxgroup
                 //   o0.x <- <PS_ShadowMap return value>.x; o0.y <- <PS_ShadowMap return value>.y; o0.z <- <PS_ShadowMap return value>.z; o0.w <- <PS_ShadowMap return value>.w; 
                 //   x0 <- vTexCoords
                 //
-                #line 214 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 209 "D:\Project\Media\shader11\pos-norm.fx"
                 mov r0.y, l(0.000977)  // r0.y <- dx
                 div r1.x, v7.x, v7.y
                 min r1.x, r1.x, l(1.000000)  // r1.x <- depth0
@@ -1013,7 +959,7 @@ fxgroup
                 div r1.z, v2.z, v2.w
                 min r1.z, r1.z, l(1.000000)  // r1.z <- depth2
                 
-                #line 223
+                #line 218
                 mov x0[0].xy, v3.xyxx
                 mov r2.x, -r0.y
                 mov r2.y, l(0)
@@ -1042,7 +988,7 @@ fxgroup
                 mov x0[8].xy, r0.xwxx
                 mov x0[9].xy, v4.xyxx
                 
-                #line 234
+                #line 229
                 mov r2.x, -r0.y
                 mov r2.y, l(0)
                 add r0.xw, r2.xxxy, v4.xxxy
@@ -1074,7 +1020,7 @@ fxgroup
                 add r0.xw, r3.xxxy, v5.xxxy
                 mov x0[19].xy, r0.xwxx
                 
-                #line 245
+                #line 240
                 add r0.xw, r0.yyyz, v5.xxxy
                 mov x0[20].xy, r0.xwxx
                 mov r3.y, -r0.y
@@ -1102,7 +1048,7 @@ fxgroup
                 mov r0.z, l(-0.001000)
                 add r0.z, r0.z, r1.z  // r0.z <- S2
                 
-                #line 257
+                #line 252
                 mov r0.w, l(0)  // r0.w <- fShadowTerm
                 mov r1.x, l(0)  // r1.x <- i
                 mov r1.y, r0.w  // r1.y <- fShadowTerm
@@ -1125,7 +1071,7 @@ fxgroup
                   add r1.w, r1.w, r2.z
                   add r1.y, r1.w, r1.y
                 
-                #line 268
+                #line 263
                   iadd r1.z, r1.z, l(1)
                 endloop 
                 div r0.x, r1.y, l(9.000000)  // r0.x <- fShadowTerm
@@ -1166,13 +1112,12 @@ fxgroup
                 mul r1.xyz, r0.wwww, r3.xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 
-                #line 282
-                sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v2.xyxx, t0.xyzw, s0
-                mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
-                mul r0.w, r1.w, cb2[1].w  // r0.w <- Out.w
+                #line 277
+                mov r0.xyz, r0.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
+                mov r0.w, cb2[1].w  // r0.w <- Out.w
                 mov o0.xyzw, r0.xyzw
                 ret 
-                // Approximately 155 instruction slots used
+                // Approximately 154 instruction slots used
                             
             };
         }
@@ -1218,8 +1163,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // POSITION                 0   xyzw        0     NONE   float   xyzw
                 // NORMAL                   0   xyz         1     NONE   float       
-                // TEXCOORD                 0   xy          2     NONE   float       
-                // SV_InstanceID            0   x           3   INSTID    uint       
+                // SV_InstanceID            0   x           2   INSTID    uint       
                 //
                 //
                 // Output signature:
@@ -1240,12 +1184,11 @@ fxgroup
                 // Initial variable locations:
                 //   v0.x <- Pos.x; v0.y <- Pos.y; v0.z <- Pos.z; v0.w <- Pos.w; 
                 //   v1.x <- Normal.x; v1.y <- Normal.y; v1.z <- Normal.z; 
-                //   v2.x <- Tex.x; v2.y <- Tex.y; 
-                //   v3.x <- instID; 
+                //   v2.x <- instID; 
                 //   o1.x <- <VS_BuildShadowMap return value>.Depth.x; o1.y <- <VS_BuildShadowMap return value>.Depth.y; 
                 //   o0.x <- <VS_BuildShadowMap return value>.Pos.x; o0.y <- <VS_BuildShadowMap return value>.Pos.y; o0.z <- <VS_BuildShadowMap return value>.Pos.z; o0.w <- <VS_BuildShadowMap return value>.Pos.w
                 //
-                #line 305 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 299 "D:\Project\Media\shader11\pos-norm.fx"
                 mov r0.xyzw, cb0[0].xyzw  // r0.x <- mWorld._m00; r0.y <- mWorld._m10; r0.z <- mWorld._m20; r0.w <- mWorld._m30
                 mov r1.xyzw, cb0[1].xyzw  // r1.x <- mWorld._m01; r1.y <- mWorld._m11; r1.z <- mWorld._m21; r1.w <- mWorld._m31
                 mov r2.xyzw, cb0[2].xyzw  // r2.x <- mWorld._m02; r2.y <- mWorld._m12; r2.z <- mWorld._m22; r2.w <- mWorld._m32
@@ -1302,7 +1245,7 @@ fxgroup
                 //   v1.x <- In.Depth.x; v1.y <- In.Depth.y; 
                 //   o0.x <- <PS_BuildShadowMap return value>.x; o0.y <- <PS_BuildShadowMap return value>.y; o0.z <- <PS_BuildShadowMap return value>.z; o0.w <- <PS_BuildShadowMap return value>.w
                 //
-                #line 323 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 317 "D:\Project\Media\shader11\pos-norm.fx"
                 div o0.xyzw, v1.xxxx, v1.yyyy
                 ret 
                 // Approximately 2 instruction slots used
@@ -1367,8 +1310,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // POSITION                 0   xyzw        0     NONE   float   xyzw
                 // NORMAL                   0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 0   xy          2     NONE   float   xy  
-                // SV_InstanceID            0   x           3   INSTID    uint   x   
+                // SV_InstanceID            0   x           2   INSTID    uint   x   
                 //
                 //
                 // Output signature:
@@ -1377,9 +1319,8 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
                 // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 2   xyz         3     NONE   float   xyz 
-                // SV_ClipDistance          0   x           4  CLIPDST   float   x   
+                // TEXCOORD                 1   xyz         2     NONE   float   xyz 
+                // SV_ClipDistance          0   x           3  CLIPDST   float   x   
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
@@ -1388,29 +1329,25 @@ fxgroup
                 dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_input v0.xyzw
                 dcl_input v1.xyz
-                dcl_input v2.xy
-                dcl_input_sgv v3.x, instance_id
+                dcl_input_sgv v2.x, instance_id
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xyz
-                dcl_output o2.xy
-                dcl_output o3.xyz
-                dcl_output_siv o4.x, clip_distance
-                dcl_temps 8
+                dcl_output o2.xyz
+                dcl_output_siv o3.x, clip_distance
+                dcl_temps 7
                 //
                 // Initial variable locations:
                 //   v0.x <- Pos.x; v0.y <- Pos.y; v0.z <- Pos.z; v0.w <- Pos.w; 
                 //   v1.x <- Normal.x; v1.y <- Normal.y; v1.z <- Normal.z; 
-                //   v2.x <- Tex.x; v2.y <- Tex.y; 
-                //   v3.x <- instID; 
-                //   o4.x <- <VS return value>.clip; 
-                //   o3.x <- <VS return value>.toEye.x; o3.y <- <VS return value>.toEye.y; o3.z <- <VS return value>.toEye.z; 
-                //   o2.x <- <VS return value>.Tex.x; o2.y <- <VS return value>.Tex.y; 
+                //   v2.x <- instID; 
+                //   o3.x <- <VS return value>.clip; 
+                //   o2.x <- <VS return value>.toEye.x; o2.y <- <VS return value>.toEye.y; o2.z <- <VS return value>.toEye.z; 
                 //   o1.x <- <VS return value>.Normal.x; o1.y <- <VS return value>.Normal.y; o1.z <- <VS return value>.Normal.z; 
                 //   o0.x <- <VS return value>.Pos.x; o0.y <- <VS return value>.Pos.y; o0.z <- <VS return value>.Pos.z; o0.w <- <VS return value>.Pos.w
                 //
-                #line 114 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 112 "D:\Project\Media\shader11\pos-norm.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
-                imul null, r0.w, v3.x, l(4)
+                imul null, r0.w, v2.x, l(4)
                 mov r1.xyzw, cb3[r0.w + 0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
                 mov r2.xyzw, cb3[r0.w + 1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
                 mov r3.xyzw, cb3[r0.w + 2].xyzw  // r3.x <- mWorld._m02; r3.y <- mWorld._m12; r3.z <- mWorld._m22; r3.w <- mWorld._m32
@@ -1433,7 +1370,6 @@ fxgroup
                 dp3 r0.w, r6.xyzx, r6.xyzx
                 rsq r0.w, r0.w
                 mul r6.xyz, r0.wwww, r6.xyzx  // r6.x <- output.Normal.x; r6.y <- output.Normal.y; r6.z <- output.Normal.z
-                mov r7.xy, v2.xyxx  // r7.x <- output.Tex.x; r7.y <- output.Tex.y
                 dp4 r1.x, v0.xyzw, r1.xyzw
                 dp4 r1.y, v0.xyzw, r2.xyzw
                 dp4 r1.z, v0.xyzw, r3.xyzw
@@ -1441,11 +1377,10 @@ fxgroup
                 dp4 r0.w, r1.xyzw, cb4[0].xyzw  // r0.w <- output.clip
                 mov o0.xyzw, r5.xyzw
                 mov o1.xyz, r6.xyzx
-                mov o3.xyz, r0.xyzx
-                mov o2.xy, r7.xyxx
-                mov o4.x, r0.w
+                mov o2.xyz, r0.xyzx
+                mov o3.x, r0.w
                 ret 
-                // Approximately 36 instruction slots used
+                // Approximately 34 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -1457,19 +1392,6 @@ fxgroup
                 //
                 //
                 // Buffer Definitions: 
-                //
-                // cbuffer cbPerFrame
-                // {
-                //
-                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
-                //   float4x4 gView;                    // Offset:   64 Size:    64 [unused]
-                //   float4x4 gProjection;              // Offset:  128 Size:    64 [unused]
-                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
-                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
-                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
-                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
-                //
-                // }
                 //
                 // cbuffer cbLight
                 // {
@@ -1498,9 +1420,6 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
-                // samLinear                         sampler      NA          NA    0        1
-                // txDiffuse                         texture  float4          2d    0        1
-                // cbPerFrame                        cbuffer      NA          NA    0        1
                 // cbLight                           cbuffer      NA          NA    1        1
                 // cbMaterial                        cbuffer      NA          NA    2        1
                 //
@@ -1512,9 +1431,8 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
                 // TEXCOORD                 0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 1   xy          2     NONE   float   xy  
-                // TEXCOORD                 2   xyz         3     NONE   float   xyz 
-                // SV_ClipDistance          0   x           4  CLIPDST   float       
+                // TEXCOORD                 1   xyz         2     NONE   float   xyz 
+                // SV_ClipDistance          0   x           3  CLIPDST   float       
                 //
                 //
                 // Output signature:
@@ -1525,30 +1443,25 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[1], immediateIndexed
                 dcl_constantbuffer cb1[4], immediateIndexed
                 dcl_constantbuffer cb2[5], immediateIndexed
-                dcl_sampler s0, mode_default
-                dcl_resource_texture2d (float,float,float,float) t0
                 dcl_input_ps linear v1.xyz
-                dcl_input_ps linear v2.xy
-                dcl_input_ps linear v3.xyz
+                dcl_input_ps linear v2.xyz
                 dcl_output o0.xyzw
                 dcl_temps 4
                 //
                 // Initial variable locations:
                 //   v0.x <- In.Pos.x; v0.y <- In.Pos.y; v0.z <- In.Pos.z; v0.w <- In.Pos.w; 
                 //   v1.x <- In.Normal.x; v1.y <- In.Normal.y; v1.z <- In.Normal.z; 
-                //   v2.x <- In.Tex.x; v2.y <- In.Tex.y; 
-                //   v3.x <- In.toEye.x; v3.y <- In.toEye.y; v3.z <- In.toEye.z; 
-                //   v4.x <- In.clip; 
+                //   v2.x <- In.toEye.x; v2.y <- In.toEye.y; v2.z <- In.toEye.z; 
+                //   v3.x <- In.clip; 
                 //   o0.x <- <PS return value>.x; o0.y <- <PS return value>.y; o0.z <- <PS return value>.z; o0.w <- <PS return value>.w
                 //
-                #line 133 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 130 "D:\Project\Media\shader11\pos-norm.fx"
                 mov r0.xyz, -cb1[3].xyzx  // r0.x <- L.x; r0.y <- L.y; r0.z <- L.z
-                dp3 r0.w, v3.xyzx, v3.xyzx
+                dp3 r0.w, v2.xyzx, v2.xyzx
                 rsq r0.w, r0.w
-                mul r1.xyz, r0.wwww, v3.xyzx
+                mul r1.xyz, r0.wwww, v2.xyzx
                 add r1.xyz, r0.xyzx, r1.xyzx
                 dp3 r0.w, r1.xyzx, r1.xyzx
                 rsq r0.w, r0.w
@@ -1580,13 +1493,12 @@ fxgroup
                 mul r1.xyz, r0.wwww, r3.xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 
-                #line 144
-                sample_indexable(texture2d)(float,float,float,float) r1.xyz, v2.xyxx, t0.xyzw, s0
-                mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
+                #line 141
+                mov r0.xyz, r0.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
                 mov o0.xyz, r0.xyzx
                 mov o0.w, cb2[1].w
                 ret 
-                // Approximately 39 instruction slots used
+                // Approximately 38 instruction slots used
                             
             };
         }
@@ -1648,8 +1560,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // POSITION                 0   xyzw        0     NONE   float   xyzw
                 // NORMAL                   0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 0   xy          2     NONE   float   xy  
-                // SV_InstanceID            0   x           3   INSTID    uint   x   
+                // SV_InstanceID            0   x           2   INSTID    uint   x   
                 //
                 //
                 // Output signature:
@@ -1674,8 +1585,7 @@ fxgroup
                 dcl_constantbuffer cb4[1], immediateIndexed
                 dcl_input v0.xyzw
                 dcl_input v1.xyz
-                dcl_input v2.xy
-                dcl_input_sgv v3.x, instance_id
+                dcl_input_sgv v2.x, instance_id
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xyz
                 dcl_output o2.xy
@@ -1693,8 +1603,7 @@ fxgroup
                 // Initial variable locations:
                 //   v0.x <- Pos.x; v0.y <- Pos.y; v0.z <- Pos.z; v0.w <- Pos.w; 
                 //   v1.x <- Normal.x; v1.y <- Normal.y; v1.z <- Normal.z; 
-                //   v2.x <- Tex.x; v2.y <- Tex.y; 
-                //   v3.x <- instID; 
+                //   v2.x <- instID; 
                 //   o8.x <- <VS_ShadowMap return value>.clip; 
                 //   o7.x <- <VS_ShadowMap return value>.Depth0.x; o7.y <- <VS_ShadowMap return value>.Depth0.y; o7.z <- <VS_ShadowMap return value>.Depth0.z; o7.w <- <VS_ShadowMap return value>.Depth0.w; 
                 //   o6.x <- <VS_ShadowMap return value>.toEye.x; o6.y <- <VS_ShadowMap return value>.toEye.y; o6.z <- <VS_ShadowMap return value>.toEye.z; 
@@ -1706,38 +1615,38 @@ fxgroup
                 //   o0.x <- <VS_ShadowMap return value>.Pos.x; o0.y <- <VS_ShadowMap return value>.Pos.y; o0.z <- <VS_ShadowMap return value>.Pos.z; o0.w <- <VS_ShadowMap return value>.Pos.w; 
                 //   x0 <- mLVP; x1 <- mVPT
                 //
-                #line 174 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 170 "D:\Project\Media\shader11\pos-norm.fx"
                 itof r0.xyz, l(0, 0, 0, 0)  // r0.x <- output.toEye.x; r0.y <- output.toEye.y; r0.z <- output.toEye.z
-                imul null, r0.w, v3.x, l(4)
-                mov r1.xyzw, cb3[r0.w + 0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
-                mov r2.xyzw, cb3[r0.w + 1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
-                mov r3.xyzw, cb3[r0.w + 2].xyzw  // r3.x <- mWorld._m02; r3.y <- mWorld._m12; r3.z <- mWorld._m22; r3.w <- mWorld._m32
-                mov r4.xyzw, cb3[r0.w + 3].xyzw  // r4.x <- mWorld._m03; r4.y <- mWorld._m13; r4.z <- mWorld._m23; r4.w <- mWorld._m33
-                dp4 r5.x, v0.xyzw, r1.xyzw  // r5.x <- output.Pos.x
-                dp4 r5.y, v0.xyzw, r2.xyzw  // r5.y <- output.Pos.y
-                dp4 r5.z, v0.xyzw, r3.xyzw  // r5.z <- output.Pos.z
-                dp4 r5.w, v0.xyzw, r4.xyzw  // r5.w <- output.Pos.w
-                dp4 r6.x, r5.xyzw, cb0[4].xyzw  // r6.x <- output.Pos.x
-                dp4 r6.y, r5.xyzw, cb0[5].xyzw  // r6.y <- output.Pos.y
-                dp4 r6.z, r5.xyzw, cb0[6].xyzw  // r6.z <- output.Pos.z
-                dp4 r6.w, r5.xyzw, cb0[7].xyzw  // r6.w <- output.Pos.w
-                dp4 r5.x, r6.xyzw, cb0[8].xyzw  // r5.x <- output.Pos.x
-                dp4 r5.y, r6.xyzw, cb0[9].xyzw  // r5.y <- output.Pos.y
-                dp4 r5.z, r6.xyzw, cb0[10].xyzw  // r5.z <- output.Pos.z
-                dp4 r5.w, r6.xyzw, cb0[11].xyzw  // r5.w <- output.Pos.w
-                dp3 r6.x, v1.xyzx, r1.xyzx
-                dp3 r6.y, v1.xyzx, r2.xyzx
-                dp3 r6.z, v1.xyzx, r3.xyzx
-                dp3 r0.w, r6.xyzx, r6.xyzx
+                itof r1.xy, l(0, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                imul null, r0.w, v2.x, l(4)
+                mov r2.xyzw, cb3[r0.w + 0].xyzw  // r2.x <- mWorld._m00; r2.y <- mWorld._m10; r2.z <- mWorld._m20; r2.w <- mWorld._m30
+                mov r3.xyzw, cb3[r0.w + 1].xyzw  // r3.x <- mWorld._m01; r3.y <- mWorld._m11; r3.z <- mWorld._m21; r3.w <- mWorld._m31
+                mov r4.xyzw, cb3[r0.w + 2].xyzw  // r4.x <- mWorld._m02; r4.y <- mWorld._m12; r4.z <- mWorld._m22; r4.w <- mWorld._m32
+                mov r5.xyzw, cb3[r0.w + 3].xyzw  // r5.x <- mWorld._m03; r5.y <- mWorld._m13; r5.z <- mWorld._m23; r5.w <- mWorld._m33
+                dp4 r6.x, v0.xyzw, r2.xyzw  // r6.x <- output.Pos.x
+                dp4 r6.y, v0.xyzw, r3.xyzw  // r6.y <- output.Pos.y
+                dp4 r6.z, v0.xyzw, r4.xyzw  // r6.z <- output.Pos.z
+                dp4 r6.w, v0.xyzw, r5.xyzw  // r6.w <- output.Pos.w
+                dp4 r7.x, r6.xyzw, cb0[4].xyzw  // r7.x <- output.Pos.x
+                dp4 r7.y, r6.xyzw, cb0[5].xyzw  // r7.y <- output.Pos.y
+                dp4 r7.z, r6.xyzw, cb0[6].xyzw  // r7.z <- output.Pos.z
+                dp4 r7.w, r6.xyzw, cb0[7].xyzw  // r7.w <- output.Pos.w
+                dp4 r6.x, r7.xyzw, cb0[8].xyzw  // r6.x <- output.Pos.x
+                dp4 r6.y, r7.xyzw, cb0[9].xyzw  // r6.y <- output.Pos.y
+                dp4 r6.z, r7.xyzw, cb0[10].xyzw  // r6.z <- output.Pos.z
+                dp4 r6.w, r7.xyzw, cb0[11].xyzw  // r6.w <- output.Pos.w
+                dp3 r7.x, v1.xyzx, r2.xyzx
+                dp3 r7.y, v1.xyzx, r3.xyzx
+                dp3 r7.z, v1.xyzx, r4.xyzx
+                dp3 r0.w, r7.xyzx, r7.xyzx
                 rsq r0.w, r0.w
-                mul r6.xyz, r0.wwww, r6.xyzx  // r6.x <- output.Normal.x; r6.y <- output.Normal.y; r6.z <- output.Normal.z
-                mov r7.xy, v2.xyxx  // r7.x <- output.Tex.x; r7.y <- output.Tex.y
+                mul r7.xyz, r0.wwww, r7.xyzx  // r7.x <- output.Normal.x; r7.y <- output.Normal.y; r7.z <- output.Normal.z
                 
-                #line 186
-                dp4 r8.x, v0.xyzw, r1.xyzw  // r8.x <- wPos.x
-                dp4 r8.y, v0.xyzw, r2.xyzw  // r8.y <- wPos.y
-                dp4 r8.z, v0.xyzw, r3.xyzw  // r8.z <- wPos.z
-                dp4 r8.w, v0.xyzw, r4.xyzw  // r8.w <- wPos.w
+                #line 181
+                dp4 r8.x, v0.xyzw, r2.xyzw  // r8.x <- wPos.x
+                dp4 r8.y, v0.xyzw, r3.xyzw  // r8.y <- wPos.y
+                dp4 r8.z, v0.xyzw, r4.xyzw  // r8.z <- wPos.z
+                dp4 r8.w, v0.xyzw, r5.xyzw  // r8.w <- wPos.w
                 mul r9.xyzw, cb0[12].xyzw, cb0[24].xxxx
                 mul r10.xyzw, cb0[13].xyzw, cb0[24].yyyy
                 add r9.xyzw, r9.xyzw, r10.xyzw
@@ -1799,8 +1708,8 @@ fxgroup
                 mov r12.z, x0[2].w
                 mov r12.w, x0[3].w
                 dp4 r0.w, r9.xyzw, cb0[36].xyzw
-                dp4 r6.w, r9.xyzw, cb0[37].xyzw
-                dp4 r7.z, r9.xyzw, cb0[38].xyzw
+                dp4 r1.z, r9.xyzw, cb0[37].xyzw
+                dp4 r1.w, r9.xyzw, cb0[38].xyzw
                 dp4 r7.w, r9.xyzw, cb0[39].xyzw
                 dp4 r9.x, r10.xyzw, cb0[36].xyzw
                 dp4 r9.y, r10.xyzw, cb0[37].xyzw
@@ -1815,8 +1724,8 @@ fxgroup
                 dp4 r11.z, r12.xyzw, cb0[38].xyzw
                 dp4 r11.w, r12.xyzw, cb0[39].xyzw
                 mov x1[0].x, r0.w
-                mov x1[1].x, r6.w
-                mov x1[2].x, r7.z
+                mov x1[1].x, r1.z
+                mov x1[2].x, r1.w
                 mov x1[3].x, r7.w
                 mov x1[0].y, r9.x
                 mov x1[1].y, r9.y
@@ -1891,8 +1800,8 @@ fxgroup
                 mov r12.z, x0[6].w
                 mov r12.w, x0[7].w
                 dp4 r0.w, r9.xyzw, cb0[36].xyzw
-                dp4 r6.w, r9.xyzw, cb0[37].xyzw
-                dp4 r7.z, r9.xyzw, cb0[38].xyzw
+                dp4 r1.z, r9.xyzw, cb0[37].xyzw
+                dp4 r1.w, r9.xyzw, cb0[38].xyzw
                 dp4 r7.w, r9.xyzw, cb0[39].xyzw
                 dp4 r9.x, r10.xyzw, cb0[36].xyzw
                 dp4 r9.y, r10.xyzw, cb0[37].xyzw
@@ -1907,8 +1816,8 @@ fxgroup
                 dp4 r11.z, r12.xyzw, cb0[38].xyzw
                 dp4 r11.w, r12.xyzw, cb0[39].xyzw
                 mov x1[4].x, r0.w
-                mov x1[5].x, r6.w
-                mov x1[6].x, r7.z
+                mov x1[5].x, r1.z
+                mov x1[6].x, r1.w
                 mov x1[7].x, r7.w
                 mov x1[4].y, r9.x
                 mov x1[5].y, r9.y
@@ -1983,8 +1892,8 @@ fxgroup
                 mov r12.z, x0[10].w
                 mov r12.w, x0[11].w
                 dp4 r0.w, r9.xyzw, cb0[36].xyzw
-                dp4 r6.w, r9.xyzw, cb0[37].xyzw
-                dp4 r7.z, r9.xyzw, cb0[38].xyzw
+                dp4 r1.z, r9.xyzw, cb0[37].xyzw
+                dp4 r1.w, r9.xyzw, cb0[38].xyzw
                 dp4 r7.w, r9.xyzw, cb0[39].xyzw
                 dp4 r9.x, r10.xyzw, cb0[36].xyzw
                 dp4 r9.y, r10.xyzw, cb0[37].xyzw
@@ -1999,8 +1908,8 @@ fxgroup
                 dp4 r11.z, r12.xyzw, cb0[38].xyzw
                 dp4 r11.w, r12.xyzw, cb0[39].xyzw
                 mov x1[8].x, r0.w
-                mov x1[9].x, r6.w
-                mov x1[10].x, r7.z
+                mov x1[9].x, r1.z
+                mov x1[10].x, r1.w
                 mov x1[11].x, r7.w
                 mov x1[8].y, r9.x
                 mov x1[9].y, r9.y
@@ -2075,7 +1984,7 @@ fxgroup
                 dp4 r11.z, r8.xyzw, r13.xyzw  // r11.z <- output.TexShadow2.z
                 dp4 r11.w, r8.xyzw, r14.xyzw  // r11.w <- output.TexShadow2.w
                 
-                #line 198
+                #line 193
                 mov r12.x, x0[2].x
                 mov r13.x, x0[3].x
                 mov r12.y, x0[2].y
@@ -2094,8 +2003,8 @@ fxgroup
                 mov r14.z, x0[7].z
                 mov r13.w, x0[6].w
                 mov r14.w, x0[7].w
-                dp4 r7.z, r8.xyzw, r13.xyzw  // r7.z <- output.Depth0.z
-                dp4 r7.w, r8.xyzw, r14.xyzw  // r7.w <- output.Depth0.w
+                dp4 r1.z, r8.xyzw, r13.xyzw  // r1.z <- output.Depth0.z
+                dp4 r1.w, r8.xyzw, r14.xyzw  // r1.w <- output.Depth0.w
                 mov r13.x, x0[10].x
                 mov r14.x, x0[11].x
                 mov r13.y, x0[10].y
@@ -2106,20 +2015,20 @@ fxgroup
                 mov r14.w, x0[11].w
                 dp4 r12.z, r8.xyzw, r13.xyzw  // r12.z <- output.Depth1.x
                 dp4 r12.w, r8.xyzw, r14.xyzw  // r12.w <- output.Depth1.y
-                dp4 r1.x, v0.xyzw, r1.xyzw
-                dp4 r1.y, v0.xyzw, r2.xyzw
-                dp4 r1.z, v0.xyzw, r3.xyzw
-                dp4 r1.w, v0.xyzw, r4.xyzw
-                dp4 r0.w, r1.xyzw, cb4[0].xyzw  // r0.w <- output.clip
-                mov o0.xyzw, r5.xyzw
-                mov o2.xy, r7.xyxx
+                dp4 r2.x, v0.xyzw, r2.xyzw
+                dp4 r2.y, v0.xyzw, r3.xyzw
+                dp4 r2.z, v0.xyzw, r4.xyzw
+                dp4 r2.w, v0.xyzw, r5.xyzw
+                dp4 r0.w, r2.xyzw, cb4[0].xyzw  // r0.w <- output.clip
+                mov o0.xyzw, r6.xyzw
+                mov o2.xy, r1.xyxx
                 mov o2.zw, r12.zzzw
                 mov o3.xyzw, r9.xyzw
                 mov o4.xyzw, r10.xyzw
                 mov o5.xyzw, r11.xyzw
                 mov o7.xy, r12.xyxx
-                mov o7.zw, r7.zzzw
-                mov o1.xyz, r6.xyzx
+                mov o7.zw, r1.zzzw
+                mov o1.xyz, r7.xyzx
                 mov o6.xyz, r0.xyzx
                 mov o8.x, r0.w
                 ret 
@@ -2135,19 +2044,6 @@ fxgroup
                 //
                 //
                 // Buffer Definitions: 
-                //
-                // cbuffer cbPerFrame
-                // {
-                //
-                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
-                //   float4x4 gView;                    // Offset:   64 Size:    64 [unused]
-                //   float4x4 gProjection;              // Offset:  128 Size:    64 [unused]
-                //   float4x4 gLightView[3];            // Offset:  192 Size:   192 [unused]
-                //   float4x4 gLightProj[3];            // Offset:  384 Size:   192 [unused]
-                //   float4x4 gLightTT;                 // Offset:  576 Size:    64 [unused]
-                //   float3 gEyePosW;                   // Offset:  640 Size:    12 [unused]
-                //
-                // }
                 //
                 // cbuffer cbLight
                 // {
@@ -2183,13 +2079,10 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
-                // samLinear                         sampler      NA          NA    0        1
                 // samShadow                       sampler_c      NA          NA    1        1
-                // txDiffuse                         texture  float4          2d    0        1
                 // txShadow0                         texture  float4          2d    4        1
                 // txShadow1                         texture  float4          2d    5        1
                 // txShadow2                         texture  float4          2d    6        1
-                // cbPerFrame                        cbuffer      NA          NA    0        1
                 // cbLight                           cbuffer      NA          NA    1        1
                 // cbMaterial                        cbuffer      NA          NA    2        1
                 // cbClipPlane                       cbuffer      NA          NA    4        1
@@ -2202,7 +2095,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
                 // NORMAL                   0   xyz         1     NONE   float   xyz 
-                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 0   xy          2     NONE   float       
                 // TEXCOORD                 6     zw        2     NONE   float     zw
                 // TEXCOORD                 1   xyzw        3     NONE   float   xy  
                 // TEXCOORD                 2   xyzw        4     NONE   float   xy  
@@ -2220,18 +2113,14 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[1], immediateIndexed
                 dcl_constantbuffer cb1[4], immediateIndexed
                 dcl_constantbuffer cb2[5], immediateIndexed
                 dcl_constantbuffer cb4[1], immediateIndexed
-                dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_comparison
-                dcl_resource_texture2d (float,float,float,float) t0
                 dcl_resource_texture2d (float,float,float,float) t4
                 dcl_resource_texture2d (float,float,float,float) t5
                 dcl_resource_texture2d (float,float,float,float) t6
                 dcl_input_ps linear v1.xyz
-                dcl_input_ps linear v2.xy
                 dcl_input_ps linear v2.zw
                 dcl_input_ps linear v3.xy
                 dcl_input_ps linear v4.xy
@@ -2256,7 +2145,7 @@ fxgroup
                 //   o0.x <- <PS_ShadowMap return value>.x; o0.y <- <PS_ShadowMap return value>.y; o0.z <- <PS_ShadowMap return value>.z; o0.w <- <PS_ShadowMap return value>.w; 
                 //   x0 <- vTexCoords
                 //
-                #line 214 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 209 "D:\Project\Media\shader11\pos-norm.fx"
                 mov r0.y, l(0.000977)  // r0.y <- dx
                 div r1.x, v7.x, v7.y
                 min r1.x, r1.x, l(1.000000)  // r1.x <- depth0
@@ -2265,7 +2154,7 @@ fxgroup
                 div r1.z, v2.z, v2.w
                 min r1.z, r1.z, l(1.000000)  // r1.z <- depth2
                 
-                #line 223
+                #line 218
                 mov x0[0].xy, v3.xyxx
                 mov r2.x, -r0.y
                 mov r2.y, l(0)
@@ -2294,7 +2183,7 @@ fxgroup
                 mov x0[8].xy, r0.xwxx
                 mov x0[9].xy, v4.xyxx
                 
-                #line 234
+                #line 229
                 mov r2.x, -r0.y
                 mov r2.y, l(0)
                 add r0.xw, r2.xxxy, v4.xxxy
@@ -2326,7 +2215,7 @@ fxgroup
                 add r0.xw, r3.xxxy, v5.xxxy
                 mov x0[19].xy, r0.xwxx
                 
-                #line 245
+                #line 240
                 add r0.xw, r0.yyyz, v5.xxxy
                 mov x0[20].xy, r0.xwxx
                 mov r3.y, -r0.y
@@ -2354,7 +2243,7 @@ fxgroup
                 mov r0.z, l(-0.001000)
                 add r0.z, r0.z, r1.z  // r0.z <- S2
                 
-                #line 257
+                #line 252
                 mov r0.w, l(0)  // r0.w <- fShadowTerm
                 mov r1.x, l(0)  // r1.x <- i
                 mov r1.y, r0.w  // r1.y <- fShadowTerm
@@ -2377,7 +2266,7 @@ fxgroup
                   add r1.w, r1.w, r2.z
                   add r1.y, r1.w, r1.y
                 
-                #line 268
+                #line 263
                   iadd r1.z, r1.z, l(1)
                 endloop 
                 div r0.x, r1.y, l(9.000000)  // r0.x <- fShadowTerm
@@ -2418,13 +2307,12 @@ fxgroup
                 mul r1.xyz, r0.wwww, r3.xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 
-                #line 282
-                sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v2.xyxx, t0.xyzw, s0
-                mul r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
-                mul r0.w, r1.w, cb2[1].w  // r0.w <- Out.w
+                #line 277
+                mov r0.xyz, r0.xyzx  // r0.x <- Out.x; r0.y <- Out.y; r0.z <- Out.z
+                mov r0.w, cb2[1].w  // r0.w <- Out.w
                 mov o0.xyzw, r0.xyzw
                 ret 
-                // Approximately 155 instruction slots used
+                // Approximately 154 instruction slots used
                             
             };
         }
@@ -2478,8 +2366,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // POSITION                 0   xyzw        0     NONE   float   xyzw
                 // NORMAL                   0   xyz         1     NONE   float       
-                // TEXCOORD                 0   xy          2     NONE   float       
-                // SV_InstanceID            0   x           3   INSTID    uint   x   
+                // SV_InstanceID            0   x           2   INSTID    uint   x   
                 //
                 //
                 // Output signature:
@@ -2494,7 +2381,7 @@ fxgroup
                 dcl_constantbuffer cb0[12], immediateIndexed
                 dcl_constantbuffer cb3[400], dynamicIndexed
                 dcl_input v0.xyzw
-                dcl_input_sgv v3.x, instance_id
+                dcl_input_sgv v2.x, instance_id
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xy
                 dcl_temps 4
@@ -2502,13 +2389,12 @@ fxgroup
                 // Initial variable locations:
                 //   v0.x <- Pos.x; v0.y <- Pos.y; v0.z <- Pos.z; v0.w <- Pos.w; 
                 //   v1.x <- Normal.x; v1.y <- Normal.y; v1.z <- Normal.z; 
-                //   v2.x <- Tex.x; v2.y <- Tex.y; 
-                //   v3.x <- instID; 
+                //   v2.x <- instID; 
                 //   o1.x <- <VS_BuildShadowMap return value>.Depth.x; o1.y <- <VS_BuildShadowMap return value>.Depth.y; 
                 //   o0.x <- <VS_BuildShadowMap return value>.Pos.x; o0.y <- <VS_BuildShadowMap return value>.Pos.y; o0.z <- <VS_BuildShadowMap return value>.Pos.z; o0.w <- <VS_BuildShadowMap return value>.Pos.w
                 //
-                #line 305 "D:\Project\Media\shader11\pos-norm-tex.fx"
-                imul null, r0.x, v3.x, l(4)
+                #line 299 "D:\Project\Media\shader11\pos-norm.fx"
+                imul null, r0.x, v2.x, l(4)
                 mov r1.xyzw, cb3[r0.x + 0].xyzw  // r1.x <- mWorld._m00; r1.y <- mWorld._m10; r1.z <- mWorld._m20; r1.w <- mWorld._m30
                 mov r2.xyzw, cb3[r0.x + 1].xyzw  // r2.x <- mWorld._m01; r2.y <- mWorld._m11; r2.z <- mWorld._m21; r2.w <- mWorld._m31
                 mov r3.xyzw, cb3[r0.x + 2].xyzw  // r3.x <- mWorld._m02; r3.y <- mWorld._m12; r3.z <- mWorld._m22; r3.w <- mWorld._m32
@@ -2565,7 +2451,7 @@ fxgroup
                 //   v1.x <- In.Depth.x; v1.y <- In.Depth.y; 
                 //   o0.x <- <PS_BuildShadowMap return value>.x; o0.y <- <PS_BuildShadowMap return value>.y; o0.z <- <PS_BuildShadowMap return value>.z; o0.w <- <PS_BuildShadowMap return value>.w
                 //
-                #line 323 "D:\Project\Media\shader11\pos-norm-tex.fx"
+                #line 317 "D:\Project\Media\shader11\pos-norm.fx"
                 div o0.xyzw, v1.xxxx, v1.yyyy
                 ret 
                 // Approximately 2 instruction slots used
