@@ -64,7 +64,7 @@ public:
 		GetMainLight().Bind(renderer);
 
 		m_renderTarget.SetRenderTarget(renderer);
-		if (renderer.ClearScene(false, Vector4(0,0,0,1)))
+		if (renderer.ClearScene(false, Vector4(0.8f, 0.8f, 1.0f, 1.0f)))
 		{
 			renderer.BeginScene();
 			m_ocean.Render(renderer, &GetMainCamera(), m_deltaSeconds);

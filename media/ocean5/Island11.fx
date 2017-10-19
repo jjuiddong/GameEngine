@@ -393,7 +393,9 @@ PSIn_Diffuse WaterPatchDS(    PatchData input,
 	float4 depthmap_scaler;
 
 	// getting rough estimate of water depth from depth map texture 
-	depthmap_scaler=g_DepthMapTexture.SampleLevel(SamplerLinearWrap, float2(texcoord0to1.x,1-texcoord0to1.y),0);
+	//depthmap_scaler = g_DepthMapTexture.SampleLevel(SamplerLinearWrap, float2(texcoord0to1.x,1-texcoord0to1.y),0);
+	//depthmap_scaler = float4(1, 1, 1, 1);
+	depthmap_scaler = float4(1, 1, 1, 1);
 	
 	// calculating water surface geometry position and normal
 	vertexPosition.xz = input.origin + uv * input.size;
@@ -408,8 +410,8 @@ PSIn_Diffuse WaterPatchDS(    PatchData input,
 	// writing output params
     output.position = mul(float4(vertexPosition, 1.0), g_ModelViewProjectionMatrix);
     output.texcoord = texcoord0to1*g_WaterMicroBumpTexcoordScale+g_WaterBumpTexcoordShift*0.07;
-	output.normal=normalize(water_normal.xyz);
-	output.depthmap_scaler=depthmap_scaler;
+	output.normal = normalize(water_normal.xyz);
+	output.depthmap_scaler = depthmap_scaler;
 	output.positionWS = vertexPosition;
     return output;
 }

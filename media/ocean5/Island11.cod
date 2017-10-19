@@ -409,7 +409,7 @@ fxgroup
                 //   o1.x <- <FullScreenQuadVS return value>.texcoord.x; o1.y <- <FullScreenQuadVS return value>.texcoord.y; 
                 //   o0.x <- <FullScreenQuadVS return value>.position.x; o0.y <- <FullScreenQuadVS return value>.position.y; o0.z <- <FullScreenQuadVS return value>.position.z; o0.w <- <FullScreenQuadVS return value>.position.w
                 //
-                #line 593 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 595 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof r0.zw, l(0, 0, 0, 1)  // r0.z <- output.position.z; r0.w <- output.position.w
                 mov r1.x, v0.x
                 mov r0.xy, cb0[r1.x + 0].xyxx  // r0.x <- output.position.x; r0.y <- output.position.y
@@ -461,7 +461,7 @@ fxgroup
                 //   v1.x <- input.texcoord.x; v1.y <- input.texcoord.y; 
                 //   o0.x <- <RefractionDepthManualResolvePS1 return value>
                 //
-                #line 609 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 611 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 ftoi r0.xy, v0.xyxx
                 mov r0.zw, l(0,0,0,0)
                 ldms r0.xyzw, r0.xyzw, t0.xyzw, l(0)
@@ -538,7 +538,7 @@ fxgroup
                 //   o1.x <- <FullScreenQuadVS return value>.texcoord.x; o1.y <- <FullScreenQuadVS return value>.texcoord.y; 
                 //   o0.x <- <FullScreenQuadVS return value>.position.x; o0.y <- <FullScreenQuadVS return value>.position.y; o0.z <- <FullScreenQuadVS return value>.position.z; o0.w <- <FullScreenQuadVS return value>.position.w
                 //
-                #line 593 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 595 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof r0.zw, l(0, 0, 0, 1)  // r0.z <- output.position.z; r0.w <- output.position.w
                 mov r1.x, v0.x
                 mov r0.xy, cb0[r1.x + 0].xyxx  // r0.x <- output.position.x; r0.y <- output.position.y
@@ -590,7 +590,7 @@ fxgroup
                 //   v1.x <- input.texcoord.x; v1.y <- input.texcoord.y; 
                 //   o0.x <- <RefractionDepthManualResolvePS2 return value>
                 //
-                #line 614 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 616 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 ftoi r0.xy, v0.xyxx
                 mov r0.zw, l(0,0,0,0)
                 ldms r0.xyzw, r0.xyzw, t0.xyzw, l(0)
@@ -667,7 +667,7 @@ fxgroup
                 //   o1.x <- <FullScreenQuadVS return value>.texcoord.x; o1.y <- <FullScreenQuadVS return value>.texcoord.y; 
                 //   o0.x <- <FullScreenQuadVS return value>.position.x; o0.y <- <FullScreenQuadVS return value>.position.y; o0.z <- <FullScreenQuadVS return value>.position.z; o0.w <- <FullScreenQuadVS return value>.position.w
                 //
-                #line 593 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 595 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof r0.zw, l(0, 0, 0, 1)  // r0.z <- output.position.z; r0.w <- output.position.w
                 mov r1.x, v0.x
                 mov r0.xy, cb0[r1.x + 0].xyxx  // r0.x <- output.position.x; r0.y <- output.position.y
@@ -719,7 +719,7 @@ fxgroup
                 //   v1.x <- input.texcoord.x; v1.y <- input.texcoord.y; 
                 //   o0.x <- <RefractionDepthManualResolvePS4 return value>
                 //
-                #line 619 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 621 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 ftoi r0.xy, v0.xyxx
                 mov r0.zw, l(0,0,0,0)
                 ldms r0.xyzw, r0.xyzw, t0.xyzw, l(0)
@@ -800,7 +800,7 @@ fxgroup
                 //   o1.x <- <FullScreenQuadVS return value>.texcoord.x; o1.y <- <FullScreenQuadVS return value>.texcoord.y; 
                 //   o0.x <- <FullScreenQuadVS return value>.position.x; o0.y <- <FullScreenQuadVS return value>.position.y; o0.z <- <FullScreenQuadVS return value>.position.z; o0.w <- <FullScreenQuadVS return value>.position.w
                 //
-                #line 593 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 595 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof r0.zw, l(0, 0, 0, 1)  // r0.z <- output.position.z; r0.w <- output.position.w
                 mov r1.x, v0.x
                 mov r0.xy, cb0[r1.x + 0].xyxx  // r0.x <- output.position.x; r0.y <- output.position.y
@@ -928,7 +928,7 @@ fxgroup
                 //   v1.x <- input.texcoord.x; v1.y <- input.texcoord.y; 
                 //   o0.x <- <MainToBackBufferPS return value>.x; o0.y <- <MainToBackBufferPS return value>.y; o0.z <- <MainToBackBufferPS return value>.z; o0.w <- <MainToBackBufferPS return value>.w
                 //
-                #line 602 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 604 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.x, l(-0.500000)
                 add r0.x, r0.x, v1.x
                 div r0.x, r0.x, cb0[27].x
@@ -1019,7 +1019,7 @@ fxgroup
                 //   o1.x <- <WaterNormalmapCombineVS return value>.texcoord.x; o1.y <- <WaterNormalmapCombineVS return value>.texcoord.y; 
                 //   o0.x <- <WaterNormalmapCombineVS return value>.position.x; o0.y <- <WaterNormalmapCombineVS return value>.position.y; o0.z <- <WaterNormalmapCombineVS return value>.position.z; o0.w <- <WaterNormalmapCombineVS return value>.position.w
                 //
-                #line 571 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 573 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof r0.zw, l(0, 0, 0, 1)  // r0.z <- output.position.z; r0.w <- output.position.w
                 mov r1.x, v0.x
                 mov r0.xy, cb0[r1.x + 0].xyxx  // r0.x <- output.position.x; r0.y <- output.position.y
@@ -1147,7 +1147,7 @@ fxgroup
                 //   v1.x <- input.texcoord.x; v1.y <- input.texcoord.y; 
                 //   o0.x <- <WaterNormalmapCombinePS return value>.x; o0.y <- <WaterNormalmapCombinePS return value>.y; o0.z <- <WaterNormalmapCombinePS return value>.z; o0.w <- <WaterNormalmapCombinePS return value>.w
                 //
-                #line 580 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 582 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 nop 
                 mul r0.x, v1.x, l(400.000000)
                 mov r0.y, l(-200.000000)
@@ -1202,7 +1202,7 @@ fxgroup
                 rsq r0.x, r0.x
                 mul r0.xyz, r0.xxxx, r1.xyzx  // r0.x <- <CombineSimplifiedWaterNormal return value>.x; r0.y <- <CombineSimplifiedWaterNormal return value>.y; r0.z <- <CombineSimplifiedWaterNormal return value>.z
                 
-                #line 580
+                #line 582
                 add r0.xyz, r0.xyzx, l(1.000000, 1.000000, 1.000000, 0.000000)
                 mul r0.xyz, r0.xyzx, l(0.500000, 0.500000, 0.500000, 0.000000)  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z
                 itof r0.w, l(0)  // r0.w <- color.w
@@ -1256,7 +1256,7 @@ fxgroup
                 //   v0.x <- PatchParams.x; v0.y <- PatchParams.y; v0.z <- PatchParams.z; v0.w <- PatchParams.w; 
                 //   o0.x <- <PassThroughVS return value>.origin.x; o0.y <- <PassThroughVS return value>.origin.y; o0.z <- <PassThroughVS return value>.size.x; o0.w <- <PassThroughVS return value>.size.y
                 //
-                #line 298 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 298 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.xy, v0.xyxx  // r0.x <- output.origin.x; r0.y <- output.origin.y
                 mov r0.zw, v0.zzzw  // r0.z <- output.size.x; r0.w <- output.size.y
                 mov o0.xy, r0.xyxx
@@ -1406,7 +1406,7 @@ fxgroup
                 //   o0.x <- <PatchHS return value>; 
                 //   v[0][0].x <- inputPatch[0].origin.x; v[0][0].y <- inputPatch[0].origin.y; v[0][0].z <- inputPatch[0].size.x; v[0][0].w <- inputPatch[0].size.y
                 //
-                #line 376 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 376 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof o0.x, l(0)
                 ret 
                 hs_join_phase 
@@ -1704,7 +1704,6 @@ fxgroup
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // SamplerLinearWrap                 sampler      NA          NA    0        1
                 // g_WaterBumpTexture                texture  float4          2d    0        1
-                // g_DepthMapTexture                 texture  float4          2d    1        1
                 // cb0                               cbuffer      NA          NA    0        1
                 //
                 //
@@ -1752,7 +1751,6 @@ fxgroup
                 dcl_constantbuffer cb0[39], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_resource_texture2d (float,float,float,float) t1
                 dcl_input vpc0.yz
                 dcl_input vpc1.yz
                 dcl_input vDomain.xy
@@ -1781,19 +1779,15 @@ fxgroup
                 //   o0.x <- <WaterPatchDS return value>.position.x; o0.y <- <WaterPatchDS return value>.position.y; o0.z <- <WaterPatchDS return value>.position.z; o0.w <- <WaterPatchDS return value>.position.w; 
                 //   vicp[0][0].x <- inputPatch
                 //
-                #line 391 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 391 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mul r0.xy, vpc1.yzyy, vDomain.xyxx
                 add r0.xy, r0.xyxx, vpc0.yzyy
                 div r0.xy, r0.xyxx, cb0[38].zzzz  // r0.x <- texcoord0to1.x; r0.y <- texcoord0to1.y
                 
-                #line 396
-                itof r0.w, l(1)
-                mov r1.x, -r0.y
-                add r0.z, r0.w, r1.x
-                itof r0.w, l(0)
-                sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r0.xzxx, t1.xyzw, s0, r0.w  // r1.x <- depthmap_scaler.x; r1.y <- depthmap_scaler.y; r1.z <- depthmap_scaler.z; r1.w <- depthmap_scaler.w
+                #line 398
+                itof r1.xyzw, l(1, 1, 1, 1)  // r1.x <- depthmap_scaler.x; r1.y <- depthmap_scaler.y; r1.z <- depthmap_scaler.z; r1.w <- depthmap_scaler.w
                 
-                #line 399
+                #line 401
                 mul r0.zw, vpc1.yyyz, vDomain.xxxy
                 add r2.xz, r0.zzwz, vpc0.yyzy  // r2.x <- vertexPosition.x; r2.z <- vertexPosition.z
                 mov r0.z, -cb0[31].z
@@ -1890,10 +1884,10 @@ fxgroup
                 mul r4.xyz, r0.zzzz, r3.xyzx  // r4.x <- <CombineWaterNormal return value>.x; r4.y <- <CombineWaterNormal return value>.y; r4.z <- <CombineWaterNormal return value>.z
                 mov r4.w, r4.w  // r4.w <- <CombineWaterNormal return value>.w
                 
-                #line 401
+                #line 403
                 mov r4.xyzw, r4.xyzw  // r4.x <- water_normal.x; r4.y <- water_normal.y; r4.z <- water_normal.z; r4.w <- water_normal.w
                 
-                #line 404
+                #line 406
                 itof r3.xyz, l(0, 1, 0, 0)
                 dp3 r0.z, r4.xyzx, r4.xyzx
                 rsq r0.z, r0.z
@@ -1916,7 +1910,7 @@ fxgroup
                 mov r0.zw, -r0.zzzw
                 add r4.xz, r0.zzwz, r2.xxzx  // r4.x <- vertexPosition.x; r4.z <- vertexPosition.z
                 
-                #line 409
+                #line 411
                 mov r4.w, l(1.000000)
                 dp4 r2.x, r4.xyzw, cb0[7].xyzw  // r2.x <- output.position.x
                 dp4 r2.y, r4.xyzw, cb0[8].xyzw  // r2.y <- output.position.y
@@ -1936,7 +1930,7 @@ fxgroup
                 mov o3.xyz, r4.xyzx
                 mov o1.xy, r0.xyxx
                 ret 
-                // Approximately 126 instruction slots used
+                // Approximately 122 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -2080,7 +2074,7 @@ fxgroup
                 //   v5.x <- input.depthmap_scaler.x; v5.y <- input.depthmap_scaler.y; v5.z <- input.depthmap_scaler.z; v5.w <- input.depthmap_scaler.w; 
                 //   o0.x <- <WaterPatchPS return value>.x; o0.y <- <WaterPatchPS return value>.y; o0.z <- <WaterPatchPS return value>.z; o0.w <- <WaterPatchPS return value>.w
                 //
-                #line 420 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 422 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.xyz, -v3.xyzx
                 add r0.xyz, r0.xyzx, cb0[25].xyzx
                 dp3 r0.w, r0.xyzx, r0.xyzx
@@ -2092,7 +2086,7 @@ fxgroup
                 rsq r1.w, r1.w
                 mul r1.xyz, r1.wwww, r1.xyzx  // r1.x <- pixel_to_eye_vector.x; r1.y <- pixel_to_eye_vector.y; r1.z <- pixel_to_eye_vector.z
                 
-                #line 438
+                #line 440
                 itof r2.w, l(1)
                 mov r2.xyz, v3.xyzx
                 dp4 r3.x, r2.xyzw, cb0[15].xyzw  // r3.x <- positionLS.x
@@ -2108,7 +2102,7 @@ fxgroup
                 add r1.w, r1.w, r2.x
                 mul r3.y, r1.w, l(0.500000)  // r3.y <- positionLS.y
                 
-                #line 444
+                #line 446
                 mov r4.y, l(0.000244)  // r4.y <- dsf
                 mul r1.w, r2.z, l(0.995000)
                 sample_c r1.w, r3.xyxx, t4.xxxx, s3, r1.w
@@ -2138,7 +2132,7 @@ fxgroup
                 mul r2.x, r2.x, l(0.200000)
                 add r1.w, r1.w, r2.x
                 
-                #line 452
+                #line 454
                 itof r2.xyz, l(2, 2, 2, 0)
                 mul r3.xy, cb0[26].xyxx, l(0.200000, 0.200000, 0.000000, 0.000000)
                 mov r3.xy, -r3.xyxx
@@ -2165,7 +2159,7 @@ fxgroup
                 mul r3.xyz, r2.wwww, r3.xyzx
                 add r2.xyz, r2.xyzx, r3.xyzx
                 
-                #line 456
+                #line 458
                 mov r3.xyz, v2.xyzx  // r3.x <- normal_rotation_matrix._m10; r3.y <- normal_rotation_matrix._m11; r3.z <- normal_rotation_matrix._m12
                 mul r4.xyz, v2.yzxy, l(0.000000, 0.000000, -1.000000, 0.000000)
                 mul r5.xyz, v2.xyzx, l(0.000000, -1.000000, 0.000000, 0.000000)
@@ -2182,7 +2176,7 @@ fxgroup
                 rsq r2.w, r2.w
                 mul r5.xyz, r2.wwww, r5.xyzx  // r5.x <- normal_rotation_matrix._m00; r5.y <- normal_rotation_matrix._m01; r5.z <- normal_rotation_matrix._m02
                 
-                #line 461
+                #line 463
                 dp3 r2.w, r2.xyzx, r2.xyzx
                 rsq r2.w, r2.w
                 mul r2.xyz, r2.wwww, r2.xyzx
@@ -2192,14 +2186,14 @@ fxgroup
                 mul r3.xyz, r4.xyzx, r2.zzzz
                 add r2.xyz, r2.xywx, r3.xyzx  // r2.x <- microbump_normal.x; r2.y <- microbump_normal.y; r2.z <- microbump_normal.z
                 
-                #line 468
+                #line 470
                 itof r3.x, l(0)
                 mul r3.y, v3.y, l(0.250000)
                 add r3.y, r3.y, l(0.250000)
                 max r3.x, r3.y, r3.x
                 mul r3.x, r3.x, l(2.500000)  // r3.x <- scatter_factor
                 
-                #line 471
+                #line 473
                 mov r0.w, l(0)
                 dp3 r3.y, r0.xzwx, r0.xzwx
                 rsq r3.y, r3.y
@@ -2213,7 +2207,7 @@ fxgroup
                 mul r0.w, r0.w, r1.w
                 mul r0.w, r0.w, r3.x  // r0.w <- scatter_factor
                 
-                #line 474
+                #line 476
                 dp3 r3.x, r0.xyzx, r2.xyzx
                 mov r3.x, -r3.x
                 add r3.x, r3.x, l(1.000000)
@@ -2225,7 +2219,7 @@ fxgroup
                 mul r3.x, r3.x, r3.y
                 mul r0.w, r0.w, r3.x
                 
-                #line 477
+                #line 479
                 mul r3.x, r1.w, l(1.500000)
                 mul r3.x, r3.x, cb0[35].z
                 itof r3.y, l(0)
@@ -2253,12 +2247,12 @@ fxgroup
                 mul r3.x, r3.y, r3.x
                 add r0.w, r0.w, r3.x
                 
-                #line 484
+                #line 486
                 mul r3.x, v5.y, l(0.900000)
                 add r3.x, r3.x, l(0.100000)
                 mul r0.w, r0.w, r3.x
                 
-                #line 487
+                #line 489
                 mov r3.x, l(0.090909)  // r3.x <- r
                 mov r3.y, -r3.x
                 add r3.y, r3.y, l(1.000000)
@@ -2274,7 +2268,7 @@ fxgroup
                 min r3.x, r3.x, l(1.000000)
                 max r3.x, r3.x, l(0.000000)  // r3.x <- fresnel_factor
                 
-                #line 491
+                #line 493
                 mov r3.yzw, -r1.xxyz
                 itof r4.x, l(2)
                 dp3 r4.y, r1.xyzx, r2.xyzx
@@ -2290,14 +2284,14 @@ fxgroup
                 exp r3.y, r3.y
                 mul r1.w, r1.w, r3.y  // r1.w <- specular_factor
                 
-                #line 495
+                #line 497
                 itof r3.y, l(0)
                 dp3 r3.z, r0.xyzx, r2.xyzx
                 max r3.y, r3.z, r3.y
                 mul r3.y, r3.y, cb0[35].z
                 add r3.y, r3.y, cb0[35].y  // r3.y <- diffuse_factor
                 
-                #line 498
+                #line 500
                 itof r2.yw, l(0, 0, 0, 0)
                 dp4 r4.y, r2.xyzw, cb0[3].xyzw  // r4.y <- disturbance_eyespace.x
                 dp4 r4.z, r2.xyzw, cb0[4].xyzw  // r4.z <- disturbance_eyespace.y
@@ -2314,7 +2308,7 @@ fxgroup
                 div r2.w, l(20.000000), r2.w
                 mul r3.zw, r2.wwww, r3.zzzw  // r3.z <- refraction_disturbance.x; r3.w <- refraction_disturbance.y
                 
-                #line 506
+                #line 508
                 itof r4.w, l(1)
                 mov r4.xyz, v3.xyzx
                 dp4 r2.w, r4.xyzw, cb0[8].xyzw  // r2.w <- projected_waveheight.y
@@ -2332,7 +2326,7 @@ fxgroup
                 add r2.y, r2.y, r2.w
                 max r2.z, r2.y, l(-0.150000)  // r2.z <- reflection_disturbance.y
                 
-                #line 513
+                #line 515
                 nop 
                 mul r2.yw, v0.xxxy, cb0[26].zzzw
                 
@@ -2341,7 +2335,7 @@ fxgroup
                 sample_l r4.xyzw, r2.ywyy, t3.xyzw, s1, r4.x
                 mov r4.x, r4.x  // r4.x <- <GetRefractionDepth return value>
                 
-                #line 513
+                #line 515
                 mov r4.x, r4.x  // r4.x <- refraction_depth
                 mul r2.y, cb0[27].y, cb0[27].z
                 mov r2.w, -cb0[27].y
@@ -2357,12 +2351,12 @@ fxgroup
                 add r2.y, r2.w, r2.y  // r2.y <- water_depth
                 mov r2.y, r2.y  // r2.y <- nondisplaced_water_depth
                 
-                #line 520
+                #line 522
                 itof r2.w, l(2)
                 min r2.w, r2.y, r2.w
                 mul r3.zw, r2.wwww, r3.zzzw
                 
-                #line 523
+                #line 525
                 nop 
                 mul r4.xy, v0.xyxx, cb0[26].zwzz
                 add r4.xy, r3.zwzz, r4.xyxx
@@ -2372,7 +2366,7 @@ fxgroup
                 sample_l r4.xyzw, r4.xyxx, t3.xyzw, s1, r2.w
                 mov r4.x, r4.x  // r4.x <- <GetRefractionDepth return value>
                 
-                #line 523
+                #line 525
                 mov r4.x, r4.x  // r4.x <- refraction_depth
                 mul r2.w, cb0[27].y, cb0[27].z
                 mov r4.y, -cb0[27].y
@@ -2387,7 +2381,7 @@ fxgroup
                 mov r4.x, -r4.x
                 add r2.w, r2.w, r4.x  // r2.w <- water_depth
                 
-                #line 529
+                #line 531
                 nop 
                 mul r4.xy, v0.xyxx, cb0[26].zwzz
                 add r4.xy, r3.zwzz, r4.xyxx
@@ -2421,7 +2415,7 @@ fxgroup
                 min r4.x, r4.z, r5.x  // r4.x <- result
                 mov r4.x, r4.x  // r4.x <- <GetConservativeRefractionDepth return value>
                 
-                #line 529
+                #line 531
                 mov r4.x, r4.x  // r4.x <- conservative_refraction_depth
                 mul r4.y, cb0[27].y, cb0[27].z
                 mov r4.z, -cb0[27].y
@@ -2444,7 +2438,7 @@ fxgroup
                 itof r2.y, l(0)
                 max r2.y, r2.w, r2.y  // r2.y <- water_depth
                 
-                #line 542
+                #line 544
                 mul r4.x, v0.x, cb0[26].z
                 mul r2.w, v0.y, cb0[26].w
                 mov r2.w, -r2.w
@@ -2459,7 +2453,7 @@ fxgroup
                 sample_l r5.xyzw, r2.xzxx, t2.xyzw, s1, r2.w
                 mov r5.xyz, r5.xyzx  // r5.x <- refraction_color.x; r5.y <- refraction_color.y; r5.z <- refraction_color.z
                 
-                #line 546
+                #line 548
                 mul r2.xzw, r3.yyyy, cb0[32].xxyz  // r2.x <- water_color.x; r2.z <- water_color.y; r2.w <- water_color.z
                 nop 
                 mov r0.xyz, r0.xyzx
@@ -2475,7 +2469,7 @@ fxgroup
                 mul r0.xyz, r0.xxxx, r1.xyzx
                 add r0.xyz, r0.xyzx, cb0[37].xyzx  // r0.x <- <CalculateFogColor return value>.x; r0.y <- <CalculateFogColor return value>.y; r0.z <- <CalculateFogColor return value>.z
                 
-                #line 547
+                #line 549
                 itof r1.x, l(1)
                 mov r3.yzw, -v3.xxyz
                 add r3.yzw, r3.yyzw, cb0[23].xxyz
@@ -2491,13 +2485,13 @@ fxgroup
                 mul r1.xyz, r1.xxxx, r2.xzwx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- water_color.x; r0.y <- water_color.y; r0.z <- water_color.z
                 
-                #line 550
+                #line 552
                 itof r1.x, l(1)
                 mul r1.y, r2.y, l(5.000000)
                 min r1.x, r1.y, r1.x
                 mul r1.x, r1.x, r3.x  // r1.x <- fresnel_factor
                 
-                #line 553
+                #line 555
                 itof r1.y, l(1)
                 mov r1.z, -r2.y
                 div r1.z, r1.z, l(8.000000)
@@ -2510,7 +2504,7 @@ fxgroup
                 mul r2.xyz, r1.yyyy, r2.xyzx
                 add r0.xyz, r0.xyzx, r2.xyzx  // r0.x <- refraction_color.x; r0.y <- refraction_color.y; r0.z <- refraction_color.z
                 
-                #line 556
+                #line 558
                 mov r2.xyz, -r0.xyzx
                 add r2.xyz, r2.xyzx, r4.xyzx
                 mul r2.xyz, r1.xxxx, r2.xyzx
@@ -2568,7 +2562,7 @@ fxgroup
                 //   v0.x <- PatchParams.x; v0.y <- PatchParams.y; v0.z <- PatchParams.z; v0.w <- PatchParams.w; 
                 //   o0.x <- <PassThroughVS return value>.origin.x; o0.y <- <PassThroughVS return value>.origin.y; o0.z <- <PassThroughVS return value>.size.x; o0.w <- <PassThroughVS return value>.size.y
                 //
-                #line 298 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 298 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.xy, v0.xyxx  // r0.x <- output.origin.x; r0.y <- output.origin.y
                 mov r0.zw, v0.zzzw  // r0.z <- output.size.x; r0.w <- output.size.y
                 mov o0.xy, r0.xyxx
@@ -2718,7 +2712,7 @@ fxgroup
                 //   o0.x <- <PatchHS return value>; 
                 //   v[0][0].x <- inputPatch[0].origin.x; v[0][0].y <- inputPatch[0].origin.y; v[0][0].z <- inputPatch[0].size.x; v[0][0].w <- inputPatch[0].size.y
                 //
-                #line 376 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 376 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof o0.x, l(0)
                 ret 
                 hs_join_phase 
@@ -3016,7 +3010,6 @@ fxgroup
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // SamplerLinearWrap                 sampler      NA          NA    0        1
                 // g_WaterBumpTexture                texture  float4          2d    0        1
-                // g_DepthMapTexture                 texture  float4          2d    1        1
                 // cb0                               cbuffer      NA          NA    0        1
                 //
                 //
@@ -3064,7 +3057,6 @@ fxgroup
                 dcl_constantbuffer cb0[39], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_resource_texture2d (float,float,float,float) t1
                 dcl_input vpc0.yz
                 dcl_input vpc1.yz
                 dcl_input vDomain.xy
@@ -3093,19 +3085,15 @@ fxgroup
                 //   o0.x <- <WaterPatchDS return value>.position.x; o0.y <- <WaterPatchDS return value>.position.y; o0.z <- <WaterPatchDS return value>.position.z; o0.w <- <WaterPatchDS return value>.position.w; 
                 //   vicp[0][0].x <- inputPatch
                 //
-                #line 391 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 391 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mul r0.xy, vpc1.yzyy, vDomain.xyxx
                 add r0.xy, r0.xyxx, vpc0.yzyy
                 div r0.xy, r0.xyxx, cb0[38].zzzz  // r0.x <- texcoord0to1.x; r0.y <- texcoord0to1.y
                 
-                #line 396
-                itof r0.w, l(1)
-                mov r1.x, -r0.y
-                add r0.z, r0.w, r1.x
-                itof r0.w, l(0)
-                sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r0.xzxx, t1.xyzw, s0, r0.w  // r1.x <- depthmap_scaler.x; r1.y <- depthmap_scaler.y; r1.z <- depthmap_scaler.z; r1.w <- depthmap_scaler.w
+                #line 398
+                itof r1.xyzw, l(1, 1, 1, 1)  // r1.x <- depthmap_scaler.x; r1.y <- depthmap_scaler.y; r1.z <- depthmap_scaler.z; r1.w <- depthmap_scaler.w
                 
-                #line 399
+                #line 401
                 mul r0.zw, vpc1.yyyz, vDomain.xxxy
                 add r2.xz, r0.zzwz, vpc0.yyzy  // r2.x <- vertexPosition.x; r2.z <- vertexPosition.z
                 mov r0.z, -cb0[31].z
@@ -3202,10 +3190,10 @@ fxgroup
                 mul r4.xyz, r0.zzzz, r3.xyzx  // r4.x <- <CombineWaterNormal return value>.x; r4.y <- <CombineWaterNormal return value>.y; r4.z <- <CombineWaterNormal return value>.z
                 mov r4.w, r4.w  // r4.w <- <CombineWaterNormal return value>.w
                 
-                #line 401
+                #line 403
                 mov r4.xyzw, r4.xyzw  // r4.x <- water_normal.x; r4.y <- water_normal.y; r4.z <- water_normal.z; r4.w <- water_normal.w
                 
-                #line 404
+                #line 406
                 itof r3.xyz, l(0, 1, 0, 0)
                 dp3 r0.z, r4.xyzx, r4.xyzx
                 rsq r0.z, r0.z
@@ -3228,7 +3216,7 @@ fxgroup
                 mov r0.zw, -r0.zzzw
                 add r4.xz, r0.zzwz, r2.xxzx  // r4.x <- vertexPosition.x; r4.z <- vertexPosition.z
                 
-                #line 409
+                #line 411
                 mov r4.w, l(1.000000)
                 dp4 r2.x, r4.xyzw, cb0[7].xyzw  // r2.x <- output.position.x
                 dp4 r2.y, r4.xyzw, cb0[8].xyzw  // r2.y <- output.position.y
@@ -3248,7 +3236,7 @@ fxgroup
                 mov o3.xyz, r4.xyzx
                 mov o1.xy, r0.xyxx
                 ret 
-                // Approximately 126 instruction slots used
+                // Approximately 122 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -3277,10 +3265,10 @@ fxgroup
                 // Initial variable locations:
                 //   o0.x <- <ColorPS return value>.x; o0.y <- <ColorPS return value>.y; o0.z <- <ColorPS return value>.z; o0.w <- <ColorPS return value>.w
                 //
-                #line 720 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 722 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.xyzw, l(1.000000,1.000000,1.000000,0)  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z; r0.w <- color.w
                 
-                #line 209 "D:\Project\GameEngine\media\ocean5\common.fx"
+                #line 209 "d:\Project\GameEngine\media\ocean5\common.fx"
                 mov o0.xyzw, r0.xyzw
                 ret 
                 // Approximately 3 instruction slots used
@@ -3330,7 +3318,7 @@ fxgroup
                 //   v0.x <- PatchParams.x; v0.y <- PatchParams.y; v0.z <- PatchParams.z; v0.w <- PatchParams.w; 
                 //   o0.x <- <PassThroughVS return value>.origin.x; o0.y <- <PassThroughVS return value>.origin.y; o0.z <- <PassThroughVS return value>.size.x; o0.w <- <PassThroughVS return value>.size.y
                 //
-                #line 298 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 298 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.xy, v0.xyxx  // r0.x <- output.origin.x; r0.y <- output.origin.y
                 mov r0.zw, v0.zzzw  // r0.z <- output.size.x; r0.w <- output.size.y
                 mov o0.xy, r0.xyxx
@@ -3480,7 +3468,7 @@ fxgroup
                 //   o0.x <- <PatchHS return value>; 
                 //   v[0][0].x <- inputPatch[0].origin.x; v[0][0].y <- inputPatch[0].origin.y; v[0][0].z <- inputPatch[0].size.x; v[0][0].w <- inputPatch[0].size.y
                 //
-                #line 376 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 376 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof o0.x, l(0)
                 ret 
                 hs_join_phase 
@@ -3778,7 +3766,6 @@ fxgroup
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // SamplerLinearWrap                 sampler      NA          NA    0        1
                 // g_WaterBumpTexture                texture  float4          2d    0        1
-                // g_DepthMapTexture                 texture  float4          2d    1        1
                 // cb0                               cbuffer      NA          NA    0        1
                 //
                 //
@@ -3826,7 +3813,6 @@ fxgroup
                 dcl_constantbuffer cb0[39], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_resource_texture2d (float,float,float,float) t1
                 dcl_input vpc0.yz
                 dcl_input vpc1.yz
                 dcl_input vDomain.xy
@@ -3855,19 +3841,15 @@ fxgroup
                 //   o0.x <- <WaterPatchDS return value>.position.x; o0.y <- <WaterPatchDS return value>.position.y; o0.z <- <WaterPatchDS return value>.position.z; o0.w <- <WaterPatchDS return value>.position.w; 
                 //   vicp[0][0].x <- inputPatch
                 //
-                #line 391 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 391 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mul r0.xy, vpc1.yzyy, vDomain.xyxx
                 add r0.xy, r0.xyxx, vpc0.yzyy
                 div r0.xy, r0.xyxx, cb0[38].zzzz  // r0.x <- texcoord0to1.x; r0.y <- texcoord0to1.y
                 
-                #line 396
-                itof r0.w, l(1)
-                mov r1.x, -r0.y
-                add r0.z, r0.w, r1.x
-                itof r0.w, l(0)
-                sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r0.xzxx, t1.xyzw, s0, r0.w  // r1.x <- depthmap_scaler.x; r1.y <- depthmap_scaler.y; r1.z <- depthmap_scaler.z; r1.w <- depthmap_scaler.w
+                #line 398
+                itof r1.xyzw, l(1, 1, 1, 1)  // r1.x <- depthmap_scaler.x; r1.y <- depthmap_scaler.y; r1.z <- depthmap_scaler.z; r1.w <- depthmap_scaler.w
                 
-                #line 399
+                #line 401
                 mul r0.zw, vpc1.yyyz, vDomain.xxxy
                 add r2.xz, r0.zzwz, vpc0.yyzy  // r2.x <- vertexPosition.x; r2.z <- vertexPosition.z
                 mov r0.z, -cb0[31].z
@@ -3964,10 +3946,10 @@ fxgroup
                 mul r4.xyz, r0.zzzz, r3.xyzx  // r4.x <- <CombineWaterNormal return value>.x; r4.y <- <CombineWaterNormal return value>.y; r4.z <- <CombineWaterNormal return value>.z
                 mov r4.w, r4.w  // r4.w <- <CombineWaterNormal return value>.w
                 
-                #line 401
+                #line 403
                 mov r4.xyzw, r4.xyzw  // r4.x <- water_normal.x; r4.y <- water_normal.y; r4.z <- water_normal.z; r4.w <- water_normal.w
                 
-                #line 404
+                #line 406
                 itof r3.xyz, l(0, 1, 0, 0)
                 dp3 r0.z, r4.xyzx, r4.xyzx
                 rsq r0.z, r0.z
@@ -3990,7 +3972,7 @@ fxgroup
                 mov r0.zw, -r0.zzzw
                 add r4.xz, r0.zzwz, r2.xxzx  // r4.x <- vertexPosition.x; r4.z <- vertexPosition.z
                 
-                #line 409
+                #line 411
                 mov r4.w, l(1.000000)
                 dp4 r2.x, r4.xyzw, cb0[7].xyzw  // r2.x <- output.position.x
                 dp4 r2.y, r4.xyzw, cb0[8].xyzw  // r2.y <- output.position.y
@@ -4010,7 +3992,7 @@ fxgroup
                 mov o3.xyz, r4.xyzx
                 mov o1.xy, r0.xyxx
                 ret 
-                // Approximately 126 instruction slots used
+                // Approximately 122 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -4154,7 +4136,7 @@ fxgroup
                 //   v5.x <- input.depthmap_scaler.x; v5.y <- input.depthmap_scaler.y; v5.z <- input.depthmap_scaler.z; v5.w <- input.depthmap_scaler.w; 
                 //   o0.x <- <WaterPatchPS return value>.x; o0.y <- <WaterPatchPS return value>.y; o0.z <- <WaterPatchPS return value>.z; o0.w <- <WaterPatchPS return value>.w
                 //
-                #line 420 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 422 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.xyz, -v3.xyzx
                 add r0.xyz, r0.xyzx, cb0[25].xyzx
                 dp3 r0.w, r0.xyzx, r0.xyzx
@@ -4166,7 +4148,7 @@ fxgroup
                 rsq r1.w, r1.w
                 mul r1.xyz, r1.wwww, r1.xyzx  // r1.x <- pixel_to_eye_vector.x; r1.y <- pixel_to_eye_vector.y; r1.z <- pixel_to_eye_vector.z
                 
-                #line 438
+                #line 440
                 itof r2.w, l(1)
                 mov r2.xyz, v3.xyzx
                 dp4 r3.x, r2.xyzw, cb0[15].xyzw  // r3.x <- positionLS.x
@@ -4182,7 +4164,7 @@ fxgroup
                 add r1.w, r1.w, r2.x
                 mul r3.y, r1.w, l(0.500000)  // r3.y <- positionLS.y
                 
-                #line 444
+                #line 446
                 mov r4.y, l(0.000244)  // r4.y <- dsf
                 mul r1.w, r2.z, l(0.995000)
                 sample_c r1.w, r3.xyxx, t4.xxxx, s3, r1.w
@@ -4212,7 +4194,7 @@ fxgroup
                 mul r2.x, r2.x, l(0.200000)
                 add r1.w, r1.w, r2.x
                 
-                #line 452
+                #line 454
                 itof r2.xyz, l(2, 2, 2, 0)
                 mul r3.xy, cb0[26].xyxx, l(0.200000, 0.200000, 0.000000, 0.000000)
                 mov r3.xy, -r3.xyxx
@@ -4239,7 +4221,7 @@ fxgroup
                 mul r3.xyz, r2.wwww, r3.xyzx
                 add r2.xyz, r2.xyzx, r3.xyzx
                 
-                #line 456
+                #line 458
                 mov r3.xyz, v2.xyzx  // r3.x <- normal_rotation_matrix._m10; r3.y <- normal_rotation_matrix._m11; r3.z <- normal_rotation_matrix._m12
                 mul r4.xyz, v2.yzxy, l(0.000000, 0.000000, -1.000000, 0.000000)
                 mul r5.xyz, v2.xyzx, l(0.000000, -1.000000, 0.000000, 0.000000)
@@ -4256,7 +4238,7 @@ fxgroup
                 rsq r2.w, r2.w
                 mul r5.xyz, r2.wwww, r5.xyzx  // r5.x <- normal_rotation_matrix._m00; r5.y <- normal_rotation_matrix._m01; r5.z <- normal_rotation_matrix._m02
                 
-                #line 461
+                #line 463
                 dp3 r2.w, r2.xyzx, r2.xyzx
                 rsq r2.w, r2.w
                 mul r2.xyz, r2.wwww, r2.xyzx
@@ -4266,14 +4248,14 @@ fxgroup
                 mul r3.xyz, r4.xyzx, r2.zzzz
                 add r2.xyz, r2.xywx, r3.xyzx  // r2.x <- microbump_normal.x; r2.y <- microbump_normal.y; r2.z <- microbump_normal.z
                 
-                #line 468
+                #line 470
                 itof r3.x, l(0)
                 mul r3.y, v3.y, l(0.250000)
                 add r3.y, r3.y, l(0.250000)
                 max r3.x, r3.y, r3.x
                 mul r3.x, r3.x, l(2.500000)  // r3.x <- scatter_factor
                 
-                #line 471
+                #line 473
                 mov r0.w, l(0)
                 dp3 r3.y, r0.xzwx, r0.xzwx
                 rsq r3.y, r3.y
@@ -4287,7 +4269,7 @@ fxgroup
                 mul r0.w, r0.w, r1.w
                 mul r0.w, r0.w, r3.x  // r0.w <- scatter_factor
                 
-                #line 474
+                #line 476
                 dp3 r3.x, r0.xyzx, r2.xyzx
                 mov r3.x, -r3.x
                 add r3.x, r3.x, l(1.000000)
@@ -4299,7 +4281,7 @@ fxgroup
                 mul r3.x, r3.x, r3.y
                 mul r0.w, r0.w, r3.x
                 
-                #line 477
+                #line 479
                 mul r3.x, r1.w, l(1.500000)
                 mul r3.x, r3.x, cb0[35].z
                 itof r3.y, l(0)
@@ -4327,12 +4309,12 @@ fxgroup
                 mul r3.x, r3.y, r3.x
                 add r0.w, r0.w, r3.x
                 
-                #line 484
+                #line 486
                 mul r3.x, v5.y, l(0.900000)
                 add r3.x, r3.x, l(0.100000)
                 mul r0.w, r0.w, r3.x
                 
-                #line 487
+                #line 489
                 mov r3.x, l(0.090909)  // r3.x <- r
                 mov r3.y, -r3.x
                 add r3.y, r3.y, l(1.000000)
@@ -4348,7 +4330,7 @@ fxgroup
                 min r3.x, r3.x, l(1.000000)
                 max r3.x, r3.x, l(0.000000)  // r3.x <- fresnel_factor
                 
-                #line 491
+                #line 493
                 mov r3.yzw, -r1.xxyz
                 itof r4.x, l(2)
                 dp3 r4.y, r1.xyzx, r2.xyzx
@@ -4364,14 +4346,14 @@ fxgroup
                 exp r3.y, r3.y
                 mul r1.w, r1.w, r3.y  // r1.w <- specular_factor
                 
-                #line 495
+                #line 497
                 itof r3.y, l(0)
                 dp3 r3.z, r0.xyzx, r2.xyzx
                 max r3.y, r3.z, r3.y
                 mul r3.y, r3.y, cb0[35].z
                 add r3.y, r3.y, cb0[35].y  // r3.y <- diffuse_factor
                 
-                #line 498
+                #line 500
                 itof r2.yw, l(0, 0, 0, 0)
                 dp4 r4.y, r2.xyzw, cb0[3].xyzw  // r4.y <- disturbance_eyespace.x
                 dp4 r4.z, r2.xyzw, cb0[4].xyzw  // r4.z <- disturbance_eyespace.y
@@ -4388,7 +4370,7 @@ fxgroup
                 div r2.w, l(20.000000), r2.w
                 mul r3.zw, r2.wwww, r3.zzzw  // r3.z <- refraction_disturbance.x; r3.w <- refraction_disturbance.y
                 
-                #line 506
+                #line 508
                 itof r4.w, l(1)
                 mov r4.xyz, v3.xyzx
                 dp4 r2.w, r4.xyzw, cb0[8].xyzw  // r2.w <- projected_waveheight.y
@@ -4406,7 +4388,7 @@ fxgroup
                 add r2.y, r2.y, r2.w
                 max r2.z, r2.y, l(-0.150000)  // r2.z <- reflection_disturbance.y
                 
-                #line 513
+                #line 515
                 nop 
                 mul r2.yw, v0.xxxy, cb0[26].zzzw
                 
@@ -4415,7 +4397,7 @@ fxgroup
                 sample_l r4.xyzw, r2.ywyy, t3.xyzw, s1, r4.x
                 mov r4.x, r4.x  // r4.x <- <GetRefractionDepth return value>
                 
-                #line 513
+                #line 515
                 mov r4.x, r4.x  // r4.x <- refraction_depth
                 mul r2.y, cb0[27].y, cb0[27].z
                 mov r2.w, -cb0[27].y
@@ -4431,12 +4413,12 @@ fxgroup
                 add r2.y, r2.w, r2.y  // r2.y <- water_depth
                 mov r2.y, r2.y  // r2.y <- nondisplaced_water_depth
                 
-                #line 520
+                #line 522
                 itof r2.w, l(2)
                 min r2.w, r2.y, r2.w
                 mul r3.zw, r2.wwww, r3.zzzw
                 
-                #line 523
+                #line 525
                 nop 
                 mul r4.xy, v0.xyxx, cb0[26].zwzz
                 add r4.xy, r3.zwzz, r4.xyxx
@@ -4446,7 +4428,7 @@ fxgroup
                 sample_l r4.xyzw, r4.xyxx, t3.xyzw, s1, r2.w
                 mov r4.x, r4.x  // r4.x <- <GetRefractionDepth return value>
                 
-                #line 523
+                #line 525
                 mov r4.x, r4.x  // r4.x <- refraction_depth
                 mul r2.w, cb0[27].y, cb0[27].z
                 mov r4.y, -cb0[27].y
@@ -4461,7 +4443,7 @@ fxgroup
                 mov r4.x, -r4.x
                 add r2.w, r2.w, r4.x  // r2.w <- water_depth
                 
-                #line 529
+                #line 531
                 nop 
                 mul r4.xy, v0.xyxx, cb0[26].zwzz
                 add r4.xy, r3.zwzz, r4.xyxx
@@ -4495,7 +4477,7 @@ fxgroup
                 min r4.x, r4.z, r5.x  // r4.x <- result
                 mov r4.x, r4.x  // r4.x <- <GetConservativeRefractionDepth return value>
                 
-                #line 529
+                #line 531
                 mov r4.x, r4.x  // r4.x <- conservative_refraction_depth
                 mul r4.y, cb0[27].y, cb0[27].z
                 mov r4.z, -cb0[27].y
@@ -4518,7 +4500,7 @@ fxgroup
                 itof r2.y, l(0)
                 max r2.y, r2.w, r2.y  // r2.y <- water_depth
                 
-                #line 542
+                #line 544
                 mul r4.x, v0.x, cb0[26].z
                 mul r2.w, v0.y, cb0[26].w
                 mov r2.w, -r2.w
@@ -4533,7 +4515,7 @@ fxgroup
                 sample_l r5.xyzw, r2.xzxx, t2.xyzw, s1, r2.w
                 mov r5.xyz, r5.xyzx  // r5.x <- refraction_color.x; r5.y <- refraction_color.y; r5.z <- refraction_color.z
                 
-                #line 546
+                #line 548
                 mul r2.xzw, r3.yyyy, cb0[32].xxyz  // r2.x <- water_color.x; r2.z <- water_color.y; r2.w <- water_color.z
                 nop 
                 mov r0.xyz, r0.xyzx
@@ -4549,7 +4531,7 @@ fxgroup
                 mul r0.xyz, r0.xxxx, r1.xyzx
                 add r0.xyz, r0.xyzx, cb0[37].xyzx  // r0.x <- <CalculateFogColor return value>.x; r0.y <- <CalculateFogColor return value>.y; r0.z <- <CalculateFogColor return value>.z
                 
-                #line 547
+                #line 549
                 itof r1.x, l(1)
                 mov r3.yzw, -v3.xxyz
                 add r3.yzw, r3.yyzw, cb0[23].xxyz
@@ -4565,13 +4547,13 @@ fxgroup
                 mul r1.xyz, r1.xxxx, r2.xzwx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- water_color.x; r0.y <- water_color.y; r0.z <- water_color.z
                 
-                #line 550
+                #line 552
                 itof r1.x, l(1)
                 mul r1.y, r2.y, l(5.000000)
                 min r1.x, r1.y, r1.x
                 mul r1.x, r1.x, r3.x  // r1.x <- fresnel_factor
                 
-                #line 553
+                #line 555
                 itof r1.y, l(1)
                 mov r1.z, -r2.y
                 div r1.z, r1.z, l(8.000000)
@@ -4584,7 +4566,7 @@ fxgroup
                 mul r2.xyz, r1.yyyy, r2.xyzx
                 add r0.xyz, r0.xyzx, r2.xyzx  // r0.x <- refraction_color.x; r0.y <- refraction_color.y; r0.z <- refraction_color.z
                 
-                #line 556
+                #line 558
                 mov r2.xyz, -r0.xyzx
                 add r2.xyz, r2.xyzx, r4.xyzx
                 mul r2.xyz, r1.xxxx, r2.xyzx
@@ -4642,7 +4624,7 @@ fxgroup
                 //   v0.x <- PatchParams.x; v0.y <- PatchParams.y; v0.z <- PatchParams.z; v0.w <- PatchParams.w; 
                 //   o0.x <- <PassThroughVS return value>.origin.x; o0.y <- <PassThroughVS return value>.origin.y; o0.z <- <PassThroughVS return value>.size.x; o0.w <- <PassThroughVS return value>.size.y
                 //
-                #line 298 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 298 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.xy, v0.xyxx  // r0.x <- output.origin.x; r0.y <- output.origin.y
                 mov r0.zw, v0.zzzw  // r0.z <- output.size.x; r0.w <- output.size.y
                 mov o0.xy, r0.xyxx
@@ -4792,7 +4774,7 @@ fxgroup
                 //   o0.x <- <PatchHS return value>; 
                 //   v[0][0].x <- inputPatch[0].origin.x; v[0][0].y <- inputPatch[0].origin.y; v[0][0].z <- inputPatch[0].size.x; v[0][0].w <- inputPatch[0].size.y
                 //
-                #line 376 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 376 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 itof o0.x, l(0)
                 ret 
                 hs_join_phase 
@@ -5090,7 +5072,6 @@ fxgroup
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // SamplerLinearWrap                 sampler      NA          NA    0        1
                 // g_WaterBumpTexture                texture  float4          2d    0        1
-                // g_DepthMapTexture                 texture  float4          2d    1        1
                 // cb0                               cbuffer      NA          NA    0        1
                 //
                 //
@@ -5138,7 +5119,6 @@ fxgroup
                 dcl_constantbuffer cb0[39], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_resource_texture2d (float,float,float,float) t1
                 dcl_input vpc0.yz
                 dcl_input vpc1.yz
                 dcl_input vDomain.xy
@@ -5167,19 +5147,15 @@ fxgroup
                 //   o0.x <- <WaterPatchDS return value>.position.x; o0.y <- <WaterPatchDS return value>.position.y; o0.z <- <WaterPatchDS return value>.position.z; o0.w <- <WaterPatchDS return value>.position.w; 
                 //   vicp[0][0].x <- inputPatch
                 //
-                #line 391 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 391 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mul r0.xy, vpc1.yzyy, vDomain.xyxx
                 add r0.xy, r0.xyxx, vpc0.yzyy
                 div r0.xy, r0.xyxx, cb0[38].zzzz  // r0.x <- texcoord0to1.x; r0.y <- texcoord0to1.y
                 
-                #line 396
-                itof r0.w, l(1)
-                mov r1.x, -r0.y
-                add r0.z, r0.w, r1.x
-                itof r0.w, l(0)
-                sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r0.xzxx, t1.xyzw, s0, r0.w  // r1.x <- depthmap_scaler.x; r1.y <- depthmap_scaler.y; r1.z <- depthmap_scaler.z; r1.w <- depthmap_scaler.w
+                #line 398
+                itof r1.xyzw, l(1, 1, 1, 1)  // r1.x <- depthmap_scaler.x; r1.y <- depthmap_scaler.y; r1.z <- depthmap_scaler.z; r1.w <- depthmap_scaler.w
                 
-                #line 399
+                #line 401
                 mul r0.zw, vpc1.yyyz, vDomain.xxxy
                 add r2.xz, r0.zzwz, vpc0.yyzy  // r2.x <- vertexPosition.x; r2.z <- vertexPosition.z
                 mov r0.z, -cb0[31].z
@@ -5276,10 +5252,10 @@ fxgroup
                 mul r4.xyz, r0.zzzz, r3.xyzx  // r4.x <- <CombineWaterNormal return value>.x; r4.y <- <CombineWaterNormal return value>.y; r4.z <- <CombineWaterNormal return value>.z
                 mov r4.w, r4.w  // r4.w <- <CombineWaterNormal return value>.w
                 
-                #line 401
+                #line 403
                 mov r4.xyzw, r4.xyzw  // r4.x <- water_normal.x; r4.y <- water_normal.y; r4.z <- water_normal.z; r4.w <- water_normal.w
                 
-                #line 404
+                #line 406
                 itof r3.xyz, l(0, 1, 0, 0)
                 dp3 r0.z, r4.xyzx, r4.xyzx
                 rsq r0.z, r0.z
@@ -5302,7 +5278,7 @@ fxgroup
                 mov r0.zw, -r0.zzzw
                 add r4.xz, r0.zzwz, r2.xxzx  // r4.x <- vertexPosition.x; r4.z <- vertexPosition.z
                 
-                #line 409
+                #line 411
                 mov r4.w, l(1.000000)
                 dp4 r2.x, r4.xyzw, cb0[7].xyzw  // r2.x <- output.position.x
                 dp4 r2.y, r4.xyzw, cb0[8].xyzw  // r2.y <- output.position.y
@@ -5322,7 +5298,7 @@ fxgroup
                 mov o3.xyz, r4.xyzx
                 mov o1.xy, r0.xyxx
                 ret 
-                // Approximately 126 instruction slots used
+                // Approximately 122 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -5351,10 +5327,10 @@ fxgroup
                 // Initial variable locations:
                 //   o0.x <- <ColorPS return value>.x; o0.y <- <ColorPS return value>.y; o0.z <- <ColorPS return value>.z; o0.w <- <ColorPS return value>.w
                 //
-                #line 749 "D:\Project\GameEngine\media\ocean5\Island11.fx"
+                #line 751 "d:\Project\GameEngine\media\ocean5\Island11.fx"
                 mov r0.xyzw, l(1.000000,1.000000,1.000000,0)  // r0.x <- color.x; r0.y <- color.y; r0.z <- color.z; r0.w <- color.w
                 
-                #line 209 "D:\Project\GameEngine\media\ocean5\common.fx"
+                #line 209 "d:\Project\GameEngine\media\ocean5\common.fx"
                 mov o0.xyzw, r0.xyzw
                 ret 
                 // Approximately 3 instruction slots used
