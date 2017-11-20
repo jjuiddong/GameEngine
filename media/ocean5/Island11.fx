@@ -409,8 +409,8 @@ PSIn_Diffuse WaterPatchDS(    PatchData input,
 	// writing output params
     output.position = mul(float4(vertexPosition, 1.0), g_ModelViewProjectionMatrix);
     output.texcoord = texcoord0to1*g_WaterMicroBumpTexcoordScale+g_WaterBumpTexcoordShift*0.07;
-	output.normal=normalize(water_normal.xyz);
-	output.depthmap_scaler=depthmap_scaler;
+	output.normal = normalize(water_normal.xyz);
+	output.depthmap_scaler = depthmap_scaler;
 	output.positionWS = vertexPosition;
     return output;
 }

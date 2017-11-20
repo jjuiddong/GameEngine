@@ -252,3 +252,5 @@ paket-files/
 *.sln.iml
 Src/Client/Viewer/errlog.txt
 Src/Client/Viewer/log.txt
+Src/Test/DX11BoundingBox/DX11BoundingBox/log.txt
+Src/Test/DX11BoundingBox/DX11BoundingBox/errlog.txt

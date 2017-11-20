@@ -38,7 +38,7 @@ public:
 	cWater m_water;
 	cDbgAxis m_axis;
 	cTexture m_texture;
-	cModel2 m_model;
+	cModel m_model;
 	cQuad2D m_reflectTex;
 	cQuad2D m_refractTex;
 
@@ -79,6 +79,10 @@ INIT_FRAMEWORK(cViewer);
 
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
+	, m_mainCamera("main camera")
+	, m_secondCamera("second camera")
+	, m_lightCamera("light camera")
+	, m_lightSplitCamera{ cCamera("light1"), cCamera("light2"), cCamera("light3") }
 {
 	m_windowName = L"DX11 Water";
 	//const RECT r = { 0, 0, 1024, 768 };
@@ -109,12 +113,10 @@ bool cViewer::OnInit()
 	const float WINSIZE_X = (float)(m_windowRect.right - m_windowRect.left);
 	const float WINSIZE_Y = (float)(m_windowRect.bottom - m_windowRect.top);
 
-	m_mainCamera.Init(&m_renderer);
 	m_mainCamera.SetCamera(Vector3(-10, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_mainCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
 	m_mainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	m_secondCamera.Init(&m_renderer);
 	m_secondCamera.SetCamera(Vector3(-10, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_secondCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
 	m_secondCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
@@ -145,9 +147,9 @@ bool cViewer::OnInit()
 
 	m_model.Create(m_renderer, common::GenerateId(), "../media/boxlifter.x");
 
-	m_lightCamera.Init(&m_renderer);
 	m_lightCamera.SetCamera(lightPos, lightLookat, Vector3(0, 1, 0));
 	m_lightCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
+	m_lightCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
 	cViewport svp = m_renderer.m_viewPort;
 	svp.m_vp.MinDepth = 0.f;
@@ -155,10 +157,10 @@ bool cViewer::OnInit()
 	svp.m_vp.Width = 1024;
 	svp.m_vp.Height = 1024;
 	//m_shadowMap.Create(m_renderer, svp, DXGI_FORMAT_R32_FLOAT);
-	m_dbgLightFrustum.Create(m_renderer, m_lightCamera);
+	m_dbgLightFrustum.Create(m_renderer, m_lightCamera.GetViewProjectionMatrix());
 	m_dbgLightFrustum.SetFrustum(m_renderer, m_dbgLightFrustum.m_viewProj);
 
-	m_dbgMainFrustum.Create(m_renderer, m_mainCamera);
+	m_dbgMainFrustum.Create(m_renderer, m_mainCamera.GetViewProjectionMatrix());
 	m_dbgMainFrustum.SetFrustum(m_renderer, m_dbgMainFrustum.m_viewProj);
 
 	const Vector3 billboardPos[3] = { Vector3(0,0,3), Vector3(0,0,7), Vector3(0,0,11) };
@@ -166,7 +168,7 @@ bool cViewer::OnInit()
 	{
 		m_shadowMapQuad[i].Create(m_renderer, 0, 310.f * i, 300.f, 300.f);
 
-		m_frustum[i].Create(m_renderer, m_lightCamera);
+		m_frustum[i].Create(m_renderer, m_lightCamera.GetViewProjectionMatrix());
 		m_cascadedGround[i].Create(m_renderer);
 		m_shadowMap[i].Create(m_renderer, svp, DXGI_FORMAT_R32_FLOAT);
 	}
@@ -211,9 +213,10 @@ void cViewer::OnUpdate(const float deltaSeconds)
 			m_frustum[i].GetGroundPlaneVertices(ground, vtxQuad);
 
 			m_lightSplitCamera[i] = m_lightCamera;
+			m_lightSplitCamera[i].SetViewPort(m_lightCamera.m_width, m_lightCamera.m_height);
 			//m_lightSplitCamera[i].FitQuad(vtxQuad);
 			m_lightSplitCamera[i].FitFrustum(m_frustum[i].m_viewProj);
-			m_frustum[i].SetFrustum(m_renderer, m_lightSplitCamera[i]);
+			m_frustum[i].SetFrustum(m_renderer, m_lightSplitCamera[i].GetViewProjectionMatrix());
 			m_cascadedGround[i].SetQuad(vtxQuad, 0.05f);
 		}
 	}
@@ -441,8 +444,6 @@ void cViewer::ChangeWindowSize()
 
 void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	framework::cInputManager::Get()->MouseProc(message, wParam, lParam);
-
 	static bool maximizeWnd = false;
 	switch (message)
 	{
@@ -641,9 +642,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 		if (isPressCtrl)
-			m_dbgLightFrustum.SetFrustum(m_renderer, m_lightCamera);
+			m_dbgLightFrustum.SetFrustum(m_renderer, m_lightCamera.GetViewProjectionMatrix());
 
-		m_dbgMainFrustum.SetFrustum(m_renderer, m_mainCamera);
+		m_dbgMainFrustum.SetFrustum(m_renderer, m_mainCamera.GetViewProjectionMatrix());
 	}
 	break;
 	}

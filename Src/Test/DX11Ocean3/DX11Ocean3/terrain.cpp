@@ -1119,16 +1119,16 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
     pContext->OMSetRenderTargets( 1, &reflection_color_resourceRTV, reflection_depth_resourceDSV);
     pContext->ClearRenderTargetView( reflection_color_resourceRTV, RefractionClearColor );
     pContext->ClearDepthStencilView( reflection_depth_resourceDSV, D3D11_CLEAR_DEPTH, 1.0, 0 );
-	//
-	//SetupReflectionView(cam);
-	//// drawing sky to reflection RT
+	
+	SetupReflectionView(cam);
+	// drawing sky to reflection RT
 
-	//pEffect->GetTechniqueByName("RenderSky")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
-	//pContext->IASetInputLayout(trianglestrip_inputlayout);
-	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	//stride=sizeof(float)*6;
-	//pContext->IASetVertexBuffers(0,1,&sky_vertexbuffer,&stride,&offset);
-	//pContext->Draw(sky_gridpoints*(sky_gridpoints+2)*2, 0);
+	pEffect->GetTechniqueByName("RenderSky")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
+	pContext->IASetInputLayout(trianglestrip_inputlayout);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	stride=sizeof(float)*6;
+	pContext->IASetVertexBuffers(0,1,&sky_vertexbuffer,&stride,&offset);
+	pContext->Draw(sky_gridpoints*(sky_gridpoints+2)*2, 0);
 
 	//3
 	// drawing terrain to reflection RT
@@ -1146,7 +1146,7 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
 	tex_variable->SetResource(NULL);
 
-	pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
+	//pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
 
 	// setting up main rendertarget	
 	pContext->RSSetViewports(1,&main_Viewport);
@@ -1175,7 +1175,7 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 	tex_variable->SetResource(NULL);
 	tex_variable=pEffect->GetVariableByName("g_DepthTexture")->AsShaderResource();
 	tex_variable->SetResource(NULL);
-	pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
+	//pEffect->GetTechniqueByName("RenderHeightfield")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
 
 	// resolving main buffer color to refraction color resource
 	pContext->ResolveSubresource(refraction_color_resource,0,main_color_resource,0,DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -1289,14 +1289,14 @@ void CTerrain::Render(graphic::cRenderer &renderer, graphic::cCamera *cam)
 
 	// 6
 	//drawing sky to main buffer
-	//pEffect->GetTechniqueByName("RenderSky")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
+	pEffect->GetTechniqueByName("RenderSky")->GetPassByIndex(g_RenderWireframe)->Apply(0, pContext);
 
-	//pContext->IASetInputLayout(trianglestrip_inputlayout);
-	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	pContext->IASetInputLayout(trianglestrip_inputlayout);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	//stride=sizeof(float)*6;
-	//pContext->IASetVertexBuffers(0,1,&sky_vertexbuffer,&stride,&offset);
-	//pContext->Draw(sky_gridpoints*(sky_gridpoints+2)*2, 0);
+	stride=sizeof(float)*6;
+	pContext->IASetVertexBuffers(0,1,&sky_vertexbuffer,&stride,&offset);
+	pContext->Draw(sky_gridpoints*(sky_gridpoints+2)*2, 0);
 
 	pEffect->GetTechniqueByName("Default")->GetPassByIndex(0)->Apply(0, pContext);
 
