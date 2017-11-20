@@ -154,7 +154,7 @@ shared cbuffer cb0
 	float2      g_WaterColorIntensity={0.1,0.2};
 	float3      g_AtmosphereBrightColor={1.0,1.1,1.4};
 	float3      g_AtmosphereDarkColor={0.6,0.6,0.7};
-	float		g_FogDensity = 1.0f/700.0f;
+	float		g_FogDensity = 1.0f/7000.0f;
     float2		g_HeightFieldOrigin = float2(0, 0);
 	float		g_HeightFieldSize = 512;
 };
@@ -393,7 +393,8 @@ PSIn_Diffuse WaterPatchDS(    PatchData input,
 	float4 depthmap_scaler;
 
 	// getting rough estimate of water depth from depth map texture 
-	depthmap_scaler=g_DepthMapTexture.SampleLevel(SamplerLinearWrap, float2(texcoord0to1.x,1-texcoord0to1.y),0);
+	//depthmap_scaler=g_DepthMapTexture.SampleLevel(SamplerLinearWrap, float2(texcoord0to1.x,1-texcoord0to1.y),0);
+	depthmap_scaler = float4(1, 1, 1, 1);
 	
 	// calculating water surface geometry position and normal
 	vertexPosition.xz = input.origin + uv * input.size;
@@ -578,7 +579,7 @@ float4 WaterNormalmapCombinePS(PSIn_Quad input) : SV_Target
 {
 	float4 color;
 	color.rgb = (CombineSimplifiedWaterNormal(g_CameraPosition+float3(input.texcoord.x*400.0f-200.0f,0,input.texcoord.y*400.0f-200.0f),0).rgb+float3(1.0f,1.0f,1.0f))*0.5f;
-	color.a=0;
+	color.a=1;
 	return color;
 }
 

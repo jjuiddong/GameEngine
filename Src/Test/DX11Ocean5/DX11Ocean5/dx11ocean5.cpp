@@ -46,17 +46,17 @@ bool cViewer::OnInit()
 
 	m_gui.SetContext();
 
-	cDockView1 *view1 = new cDockView1("Model View1");
-	view1->Create(eDockState::DOCK, eDockSlot::TAB, this, NULL);
+	cDockView1 *view1 = new cDockView1("Ocean View1");
+	view1->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, NULL);
 	view1->Init();
 
-	//cDockView1 *view2 = new cDockView1("Light View");
-	//view2->Create(eDockState::DOCK, eDockSlot::BOTTOM, this, view1);
-	//view2->Init();
+	cDockView1 *view2 = new cDockView1("Ocean View2");
+	view2->Create(eDockState::DOCKWINDOW, eDockSlot::RIGHT, this, view1);
+	view2->Init();
 
-	//cDockView1 *view3 = new cDockView1("DockView3");
-	//view3->Create(eDockState::DOCK, eDockSlot::RIGHT, this, view2);
-	//view3->Init();
+	cDockView1 *view3 = new cDockView1("Ocean View3");
+	view3->Create(eDockState::DOCKWINDOW, eDockSlot::BOTTOM, this, view1);
+	view3->Init();
 
 	const int cx = GetSystemMetrics(SM_CXSCREEN);
 	const int cy = GetSystemMetrics(SM_CYSCREEN);

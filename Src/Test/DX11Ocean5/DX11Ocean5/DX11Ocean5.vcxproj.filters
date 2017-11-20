@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="dx11ocean5.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="dockview.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="FX">

@@ -18,6 +18,7 @@ public:
 	Plane m_groundPlane1;
 	Plane m_groundPlane2;
 	float m_deltaSeconds;
+	bool m_isMultiSampling = true;
 
 	cDockView1(const string &name) : framework::cDockWindow(name)
 		, m_groundPlane1(Vector3(0, 1, 0), 0)
@@ -42,7 +43,7 @@ public:
 		cViewport vp = renderer.m_viewPort;
 		vp.m_vp.Width = WINSIZE_X;
 		vp.m_vp.Height = WINSIZE_Y;
-		m_renderTarget.Create(renderer, vp, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, false);
+		m_renderTarget.Create(renderer, vp, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, m_isMultiSampling);
 
 		m_ocean.Create(renderer, WINSIZE_X, WINSIZE_Y);
 
@@ -64,15 +65,12 @@ public:
 		GetMainLight().Bind(renderer);
 
 		m_renderTarget.SetRenderTarget(renderer);
-		if (renderer.ClearScene(false, Vector4(0,0,0,1)))
+		if (m_renderTarget.Begin(renderer, Vector4(0, 0, 0, 1)))
 		{
-			renderer.BeginScene();
 			m_ocean.Render(renderer, &GetMainCamera(), m_deltaSeconds);
 			renderer.RenderAxis();
-			renderer.EndScene();
 		}
-
-		m_renderTarget.RecoveryRenderTarget(renderer);
+		m_renderTarget.End(renderer);
 	}
 
 	virtual void OnRender() override {
@@ -80,7 +78,7 @@ public:
 		ImVec2 pos = ImGui::GetCursorScreenPos();
 		m_viewPos = { (int)(pos.x), (int)(pos.y) };
 		m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, pos.y + m_rect.Height() - 70 };
-		ImGui::Image(m_renderTarget.m_texture, ImVec2(m_rect.Width() - 15, m_rect.Height() - 70));
+		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 70));
 	}
 
 	virtual void OnResizeEnd(const framework::eDockResize::Enum type, const sRectf &rect) override {
@@ -261,7 +259,6 @@ public:
 		case sf::Event::MouseMoved:
 		{
 			cAutoCam cam(&m_terrainCamera);
-
 			POINT curPos;
 			GetCursorPos(&curPos); // sf::event mouse position has noise so we use GetCursorPos() function
 			ScreenToClient(m_owner->getSystemHandle(), &curPos);
@@ -276,12 +273,11 @@ public:
 			dbg::Log("MouseButton Press/Release \n");
 
 			cAutoCam cam(&m_terrainCamera);
-
 			POINT curPos;
 			GetCursorPos(&curPos); // sf::event mouse position has noise so we use GetCursorPos() function
 			ScreenToClient(m_owner->getSystemHandle(), &curPos);
 			POINT pos = { curPos.x - m_viewPos.x, curPos.y - m_viewPos.y };
-			//if (m_viewRect.IsIn((float)curPos.x, (float)curPos.y))
+			if (m_viewRect.IsIn((float)curPos.x, (float)curPos.y))
 			{
 				if (sf::Event::MouseButtonPressed == evt.type)
 					OnMouseDown(evt.mouseButton.button, pos);
@@ -294,12 +290,12 @@ public:
 		case sf::Event::MouseWheelMoved:
 		{
 			cAutoCam cam(&m_terrainCamera);
-
 			POINT curPos;
 			GetCursorPos(&curPos); // sf::event mouse position has noise so we use GetCursorPos() function
 			ScreenToClient(m_owner->getSystemHandle(), &curPos);
 			const POINT pos = { curPos.x - m_viewPos.x, curPos.y - m_viewPos.y };
-			OnWheelMove(evt.mouseWheel.delta, pos);
+			if (m_viewRect.IsIn((float)curPos.x, (float)curPos.y))
+				OnWheelMove(evt.mouseWheel.delta, pos);
 		}
 		break;
 		}
@@ -311,14 +307,18 @@ public:
 	virtual void OnResetDevice() {
 		dbg::Log("%s ResetDevoce\n", m_name.c_str());
 
+		if (m_rect.Width() <= 0)
+			m_rect.right = m_rect.left + 1;
+		if (m_rect.Height() <= 0)
+			m_rect.bottom = m_rect.top + 1;
+
 		m_terrainCamera.SetViewPort(m_rect.Width(), m_rect.Height());
 
 		cViewport vp = GetRenderer().m_viewPort;
 		vp.m_vp.Width = m_rect.Width();
 		vp.m_vp.Height = m_rect.Height();
-		m_renderTarget.Create(GetRenderer(), vp);
+		m_renderTarget.Create(GetRenderer(), vp, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, m_isMultiSampling);
 
 		m_ocean.ChangeWindowSize(GetRenderer(), m_rect.Width(), m_rect.Height());
 	}
-
 };
