@@ -100,10 +100,12 @@ fxgroup
                 //
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
-                // SV_TessFactor            0   x           0  TRIEDGE   float   x   
-                // SV_TessFactor            1   x           1  TRIEDGE   float   x   
-                // SV_TessFactor            2   x           2  TRIEDGE   float   x   
-                // SV_InsideTessFactor      0   x           3   TRIINT   float   x   
+                // SV_TessFactor            0   x           0 QUADEDGE   float   x   
+                // SV_TessFactor            1   x           1 QUADEDGE   float   x   
+                // SV_TessFactor            2   x           2 QUADEDGE   float   x   
+                // SV_TessFactor            3   x           3 QUADEDGE   float   x   
+                // SV_InsideTessFactor      0   x           4  QUADINT   float   x   
+                // SV_InsideTessFactor      1   x           5  QUADINT   float   x   
                 //
                 //
                 // Input signature:
@@ -123,18 +125,18 @@ fxgroup
                 //
                 // Tessellation Domain   # of control points
                 // -------------------- --------------------
-                // Triangle                                4
+                // Quadrilateral                           4
                 //
                 // Tessellation Output Primitive  Partitioning Type 
                 // ------------------------------ ------------------
-                // Clockwise Triangles            Integer           
+                // Clockwise Triangles            Odd Fractional    
                 //
                 hs_5_0
                 hs_decls 
                 dcl_input_control_point_count 4
                 dcl_output_control_point_count 4
-                dcl_tessellator_domain domain_tri
-                dcl_tessellator_partitioning partitioning_integer
+                dcl_tessellator_domain domain_quad
+                dcl_tessellator_partitioning partitioning_fractional_odd
                 dcl_tessellator_output_primitive output_triangle_cw
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb1[1], immediateIndexed
@@ -160,35 +162,41 @@ fxgroup
                 //   v[3][0].x <- patch[3].position.x; v[3][0].y <- patch[3].position.y; v[3][0].z <- patch[3].position.z; 
                 //   v[3][1].x <- patch[3].color.x; v[3][1].y <- patch[3].color.y; v[3][1].z <- patch[3].color.z; v[3][1].w <- patch[3].color.w
                 //
-                #line 100 "D:\Project\GameEngine\media\TessellationShader2.fx"
+                #line 103 "D:\Project\GameEngine\media\TessellationShader2.fx"
                 mov r0.x, vOutputControlPointID
                 mov r0.yzw, v[r0.x + 0][0].xxyz  // r0.y <- output.position.x; r0.z <- output.position.y; r0.w <- output.position.z
                 
-                #line 103
+                #line 106
                 mov r1.xyzw, v[r0.x + 0][1].xyzw  // r1.x <- output.color.x; r1.y <- output.color.y; r1.z <- output.color.z; r1.w <- output.color.w
                 mov o1.xyzw, r1.xyzw
                 mov o0.xyz, r0.yzwy
                 ret 
                 hs_join_phase 
-                dcl_output_siv o0.x, finalTriUeq0EdgeTessFactor
-                dcl_output_siv o1.x, finalTriVeq0EdgeTessFactor
-                dcl_output_siv o2.x, finalTriWeq0EdgeTessFactor
-                dcl_output_siv o3.x, finalTriInsideTessFactor
-                dcl_temps 1
+                dcl_output_siv o0.x, finalQuadUeq0EdgeTessFactor
+                dcl_output_siv o1.x, finalQuadVeq0EdgeTessFactor
+                dcl_output_siv o2.x, finalQuadUeq1EdgeTessFactor
+                dcl_output_siv o3.x, finalQuadVeq1EdgeTessFactor
+                dcl_output_siv o4.x, finalQuadUInsideTessFactor
+                dcl_output_siv o5.x, finalQuadVInsideTessFactor
+                dcl_temps 2
                 
                 #line 73
                 mov r0.x, cb1[0].x  // r0.x <- output.edges[0]
                 mov r0.y, cb1[0].x  // r0.y <- output.edges[1]
                 mov r0.z, cb1[0].x  // r0.z <- output.edges[2]
+                mov r0.w, cb1[0].x  // r0.w <- output.edges[3]
                 
-                #line 78
-                mov r0.w, cb1[0].x  // r0.w <- output.inside
+                #line 79
+                mov r1.x, cb1[0].x  // r1.x <- output.inside[0]
+                mov r1.y, cb1[0].x  // r1.y <- output.inside[1]
                 mov o0.x, r0.x
                 mov o1.x, r0.y
                 mov o2.x, r0.z
                 mov o3.x, r0.w
+                mov o4.x, r1.x
+                mov o5.x, r1.y
                 ret 
-                // Approximately 15 instruction slots used
+                // Approximately 19 instruction slots used
                             
             };
             DomainShader = asm {
@@ -220,10 +228,12 @@ fxgroup
                 //
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
-                // SV_TessFactor            0   x           0  TRIEDGE   float       
-                // SV_TessFactor            1   x           1  TRIEDGE   float       
-                // SV_TessFactor            2   x           2  TRIEDGE   float       
-                // SV_InsideTessFactor      0   x           3   TRIINT   float       
+                // SV_TessFactor            0   x           0 QUADEDGE   float       
+                // SV_TessFactor            1   x           1 QUADEDGE   float       
+                // SV_TessFactor            2   x           2 QUADEDGE   float       
+                // SV_TessFactor            3   x           3 QUADEDGE   float       
+                // SV_InsideTessFactor      0   x           4  QUADINT   float       
+                // SV_InsideTessFactor      1   x           5  QUADINT   float       
                 //
                 //
                 // Input signature:
@@ -243,26 +253,28 @@ fxgroup
                 //
                 // Tessellation Domain   # of control points
                 // -------------------- --------------------
-                // Triangle                                3
+                // Quadrilateral                           4
                 //
                 ds_5_0
-                dcl_input_control_point_count 3
-                dcl_tessellator_domain domain_tri
+                dcl_input_control_point_count 4
+                dcl_tessellator_domain domain_quad
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb0[12], immediateIndexed
-                dcl_input vDomain.xyz
-                dcl_input vicp[3][0].xyz
-                dcl_input vicp[3][1].xyzw
+                dcl_input vDomain.xy
+                dcl_input vicp[4][0].xyz
+                dcl_input vicp[4][1].xyzw
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xyzw
                 dcl_temps 2
                 //
                 // Initial variable locations:
-                //   vpc3.x <- input.inside; 
                 //   vpc0.x <- input.edges[0]; 
                 //   vpc1.x <- input.edges[1]; 
                 //   vpc2.x <- input.edges[2]; 
-                //   vDomain.x <- uvwCoord.x; vDomain.y <- uvwCoord.y; vDomain.z <- uvwCoord.z; 
+                //   vpc3.x <- input.edges[3]; 
+                //   vpc4.x <- input.inside[0]; 
+                //   vpc5.x <- input.inside[1]; 
+                //   vDomain.x <- uvwCoord.x; vDomain.y <- uvwCoord.y; 
                 //   o1.x <- <ColorDomainShader return value>.color.x; o1.y <- <ColorDomainShader return value>.color.y; o1.z <- <ColorDomainShader return value>.color.z; o1.w <- <ColorDomainShader return value>.color.w; 
                 //   o0.x <- <ColorDomainShader return value>.position.x; o0.y <- <ColorDomainShader return value>.position.y; o0.z <- <ColorDomainShader return value>.position.z; o0.w <- <ColorDomainShader return value>.position.w; 
                 //   vicp[0][0].x <- patch[0].position.x; vicp[0][0].y <- patch[0].position.y; vicp[0][0].z <- patch[0].position.z; 
@@ -270,16 +282,16 @@ fxgroup
                 //   vicp[1][0].x <- patch[1].position.x; vicp[1][0].y <- patch[1].position.y; vicp[1][0].z <- patch[1].position.z; 
                 //   vicp[1][1].x <- patch[1].color.x; vicp[1][1].y <- patch[1].color.y; vicp[1][1].z <- patch[1].color.z; vicp[1][1].w <- patch[1].color.w; 
                 //   vicp[2][0].x <- patch[2].position.x; vicp[2][0].y <- patch[2].position.y; vicp[2][0].z <- patch[2].position.z; 
-                //   vicp[2][1].x <- patch[2].color.x; vicp[2][1].y <- patch[2].color.y; vicp[2][1].z <- patch[2].color.z; vicp[2][1].w <- patch[2].color.w
+                //   vicp[2][1].x <- patch[2].color.x; vicp[2][1].y <- patch[2].color.y; vicp[2][1].z <- patch[2].color.z; vicp[2][1].w <- patch[2].color.w; 
+                //   vicp[3][0].x <- patch[3].position.x; vicp[3][0].y <- patch[3].position.y; vicp[3][0].z <- patch[3].position.z; 
+                //   vicp[3][1].x <- patch[3].color.x; vicp[3][1].y <- patch[3].color.y; vicp[3][1].z <- patch[3].color.z; vicp[3][1].w <- patch[3].color.w
                 //
-                #line 123 "D:\Project\GameEngine\media\TessellationShader2.fx"
+                #line 135 "D:\Project\GameEngine\media\TessellationShader2.fx"
                 mul r0.xyz, vDomain.xxxx, vicp[0][0].xyzx
                 mul r1.xyz, vDomain.yyyy, vicp[1][0].xyzx
-                add r0.xyz, r0.xyzx, r1.xyzx
-                mul r1.xyz, vDomain.zzzz, vicp[2][0].xyzx
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- vertexPosition.x; r0.y <- vertexPosition.y; r0.z <- vertexPosition.z
                 
-                #line 126
+                #line 138
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- output.position.x
                 dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- output.position.y
@@ -294,12 +306,12 @@ fxgroup
                 dp4 r1.z, r0.xyzw, cb0[10].xyzw  // r1.z <- output.position.z
                 dp4 r1.w, r0.xyzw, cb0[11].xyzw  // r1.w <- output.position.w
                 
-                #line 131
+                #line 143
                 mov r0.xyzw, vicp[0][1].xyzw  // r0.x <- output.color.x; r0.y <- output.color.y; r0.z <- output.color.z; r0.w <- output.color.w
                 mov o0.xyzw, r1.xyzw
                 mov o1.xyzw, r0.xyzw
                 ret 
-                // Approximately 22 instruction slots used
+                // Approximately 20 instruction slots used
                             
             };
             PixelShader = asm {
@@ -332,7 +344,7 @@ fxgroup
                 //   v1.x <- input.color.x; v1.y <- input.color.y; v1.z <- input.color.z; v1.w <- input.color.w; 
                 //   o0.x <- <ColorPixelShader return value>.x; o0.y <- <ColorPixelShader return value>.y; o0.z <- <ColorPixelShader return value>.z; o0.w <- <ColorPixelShader return value>.w
                 //
-                #line 142 "D:\Project\GameEngine\media\TessellationShader2.fx"
+                #line 154 "D:\Project\GameEngine\media\TessellationShader2.fx"
                 mov o0.xyzw, v1.xyzw
                 ret 
                 // Approximately 2 instruction slots used

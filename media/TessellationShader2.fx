@@ -29,8 +29,8 @@ struct HullInputType
 
 struct ConstantOutputType
 {
-	float edges[3] : SV_TessFactor;
-	float inside : SV_InsideTessFactor;
+	float edges[4] : SV_TessFactor;
+	float inside[2] : SV_InsideTessFactor;
 };
 
 struct HullOutputType
@@ -64,7 +64,7 @@ HullInputType main(VertexInputType input)
 ////////////////////////////////////////////////////////////////////////////////
 // Patch Constant Function
 ////////////////////////////////////////////////////////////////////////////////
-ConstantOutputType ColorPatchConstantFunction(InputPatch<HullInputType, 1> inputPatch
+ConstantOutputType ColorPatchConstantFunction(InputPatch<HullInputType, 4> inputPatch
 	, uint patchId : SV_PrimitiveID)
 {
 	ConstantOutputType output;
@@ -73,9 +73,11 @@ ConstantOutputType ColorPatchConstantFunction(InputPatch<HullInputType, 1> input
 	output.edges[0] = tessellationAmount;
 	output.edges[1] = tessellationAmount;
 	output.edges[2] = tessellationAmount;
+	output.edges[3] = tessellationAmount;
 
 	// Set the tessellation factor for tessallating inside the triangle.
-	output.inside = tessellationAmount;
+	output.inside[0] = tessellationAmount;
+	output.inside[1] = tessellationAmount;
 
 	return output;
 }
@@ -88,10 +90,10 @@ ConstantOutputType ColorPatchConstantFunction(InputPatch<HullInputType, 1> input
 //[partitioning("integer")]
 [partitioning("fractional_odd")]
 [outputtopology("triangle_cw")]
-[outputcontrolpoints(1)]
+[outputcontrolpoints(4)]
 [patchconstantfunc("ColorPatchConstantFunction")]
 
-HullOutputType ColorHullShader(InputPatch<HullInputType, 1> patch
+HullOutputType ColorHullShader(InputPatch<HullInputType, 4> patch
 	, uint pointId : SV_OutputControlPointID
 	, uint patchId : SV_PrimitiveID)
 {
@@ -114,16 +116,25 @@ HullOutputType ColorHullShader(InputPatch<HullInputType, 1> patch
 [domain("quad")]
 
 PixelInputType ColorDomainShader(ConstantOutputType input
-	, float3 uvwCoord : SV_DomainLocation
-	, const OutputPatch<HullOutputType, 1> patch)
+	, float2 uvwCoord : SV_DomainLocation
+	, const OutputPatch<HullOutputType, 4> patch)
 {
 	float3 vertexPosition;
 	PixelInputType output;
 
 	// Determine the position of the new vertex.
-	vertexPosition = uvwCoord.x * patch[0].position + uvwCoord.y * patch[1].position + uvwCoord.z * patch[2].position;
+	//vertexPosition = uvwCoord.x * patch[0].position 
+	//	+ uvwCoord.y * patch[1].position 
+	//  + uvwCoord.z * patch[2].position;
 
-	// Calculate the position of the new vertex against the world, view, and projection matrices.
+	//// Calculate the position of the new vertex against the world, view, and projection matrices.
+	//output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
+	//output.position = mul(output.position, viewMatrix);
+	//output.position = mul(output.position, projectionMatrix);
+
+	vertexPosition = uvwCoord.x * patch[0].position
+		+ uvwCoord.y * patch[1].position;
+
 	output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);

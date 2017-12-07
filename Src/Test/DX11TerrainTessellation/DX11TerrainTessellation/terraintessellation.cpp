@@ -182,7 +182,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_vtxBuffer.Bind(m_renderer);
 		m_idxBuffer.Bind(m_renderer);
 		m_renderer.GetDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-		m_renderer.GetDevContext()->DrawIndexed(3, 0, 0);
+		m_renderer.GetDevContext()->DrawIndexed(4, 0, 0);
 
 		// Debug Display ----------------------------------------------------
 		//m_axis.Render(m_renderer);
