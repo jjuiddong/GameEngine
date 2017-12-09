@@ -1,12 +1,10 @@
 //
 // DX11 Tessellation
 //
-
 #include "../../../../../Common/Common/common.h"
 using namespace common;
 #include "../../../../../Common/Graphic11/graphic11.h"
 #include "../../../../../Common/Framework11/framework11.h"
-
 
 using namespace graphic;
 
@@ -22,7 +20,6 @@ struct sTessellationBuffer
 	float tessellationAmount;
 	Vector3 padding;
 };
-
 
 class cViewer : public framework::cGameMain
 {
@@ -41,11 +38,11 @@ public:
 
 public:
 	cCamera3D m_mainCamera;
-	cGrid m_ground;
+	cGridLine m_ground;
 	cDbgAxis m_axis;
 	cVertexBuffer m_vtxBuffer;
 	cIndexBuffer m_idxBuffer;
-	
+
 	cShader11 m_shader;
 	cConstantBuffer<sMatrixBuffer> m_cbMatrix;
 	cConstantBuffer<sTessellationBuffer> m_cbTessellation;
@@ -112,25 +109,19 @@ bool cViewer::OnInit()
 
 	m_mtrl.InitWhite();
 
-	m_ground.Create(m_renderer, 10, 10, 100, 100
-		, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE
-		, cColor::WHITE
-		//, g_defaultTexture
-		, "tile.jpg"
-		, Vector2(0, 0), Vector2(1, 1), 256
-	);
-	//m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+	m_ground.Create(m_renderer, 100, 100, 10, 10);
 
 	cBoundingBox bbox2(Vector3(0, 0, 0), Vector3(10, 10, 10), Quaternion());
 	m_axis.Create(m_renderer);
 	m_axis.SetAxis(bbox2, false);
 
 	sVertexDiffuse vertices[] = {
-		  {Vector3(-1, -1, 0), Vector4(0,1,0,1)}
-		, {Vector3(0, 1, 0), Vector4(0,1,0,1)}
-		, {Vector3(1, -1, 0), Vector4(0,1,0,1)}
+		{ Vector3(-1, 1, 0), Vector4(0,1,0,1) }
+		, { Vector3( 1, 1, 0), Vector4(0,1,0,1) }
+		,{ Vector3(1, -1, 0), Vector4(0,1,0,1) }
+		,{ Vector3(-1, -1, 0), Vector4(0,1,0,1) }
 	};
-	m_vtxBuffer.Create(m_renderer, 3, sizeof(sVertexDiffuse), vertices);
+	m_vtxBuffer.Create(m_renderer, 4, sizeof(sVertexDiffuse), vertices);
 
 	WORD indices[] = { 0,1,2 };
 	m_idxBuffer.Create(m_renderer, 1, (BYTE*)indices);
@@ -139,7 +130,7 @@ bool cViewer::OnInit()
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	m_shader.Create(m_renderer, "../media/TessellationShader.fxo", "Tech", layout, 2);
+	m_shader.Create(m_renderer, "../media/TessellationShader2.fxo", "Tech", layout, 2);
 
 	m_cbMatrix.Create(m_renderer);
 	m_cbTessellation.Create(m_renderer);
@@ -174,7 +165,7 @@ void cViewer::OnRender(const float deltaSeconds)
 	if (m_renderer.ClearScene())
 	{
 		m_renderer.BeginScene();
-		//m_ground.Render(m_renderer);
+		m_ground.Render(m_renderer);
 
 		m_shader.SetTechnique("Tech");
 		m_shader.Begin();
@@ -190,8 +181,8 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		m_vtxBuffer.Bind(m_renderer);
 		m_idxBuffer.Bind(m_renderer);
-		m_renderer.GetDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-		m_renderer.GetDevContext()->DrawIndexed(3, 0, 0);
+		m_renderer.GetDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
+		m_renderer.GetDevContext()->DrawIndexed(4, 0, 0);
 
 		// Debug Display ----------------------------------------------------
 		//m_axis.Render(m_renderer);
