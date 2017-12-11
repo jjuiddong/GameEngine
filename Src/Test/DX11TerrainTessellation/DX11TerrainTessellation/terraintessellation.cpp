@@ -117,9 +117,9 @@ bool cViewer::OnInit()
 
 	sVertexDiffuse vertices[] = {
 		{ Vector3(-1, 1, 0), Vector4(0,1,0,1) }
-		, { Vector3( 1, 1, 0), Vector4(0,1,0,1) }
-		,{ Vector3(1, -1, 0), Vector4(0,1,0,1) }
+		,{ Vector3(1, 1, 0), Vector4(0,1,0,1) }
 		,{ Vector3(-1, -1, 0), Vector4(0,1,0,1) }
+		,{ Vector3(1, -1, 0), Vector4(0,1,0,1) }
 	};
 	m_vtxBuffer.Create(m_renderer, 4, sizeof(sVertexDiffuse), vertices);
 
@@ -180,9 +180,9 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_cbTessellation.Update(m_renderer, 1);
 
 		m_vtxBuffer.Bind(m_renderer);
-		m_idxBuffer.Bind(m_renderer);
+		//m_idxBuffer.Bind(m_renderer);
 		m_renderer.GetDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-		m_renderer.GetDevContext()->DrawIndexed(4, 0, 0);
+		m_renderer.GetDevContext()->Draw(4, 0, 0);
 
 		// Debug Display ----------------------------------------------------
 		//m_axis.Render(m_renderer);

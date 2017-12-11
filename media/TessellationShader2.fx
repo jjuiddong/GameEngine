@@ -132,8 +132,9 @@ PixelInputType ColorDomainShader(ConstantOutputType input
 	//output.position = mul(output.position, viewMatrix);
 	//output.position = mul(output.position, projectionMatrix);
 
-	vertexPosition = uvwCoord.x * patch[0].position
-		+ uvwCoord.y * patch[1].position;
+	float3 v1 = lerp(patch[0].position, patch[1].position, uvwCoord.x);
+	float3 v2 = lerp(patch[2].position, patch[3].position, uvwCoord.x);
+	vertexPosition = lerp(v1, v2, uvwCoord.y);		
 
 	output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
 	output.position = mul(output.position, viewMatrix);

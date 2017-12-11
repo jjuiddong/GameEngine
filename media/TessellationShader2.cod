@@ -265,7 +265,7 @@ fxgroup
                 dcl_input vicp[4][1].xyzw
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xyzw
-                dcl_temps 2
+                dcl_temps 3
                 //
                 // Initial variable locations:
                 //   vpc0.x <- input.edges[0]; 
@@ -287,11 +287,18 @@ fxgroup
                 //   vicp[3][1].x <- patch[3].color.x; vicp[3][1].y <- patch[3].color.y; vicp[3][1].z <- patch[3].color.z; vicp[3][1].w <- patch[3].color.w
                 //
                 #line 135 "D:\Project\GameEngine\media\TessellationShader2.fx"
-                mul r0.xyz, vDomain.xxxx, vicp[0][0].xyzx
-                mul r1.xyz, vDomain.yyyy, vicp[1][0].xyzx
+                mov r0.xyz, -vicp[0][0].xyzx
+                add r0.xyz, r0.xyzx, vicp[1][0].xyzx
+                mul r0.xyz, r0.xyzx, vDomain.xxxx
+                add r0.xyz, r0.xyzx, vicp[0][0].xyzx  // r0.x <- v1.x; r0.y <- v1.y; r0.z <- v1.z
+                mov r1.xyz, -vicp[2][0].xyzx
+                add r1.xyz, r1.xyzx, vicp[3][0].xyzx
+                mul r1.xyz, r1.xyzx, vDomain.xxxx
+                add r1.xyz, r1.xyzx, vicp[2][0].xyzx  // r1.x <- v2.x; r1.y <- v2.y; r1.z <- v2.z
+                mov r2.xyz, -r0.xyzx
+                add r1.xyz, r1.xyzx, r2.xyzx
+                mul r1.xyz, r1.xyzx, vDomain.yyyy
                 add r0.xyz, r0.xyzx, r1.xyzx  // r0.x <- vertexPosition.x; r0.y <- vertexPosition.y; r0.z <- vertexPosition.z
-                
-                #line 138
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- output.position.x
                 dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- output.position.y
@@ -306,12 +313,12 @@ fxgroup
                 dp4 r1.z, r0.xyzw, cb0[10].xyzw  // r1.z <- output.position.z
                 dp4 r1.w, r0.xyzw, cb0[11].xyzw  // r1.w <- output.position.w
                 
-                #line 143
+                #line 144
                 mov r0.xyzw, vicp[0][1].xyzw  // r0.x <- output.color.x; r0.y <- output.color.y; r0.z <- output.color.z; r0.w <- output.color.w
                 mov o0.xyzw, r1.xyzw
                 mov o1.xyzw, r0.xyzw
                 ret 
-                // Approximately 20 instruction slots used
+                // Approximately 29 instruction slots used
                             
             };
             PixelShader = asm {
@@ -344,7 +351,7 @@ fxgroup
                 //   v1.x <- input.color.x; v1.y <- input.color.y; v1.z <- input.color.z; v1.w <- input.color.w; 
                 //   o0.x <- <ColorPixelShader return value>.x; o0.y <- <ColorPixelShader return value>.y; o0.z <- <ColorPixelShader return value>.z; o0.w <- <ColorPixelShader return value>.w
                 //
-                #line 154 "D:\Project\GameEngine\media\TessellationShader2.fx"
+                #line 155 "D:\Project\GameEngine\media\TessellationShader2.fx"
                 mov o0.xyzw, v1.xyzw
                 ret 
                 // Approximately 2 instruction slots used
