@@ -1,6 +1,6 @@
 
 //
-// DX11 Primitive
+// DX11 BoundingBox Test
 //
 
 #include "../../../../../Common/Common/common.h"

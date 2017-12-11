@@ -1,5 +1,5 @@
 //
-// DX11 Line
+// DX11 Triangle Test
 //
 
 #include "../../../../../Common/Common/common.h"
@@ -26,17 +26,13 @@ public:
 
 
 public:
-	cCamera3D m_terrainCamera;
-	cGrid m_ground;
+	cCamera3D m_camera;
+	cGridLine m_grid;
 	cLine m_line;
-	cDbgLine m_dbgLine;
 	cDbgLineList m_lineList;
-	cDbgArrow m_dbgArrow;
-
-	Transform m_world;
+	vector<Vector3> m_vtx;
 	cMaterial m_mtrl;
 
-	bool m_isFrustumTracking = true;
 	sf::Vector2i m_curPos;
 	Plane m_groundPlane1, m_groundPlane2;
 	float m_moveLen;
@@ -51,9 +47,9 @@ INIT_FRAMEWORK(cViewer);
 
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
-	, m_terrainCamera("main camera")
+	, m_camera("main camera")
 {
-	m_windowName = L"DX11 Line";
+	m_windowName = L"DX11 Triangle";
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 1024 };
 	m_windowRect = r;
@@ -81,25 +77,13 @@ bool cViewer::OnInit()
 	GetMainCamera().SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
 	GetMainCamera().SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	m_terrainCamera.SetCamera(Vector3(-3, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	m_terrainCamera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
-	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
+	m_camera.SetCamera(Vector3(-3, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	m_camera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
+	m_camera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	// Create the constant buffer
-	//m_cbPerFrame.Create(m_renderer);
-	//m_cbLight.Create(m_renderer);
-	//m_cbMaterial.Create(m_renderer);
-
-	m_ground.Create(m_renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::COLOR | eVertexType::TEXTURE);
-	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+	m_grid.Create(m_renderer, 100, 100, 1, 1);
 
 	m_line.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0));
-	m_dbgLine.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0), 1.f, cColor::RED);
-
-	m_lineList.Create(m_renderer, 100, cColor::RED);
-
-	m_dbgArrow.Create(m_renderer, Vector3(0, 0, 0), Vector3(1, 2, 0));
-
 
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
@@ -108,6 +92,23 @@ bool cViewer::OnInit()
 	const Vector3 lightLookat(0, 0, 0);
 	GetMainLight().SetPosition(lightPos);
 	GetMainLight().SetDirection((lightLookat - lightPos).Normal());
+
+	//Vector3 p1(7.07285976f, 0.000000000f, 4.60248995f);
+	//Vector3 p2(7.05255985f, 0.000000000f, 7.24174976f);
+	//Vector3 p3(7.07285976f, 10.0000000f, 4.60248995f);
+
+	Vector3 p1(19.7215004f, 10.0000000f, 19.5296001f);
+	Vector3 p2(19.5757999f, 0.000000000f, 15.7475996f);
+	Vector3 p3(19.5757999f, 10.0000000f, 15.7475996f);
+	m_vtx.push_back(p1);
+	m_vtx.push_back(p2);
+	m_vtx.push_back(p3);
+
+	m_lineList.Create(m_renderer, 32);
+
+	for (u_int i = 0; i < m_vtx.size(); ++i)
+		m_lineList.AddLine(m_renderer, m_vtx[i], m_vtx[(i + 1) % m_vtx.size()], false);
+	m_lineList.UpdateBuffer(m_renderer);
 
 	m_mtrl.InitWhite();
 
@@ -120,16 +121,10 @@ void cViewer::OnUpdate(const float deltaSeconds)
 	GetMainCamera().Update(deltaSeconds);
 }
 
-bool show_test_window = true;
-bool show_another_window = false;
-//ImVec4 clear_col = ImColor(114, 144, 154);
 
 void cViewer::OnRender(const float deltaSeconds)
 {
-	if (m_isFrustumTracking)
-		cMainCamera::Get()->PushCamera(&m_terrainCamera);
-
-	//GetMainLight().Bind(m_renderer, 0);
+	cAutoCam cam(&m_camera);
 
 	// Render
 	if (m_renderer.ClearScene())
@@ -137,41 +132,64 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_renderer.BeginScene();
 
 		GetMainCamera().Bind(m_renderer);
+		GetMainLight().Bind(m_renderer);
 
-		static float t = 0;
-		t += deltaSeconds;
-
-		XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetViewMatrix());
-		XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetProjectionMatrix());
-		XMMATRIX mWorld = XMLoadFloat4x4((XMFLOAT4X4*)&m_world.GetMatrix());
-
-		m_renderer.m_cbPerFrame.m_v->mWorld = XMMatrixTranspose(mWorld);
-		m_renderer.m_cbPerFrame.m_v->mView = XMMatrixTranspose(mView);
-		m_renderer.m_cbPerFrame.m_v->mProjection = XMMatrixTranspose(mProj);
-
-		m_renderer.m_cbLight = GetMainLight().GetLight();
-		m_renderer.m_cbLight.Update(m_renderer, 1);
 		m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
-		m_renderer.m_cbMaterial.Update(m_renderer, 2);
 
-		m_ground.Render(m_renderer);
+		m_grid.Render(m_renderer);
 		m_line.Render(m_renderer);
 		m_lineList.Render(m_renderer);
-		m_dbgArrow.Render(m_renderer);
+
+		//Vector3 orig(3.40873122f, 1.00000000f, 1.25833344f);
+		//Vector3 dir(0.769363403f, 0.000000000f, 0.638811290f);
+		//Vector3 orig(2.68846822f, 1.00000000f, 1.41921401f);
+		//Vector3 dir(0.817804992f, 0.000000000f, 0.575495481f);
+		//Vector3 orig(6.14031315f, 1.00000000f, 1.83890367f);
+		//Vector3 dir(0.556241572f, 0.000000000f, 0.831020653f);
+
+		Vector3 orig(18.2494278f, 1.00000000f, 16.6841183f);
+		Vector3 dir(-0.845626056f, 0.000000000f, 0.533775806f);
+
+		m_renderer.m_dbgLine.SetLine(orig, orig + dir*10.f, 0.05f);
+		m_renderer.m_dbgLine.Render(m_renderer);
+
+		Triangle tri(m_vtx[0], m_vtx[1], m_vtx[2]);
+		float t, u, v;
+		const bool collision = tri.Intersect(orig, dir, &t, &u, &v);
+		m_lineList.m_color = collision? cColor::RED : cColor::BLACK;
+
+		for (u_int i = 0; i < m_vtx.size(); ++i)
+		{
+			cBoundingBox bbox;
+			bbox.SetBoundingBox(m_vtx[i], Vector3(1, 1, 1)*0.1f, Quaternion());
+			m_renderer.m_dbgBox.SetBox(bbox);
+			m_renderer.m_dbgBox.m_color = cColor::WHITE;
+			m_renderer.m_dbgBox.Render(m_renderer);
+		}
+
+		if (collision)
+		{
+			const Vector3 v1 = m_vtx[2].Interpolate(m_vtx[1], u);
+			const Vector3 v2 = m_vtx[2].Interpolate(m_vtx[0], v);
+			Vector3 pos = v1 + v2 - m_vtx[2];
+
+			cBoundingBox bbox;
+			bbox.SetBoundingBox(pos, Vector3(1, 1, 1)*0.1f, Quaternion());
+			m_renderer.m_dbgBox.SetBox(bbox);
+			m_renderer.m_dbgBox.m_color = cColor::RED;
+			m_renderer.m_dbgBox.Render(m_renderer);
+		}
 
 		m_renderer.EndScene();
 		m_renderer.Present();
 	}
-
-	if (m_isFrustumTracking)
-		cMainCamera::Get()->PopCamera();
 }
 
 
 void cViewer::OnLostDevice()
 {
 	m_renderer.ResetDevice(0, 0, true);
-	m_terrainCamera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
+	m_camera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
 }
 
 
@@ -185,7 +203,7 @@ void cViewer::ChangeWindowSize()
 	if (m_renderer.CheckResetDevice())
 	{
 		m_renderer.ResetDevice();
-		m_terrainCamera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
+		m_camera.SetViewPort(m_renderer.m_viewPort.GetWidth(), m_renderer.m_viewPort.GetHeight());
 		//m_renderer.GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	}
 }
@@ -225,8 +243,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEWHEEL:
 	{
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+		cAutoCam cam(&m_camera);
 
 		int fwKeys = GET_KEYSTATE_WPARAM(wParam);
 		int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
@@ -238,9 +255,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			zoomLen = zoomLen / 10.f;
 
 		graphic::GetMainCamera().Zoom((zDelta<0) ? -zoomLen : zoomLen);
-
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PopCamera();
 	}
 	break;
 
@@ -292,8 +306,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONDOWN:
 	{
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+		cAutoCam cam(&m_camera);
 
 		POINT pos = { (short)LOWORD(lParam), (short)HIWORD(lParam) };
 
@@ -306,10 +319,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
 		m_moveLen = common::clamp(1, 100, (p1 - ray.orig).Length());
 		graphic::GetMainCamera().MoveCancel();
-		m_lineList.AddNextPoint(m_renderer, p1);
-
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PopCamera();
 	}
 	break;
 
@@ -350,15 +359,13 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEMOVE:
 	{
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PushCamera(&m_terrainCamera);
+		cAutoCam cam(&m_camera);
 
 		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
 
 		const Ray ray = graphic::GetMainCamera().GetRay(pos.x, pos.y);
 		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
-		m_line.SetLine(ray.orig+Vector3(1,0,0), p1, 0.3f);
-		m_dbgLine.SetLine(ray.orig + Vector3(-1, 0, 0), p1+Vector3(-1,0,0), 0.3f);
+		m_line.SetLine(ray.orig + Vector3(1, 0, 0), p1, 0.1f);
 
 		if (wParam & 0x10) // middle button down
 		{
@@ -371,8 +378,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 			if ((abs(x) > 1000) || (abs(y) > 1000))
 			{
-				if (m_isFrustumTracking)
-					cMainCamera::Get()->PopCamera();
 				break;
 			}
 
@@ -394,9 +399,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			m_terrainCamera.Yaw2(x * 0.005f);
-			m_terrainCamera.Pitch2(y * 0.005f);
-			z
+			m_camera.Yaw2(x * 0.005f);
+			m_camera.Pitch2(y * 0.005f);
+
 		}
 		else if (m_MButtonDown)
 		{
@@ -410,9 +415,6 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		else
 		{
 		}
-
-		if (m_isFrustumTracking)
-			cMainCamera::Get()->PopCamera();
 	}
 	break;
 	}
