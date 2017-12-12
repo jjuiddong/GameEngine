@@ -2,8 +2,19 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="dx11tessellationquadtree.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="mapview.cpp" />
+    <ClCompile Include="observerview.cpp" />
+    <ClCompile Include="quadtree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\..\..\media\shader11\tessellation_quadtree.fx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="mapview.h" />
+    <ClInclude Include="observerview.h" />
+    <ClInclude Include="quadtree.h" />
+    <ClInclude Include="dx11tessellationquadtree.h" />
   </ItemGroup>
 </Project>
