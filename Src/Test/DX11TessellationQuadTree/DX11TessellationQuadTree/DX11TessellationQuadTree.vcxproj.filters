@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="terraintessellation.cpp" />
+    <ClCompile Include="dx11tessellationquadtree.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\..\media\Terrain_TessellationShader.fx" />
+    <CustomBuild Include="..\..\..\..\media\shader11\tessellation_quadtree.fx" />
   </ItemGroup>
 </Project>

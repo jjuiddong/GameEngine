@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{925E2BBA-9BF4-4B57-B44A-923013F036E9}</ProjectGuid>
+    <ProjectGuid>{6B85BC60-A5D0-456C-880B-6E31C1E66BBA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>DX11TerrainTessellation</RootNamespace>
+    <RootNamespace>DX11TessellationQuad</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -154,7 +154,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="terraintessellation.cpp" />
+    <ClCompile Include="dx11tessellationquad.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\Common\AI\AI.vcxproj">
@@ -174,7 +174,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\..\media\Terrain_TessellationShader.fx">
+    <CustomBuild Include="..\..\..\..\media\shader11\tessellation_quad.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc /Fc /Od /Zi /T fx_5_0 /Fo "%(RelativeDir)\%(Filename).fxo" "%(FullPath)"</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc compile for debug: %(FullPath)</Message>

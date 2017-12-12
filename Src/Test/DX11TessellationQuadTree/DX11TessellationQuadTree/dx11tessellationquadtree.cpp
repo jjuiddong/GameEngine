@@ -1,5 +1,5 @@
 //
-// DX11 Tessellation Terrain
+// DX11 Tessellation Quad Tree
 //
 #include "../../../../../Common/Common/common.h"
 using namespace common;
@@ -17,6 +17,7 @@ struct sMatrixBuffer
 
 struct sTessellationBuffer
 {
+	Vector4 eyePos;
 	float tessellationAmount;
 	Vector3 padding;
 };
@@ -41,12 +42,13 @@ public:
 	cGridLine m_ground;
 	cDbgAxis m_axis;
 	cVertexBuffer m_vtxBuffer;
-	cIndexBuffer m_idxBuffer;
+	bool m_isWireframe = true;
 
 	cShader11 m_shader;
 	cConstantBuffer<sMatrixBuffer> m_cbMatrix;
 	cConstantBuffer<sTessellationBuffer> m_cbTessellation;
 
+	cTexture m_texture;
 	float m_tesellationAmount = 1; // Press Up/Down Button to Change
 
 	cMaterial m_mtrl;
@@ -64,9 +66,9 @@ INIT_FRAMEWORK(cViewer);
 
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
-	, m_mainCamera("main camera")
+	, m_mainCamera("viewer camera")
 {
-	m_windowName = L"DX11 Tessellation Terrain";
+	m_windowName = L"DX11 Tessellation Quad-Tree";
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 1024 };
 	m_windowRect = r;
@@ -115,25 +117,49 @@ bool cViewer::OnInit()
 	m_axis.Create(m_renderer);
 	m_axis.SetAxis(bbox2, false);
 
-	sVertexDiffuse vertices[] = {
-		{ Vector3(-1, 0, 1), Vector4(0,1,0,1) }
-		,{ Vector3(1, 0, 1), Vector4(0,1,0,1) }
-		,{ Vector3(-1, 0, -1), Vector4(0,1,0,1) }
-		,{ Vector3(1, 0, -1), Vector4(0,1,0,1) }
+	struct sVertexType {
+		Vector3 p;
+		Vector2 t0;
 	};
-	m_vtxBuffer.Create(m_renderer, 4, sizeof(sVertexDiffuse), vertices);
 
-	WORD indices[] = { 0,1,2 };
-	m_idxBuffer.Create(m_renderer, 1, (BYTE*)indices);
+	const float size = 10.f;
+	vector<sVertexType> vertices;
+	vertices.reserve(100 * 100);
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int k = 0; k < 100; ++k)
+		{
+			vertices.push_back(
+			{ Vector3((float)i*size, 0.f, (float)k*size), Vector2(size, size) }
+			);
 
-	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	m_shader.Create(m_renderer, "../media/Terrain_TessellationShader.fxo", "Tech", layout, 2);
+			vertices.push_back(
+			{ Vector3((float)i*size + size, 0.f, (float)k*size), Vector2(size, size) }
+			);
+
+			vertices.push_back(
+			{ Vector3((float)i*size, 0.f, (float)k*size - size), Vector2(size, size) }
+			);
+
+			vertices.push_back(
+			{ Vector3((float)i*size + size, 0.f, (float)k*size - size), Vector2(size, size) }
+			);
+		}
+	}
+
+	m_vtxBuffer.Create(m_renderer, vertices.size(), sizeof(sVertexType), &vertices[0]);
+
+	if (!m_shader.Create(m_renderer, "../media/shader11/tessellation_quadtree.fxo", "Tech"
+		, eVertexType::POSITION | eVertexType::TEXTURE0
+		//| eVertexType::TEXTURE1
+	))
+	{
+		assert(0);
+	}
 
 	m_cbMatrix.Create(m_renderer);
 	m_cbTessellation.Create(m_renderer);
+	m_texture.Create(m_renderer, "../media/sora1.jpg");
 
 	return true;
 }
@@ -153,37 +179,41 @@ void cViewer::OnRender(const float deltaSeconds)
 	GetMainLight().Bind(m_renderer);
 	GetMainCamera().Bind(m_renderer);
 
-	cShader11 *shader = m_renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
-
 	CommonStates states(m_renderer.GetDevice());
-	m_renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
-	m_renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
+	//m_renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
+	//m_renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
 	//m_renderer.GetDevContext()->OMSetBlendState(states.Opaque(), 0, 0xffffffff);
-	m_renderer.GetDevContext()->RSSetState(states.Wireframe());
+	if (m_isWireframe)
+		m_renderer.GetDevContext()->RSSetState(states.Wireframe());
+	else
+		m_renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
+
+	//m_renderer.GetDevContext()->OMSetBlendState(NULL, 0, 0xffffffff);
 
 	// Render
 	if (m_renderer.ClearScene())
 	{
 		m_renderer.BeginScene();
-		m_ground.Render(m_renderer);
 
 		m_shader.SetTechnique("Tech");
 		m_shader.Begin();
 		m_shader.BeginPass(m_renderer, 0);
 
-		m_cbMatrix.m_v->worldMatrix = XMMatrixTranspose(Matrix44::Identity.GetMatrixXM());
+		Matrix44 world;
+		m_cbMatrix.m_v->worldMatrix = XMMatrixTranspose(world.GetMatrixXM());
 		m_cbMatrix.m_v->viewMatrix = XMMatrixTranspose(GetMainCamera().GetViewMatrix().GetMatrixXM());
 		m_cbMatrix.m_v->projectionMatrix = XMMatrixTranspose(GetMainCamera().GetProjectionMatrix().GetMatrixXM());
 		m_cbMatrix.Update(m_renderer, 0);
 
+		m_cbTessellation.m_v->eyePos = GetMainCamera().GetEyePos();
 		m_cbTessellation.m_v->tessellationAmount = m_tesellationAmount;
 		m_cbTessellation.Update(m_renderer, 1);
 
 		m_vtxBuffer.Bind(m_renderer);
+		m_texture.Bind(m_renderer, 0);
 		m_renderer.GetDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-		m_renderer.GetDevContext()->Draw(4, 0);
+		m_renderer.GetDevContext()->Draw(m_vtxBuffer.GetVertexCount(), 0);
 
-		m_renderer.RenderFPS();
 		m_renderer.EndScene();
 		m_renderer.Present();
 	}
@@ -271,6 +301,7 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			//m_renderer.GetDevice()->SetRenderState(D3DRS_CULLMODE, flag ? D3DCULL_CCW : D3DCULL_NONE);
 			//m_renderer.GetDevice()->SetRenderState(D3DRS_FILLMODE, flag ? D3DFILL_SOLID : D3DFILL_WIREFRAME);
 			flag = !flag;
+			m_isWireframe = !m_isWireframe;
 		}
 		break;
 

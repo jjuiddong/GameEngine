@@ -46,8 +46,6 @@ struct PixelInputType
 };
 
 
-
-
 HullInputType main(VertexInputType input)
 {
 	HullInputType output;
@@ -58,7 +56,6 @@ HullInputType main(VertexInputType input)
 
 	return output;
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,16 +118,6 @@ PixelInputType ColorDomainShader(ConstantOutputType input
 {
 	float3 vertexPosition;
 	PixelInputType output;
-
-	// Determine the position of the new vertex.
-	//vertexPosition = uvwCoord.x * patch[0].position 
-	//	+ uvwCoord.y * patch[1].position 
-	//  + uvwCoord.z * patch[2].position;
-
-	//// Calculate the position of the new vertex against the world, view, and projection matrices.
-	//output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
-	//output.position = mul(output.position, viewMatrix);
-	//output.position = mul(output.position, projectionMatrix);
 
 	float3 v1 = lerp(patch[0].position, patch[1].position, uvwCoord.x);
 	float3 v2 = lerp(patch[2].position, patch[3].position, uvwCoord.x);
