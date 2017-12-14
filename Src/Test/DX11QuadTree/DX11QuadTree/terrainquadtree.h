@@ -30,12 +30,7 @@ public:
 		, const Ray &ray);
 
 
-protected:
-	int GetLevel(const float distance);
-
-
 public:
-	bool m_isShowQuadTree;
 	sRectf m_rect;
 	cQuadTree m_qtree;
 	graphic::cVertexBuffer m_vtxBuff;

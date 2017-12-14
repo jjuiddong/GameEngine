@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dx11quadtree.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="mapview.cpp" />
+    <ClCompile Include="observerview.cpp" />
+    <ClCompile Include="quadtree.cpp" />
+    <ClCompile Include="terrainquadtree.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="dx11quadtree.h" />
+    <ClInclude Include="mapview.h" />
+    <ClInclude Include="observerview.h" />
+    <ClInclude Include="quadtree.h" />
+    <ClInclude Include="terrainquadtree.h" />
+  </ItemGroup>
+</Project>

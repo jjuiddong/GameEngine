@@ -1,33 +1,29 @@
 
 #include "stdafx.h"
-#include "observerview.h"
-#include "terrainquadtree.h"
-#include "dx11tessellationquadtree.h"
 #include "mapview.h"
-
 
 using namespace graphic;
 using namespace framework;
 
 
-cObserverView::cObserverView(const string &name) 
-	: framework::cDockWindow(name) 
+cMapView::cMapView(const string &name) 
+	: framework::cDockWindow(name)
 	, m_groundPlane1(Vector3(0, 1, 0), 0)
 	, m_groundPlane2(Vector3(0, -1, 0), 0)
 	, m_showGround(false)
+	, m_incT(0) 
 	, m_tessFactor(1)
 {
 }
 
-cObserverView::~cObserverView() 
+cMapView::~cMapView() 
 {
 }
 
 
-bool cObserverView::Init(cRenderer &renderer)
+bool cMapView::Init(cRenderer &renderer) 
 {
-	m_camera.SetCamera(Vector3(-1220.39185f, 3232.31787f, -1109.33813f)
-		, Vector3(1174.66431f, -0.000244140625f, 1674.89478f), Vector3(0, 1, 0));
+	m_camera.SetCamera(Vector3(-10, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_camera.SetProjection(MATH_PI / 4.f, m_rect.Width() / m_rect.Height(), 1, 10000.f);
 	m_camera.SetViewPort(m_rect.Width(), m_rect.Height());
 
@@ -39,8 +35,8 @@ bool cObserverView::Init(cRenderer &renderer)
 		, DXGI_FORMAT_D24_UNORM_S8_UINT);
 
 	m_ground.Create(renderer, 100, 100, 10, 10);
-	
-	m_quadTree.m_rect = sRectf::Rect(0, 0, 4096, 4096);
+
+	m_quadTree.m_rect = sRectf::Rect(0, 0, 5000, 5000);
 	if (!m_quadTree.Create(renderer))
 		return false;
 
@@ -48,13 +44,12 @@ bool cObserverView::Init(cRenderer &renderer)
 }
 
 
-void cObserverView::OnUpdate(const float deltaSeconds)
+void cMapView::OnUpdate(const float deltaSeconds)
 {
-
 }
 
 
-void cObserverView::OnPreRender(const float deltaSeconds)
+void cMapView::OnPreRender(const float deltaSeconds)
 {
 	cRenderer &renderer = GetRenderer();
 	cAutoCam cam(&m_camera);
@@ -72,13 +67,10 @@ void cObserverView::OnPreRender(const float deltaSeconds)
 		if (m_showGround)
 			m_ground.Render(renderer);
 
-		cViewer *viewer = (cViewer*)g_application;
-		cCamera3D &mainCam = viewer->m_mapView->m_camera;
-
 		const Ray ray = GetMainCamera().GetRay(m_mousePos.x, m_mousePos.y);
 
 		cFrustum frustum;
-		frustum.SetFrustum(mainCam.GetViewProjectionMatrix());
+		frustum.SetFrustum(GetMainCamera().GetViewProjectionMatrix());
 		m_quadTree.m_cbTessellation.m_v->tessellationAmount = (float)m_tessFactor;
 		m_quadTree.Render(renderer, frustum, 5, 15, ray);
 	}
@@ -86,7 +78,7 @@ void cObserverView::OnPreRender(const float deltaSeconds)
 }
 
 
-void cObserverView::OnRender(const float deltaSeconds)
+void cMapView::OnRender(const float deltaSeconds) 
 {
 	ImVec2 pos = ImGui::GetCursorScreenPos();
 	m_viewPos = { (int)(pos.x), (int)(pos.y) };
@@ -99,19 +91,17 @@ void cObserverView::OnRender(const float deltaSeconds)
 	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 	ImGui::SetNextWindowPos(pos);
 	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 500), 120));
-	if (ImGui::Begin("Information2", &isOpen, ImVec2(500.f, 120.f), windowAlpha, flags))
+	if (ImGui::Begin("Information", &isOpen, ImVec2(500.f, 120.f), windowAlpha, flags))
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::Checkbox("Show Ground", &m_showGround);
-		ImGui::SameLine();
-		ImGui::Checkbox("Show Quadtree", &m_quadTree.m_isShowQuadTree);
 		ImGui::DragInt("Tessellation Factor", &m_tessFactor);
 		ImGui::End();
 	}
 }
 
 
-void cObserverView::OnResizeEnd(const framework::eDockResize::Enum type, const sRectf &rect)
+void cMapView::OnResizeEnd(const framework::eDockResize::Enum type, const sRectf &rect) 
 {
 	if (type == eDockResize::DOCK_WINDOW)
 	{
@@ -120,7 +110,7 @@ void cObserverView::OnResizeEnd(const framework::eDockResize::Enum type, const s
 }
 
 
-void cObserverView::UpdateLookAt()
+void cMapView::UpdateLookAt()
 {
 	GetMainCamera().MoveCancel();
 
@@ -144,7 +134,7 @@ void cObserverView::UpdateLookAt()
 
 // 휠을 움직였을 때,
 // 카메라 앞에 박스가 있다면, 박스 정면에서 멈춘다.
-void cObserverView::OnWheelMove(const float delta, const POINT mousePt)
+void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 {
 	UpdateLookAt();
 
@@ -168,10 +158,11 @@ void cObserverView::OnWheelMove(const float delta, const POINT mousePt)
 
 
 // Handling Mouse Move Event
-void cObserverView::OnMouseMove(const POINT mousePt)
+void cMapView::OnMouseMove(const POINT mousePt)
 {
 	const POINT delta = { mousePt.x - m_mousePos.x, mousePt.y - m_mousePos.y };
 	m_mousePos = mousePt;
+
 
 	if (m_mouseDown[0])
 	{
@@ -203,7 +194,7 @@ void cObserverView::OnMouseMove(const POINT mousePt)
 
 
 // Handling Mouse Button Down Event
-void cObserverView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
+void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 {
 	m_mousePos = mousePt;
 	UpdateLookAt();
@@ -237,7 +228,7 @@ void cObserverView::OnMouseDown(const sf::Mouse::Button &button, const POINT mou
 }
 
 
-void cObserverView::OnMouseUp(const sf::Mouse::Button &button, const POINT mousePt)
+void cMapView::OnMouseUp(const sf::Mouse::Button &button, const POINT mousePt)
 {
 	const POINT delta = { mousePt.x - m_mousePos.x, mousePt.y - m_mousePos.y };
 	m_mousePos = mousePt;
@@ -258,7 +249,7 @@ void cObserverView::OnMouseUp(const sf::Mouse::Button &button, const POINT mouse
 }
 
 
-void cObserverView::OnEventProc(const sf::Event &evt)
+void cMapView::OnEventProc(const sf::Event &evt)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	switch (evt.type)
@@ -327,7 +318,7 @@ void cObserverView::OnEventProc(const sf::Event &evt)
 }
 
 
-void cObserverView::OnResetDevice()
+void cMapView::OnResetDevice()
 {
 	cRenderer &renderer = GetRenderer();
 

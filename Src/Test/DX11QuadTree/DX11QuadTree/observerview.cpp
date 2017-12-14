@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "observerview.h"
 #include "terrainquadtree.h"
-#include "dx11tessellationquadtree.h"
+#include "dx11quadtree.h"
 #include "mapview.h"
 
 
@@ -40,7 +40,7 @@ bool cObserverView::Init(cRenderer &renderer)
 
 	m_ground.Create(renderer, 100, 100, 10, 10);
 	
-	m_quadTree.m_rect = sRectf::Rect(0, 0, 4096, 4096);
+	m_quadTree.m_rect = sRectf::Rect(0, 0, 5000, 5000);
 	if (!m_quadTree.Create(renderer))
 		return false;
 
@@ -75,12 +75,10 @@ void cObserverView::OnPreRender(const float deltaSeconds)
 		cViewer *viewer = (cViewer*)g_application;
 		cCamera3D &mainCam = viewer->m_mapView->m_camera;
 
-		const Ray ray = GetMainCamera().GetRay(m_mousePos.x, m_mousePos.y);
-
 		cFrustum frustum;
 		frustum.SetFrustum(mainCam.GetViewProjectionMatrix());
 		m_quadTree.m_cbTessellation.m_v->tessellationAmount = (float)m_tessFactor;
-		m_quadTree.Render(renderer, frustum, 5, 15, ray);
+		//m_quadTree.Render(renderer, frustum, 5, 15);
 	}
 	m_renderTarget.End(renderer);
 }
@@ -103,8 +101,6 @@ void cObserverView::OnRender(const float deltaSeconds)
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::Checkbox("Show Ground", &m_showGround);
-		ImGui::SameLine();
-		ImGui::Checkbox("Show Quadtree", &m_quadTree.m_isShowQuadTree);
 		ImGui::DragInt("Tessellation Factor", &m_tessFactor);
 		ImGui::End();
 	}

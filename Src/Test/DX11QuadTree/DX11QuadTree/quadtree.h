@@ -51,7 +51,7 @@ public:
 
 
 public:
-	enum {MAX_LEVEL = 12};
+	enum {MAX_LEVEL = 8};
 
 	sQuadTreeNode *m_root;
 	const float m_quadScale = 1.f;

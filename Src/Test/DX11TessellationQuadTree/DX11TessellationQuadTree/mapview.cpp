@@ -36,7 +36,7 @@ bool cMapView::Init(cRenderer &renderer)
 
 	m_ground.Create(renderer, 100, 100, 10, 10);
 
-	m_quadTree.m_rect = sRectf::Rect(0, 0, 5000, 5000);
+	m_quadTree.m_rect = sRectf::Rect(0, 0, 4096, 4096);
 	if (!m_quadTree.Create(renderer))
 		return false;
 
@@ -95,6 +95,8 @@ void cMapView::OnRender(const float deltaSeconds)
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::Checkbox("Show Ground", &m_showGround);
+		ImGui::SameLine();
+		ImGui::Checkbox("Show Quadtree", &m_quadTree.m_isShowQuadTree);
 		ImGui::DragInt("Tessellation Factor", &m_tessFactor);
 		ImGui::End();
 	}

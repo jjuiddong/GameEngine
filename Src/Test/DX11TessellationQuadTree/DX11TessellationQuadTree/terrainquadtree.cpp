@@ -15,6 +15,7 @@ sData g_stack[1024];
 
 
 cTerrainQuadTree::cTerrainQuadTree()
+	: m_isShowQuadTree(false)
 {
 }
 
@@ -47,15 +48,6 @@ bool cTerrainQuadTree::Create(graphic::cRenderer &renderer)
 
 	m_cbTessellation.m_v->tessellationAmount = 1.f;
 
-	sQuadTreeNode *qnode = new sQuadTreeNode;
-	m_qtree.Insert(qnode);
-	m_qtree.InsertChildren(qnode);
-	m_qtree.InsertChildren(qnode->children[0]);
-	m_qtree.InsertChildren(qnode->children[0]->children[0]);
-	m_qtree.InsertChildren(qnode->children[1]);
-	m_qtree.InsertChildren(qnode->children[1]->children[0]);
-	//m_qtree.InsertChildren(qnode->children[1]->children[1]);
-
 	return true;
 }
 
@@ -66,156 +58,167 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 	, const Ray &ray 
 )
 {
+	m_qtree.Clear();
+	m_qtree.Insert(new sQuadTreeNode);
 
 	int sp = 0;
 	g_stack[sp++] = { m_rect, level, m_qtree.m_root };
 
+	m_shader.SetTechnique("Unlit");
+	m_shader.Begin();
+	m_shader.BeginPass(renderer, 0);
+
 	while (sp > 0)
 	{
-		sQuadTreeNode *node = g_stack[sp - 1].node;
+		const sRectf rect = g_stack[sp - 1].rect;
+		const int lv = g_stack[sp - 1].level;
+		sQuadTreeNode *parentNode = g_stack[sp - 1].node;
 		--sp;
 
-		// leaf node
-		if (!node->children[0])
+		const float hw = rect.Width() / 2.f;
+		const float hh = rect.Height() / 2.f;
+		const Vector3 center = Vector3(rect.Center().x, 0, rect.Center().y);
+		const float radius = sqrt(hw*hw + hh*hh);
+
+		cBoundingSphere bsphere;
+		bsphere.SetBoundingSphere(center, radius);
+		if (!frustum.IsInSphere(bsphere))
+			continue;
+
+		const Vector3 eyePos(frustum.m_pos.x, 0, frustum.m_pos.z);
+		const float distance = max(0, center.Distance(eyePos) - radius);
+		const int curLevel = GetLevel(distance);// (int)(distance / 10.f) - 1;
+		//const int offsetLevel = (int)(radius / 10.f) + 1;
+		const bool isMinSize = hw < 25.f;
+
+		//if (isMinSize || (lv <= (curLevel - offsetLevel)))
+		if (isMinSize || (lv <= curLevel))
 		{
-			const sRectf rect = m_qtree.GetNodeRect(node);
+			if (!m_isShowQuadTree)
+			{
+				Transform tfm;
+				tfm.pos.x = rect.left;
+				tfm.pos.z = rect.top;
+				tfm.pos.y = 0.f;
+				renderer.m_cbPerFrame.m_v->mWorld = XMMatrixTranspose(tfm.GetMatrixXM());
+				renderer.m_cbPerFrame.Update(renderer);
 
-			Vector3 lines[] = {
-				Vector3(rect.left, 0, rect.top)
-				, Vector3(rect.right, 0, rect.top)
-				, Vector3(rect.right, 0, rect.bottom)
-				, Vector3(rect.left, 0, rect.bottom)
-				, Vector3(rect.left, 0, rect.top)
-			};
+				m_cbTessellation.m_v->size = Vector2(rect.Width(), rect.Height());
+				m_cbTessellation.Update(renderer, 6);
 
-			renderer.m_rect3D.m_color = cColor::BLACK;
-			renderer.m_rect3D.SetRect(renderer, lines, ARRAYSIZE(lines));
-			renderer.m_rect3D.Render(renderer);
+				m_vtxBuff.Bind(renderer);
+				renderer.GetDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
+				renderer.GetDevContext()->Draw(m_vtxBuff.GetVertexCount(), 0);
+			}
+
+			continue;
 		}
 
-		for (int i = 0; i < 4; ++i)
-			if (node->children[i])
-				g_stack[sp++].node = node->children[i];
+		m_qtree.InsertChildren(parentNode);
+
+		g_stack[sp++] = { sRectf::Rect(rect.left, rect.top, hw, hh), lv - 1, parentNode->children[0] };
+		g_stack[sp++] = { sRectf::Rect(rect.left + hw, rect.top, hw, hh), lv - 1, parentNode->children[1] };
+		g_stack[sp++] = { sRectf::Rect(rect.left, rect.top + hh, hw, hh), lv - 1, parentNode->children[2] };
+		g_stack[sp++] = { sRectf::Rect(rect.left + hw, rect.top + hh, hw, hh), lv - 1, parentNode->children[3] };
+
+		assert(sp < 1024);
 	}
 
-	//const Ray ray = GetMainCamera().GetRay();
-	Plane ground(Vector3(0, 1, 0), 0);
-	Vector3 pos = ground.Pick(ray.orig, ray.dir);
-	if (sQuadTreeNode *node = m_qtree.GetNode(sRectf::Rect(pos.x, pos.z, 0, 0)))
+	renderer.UnbindShaderAll();
+
+
+	if (m_isShowQuadTree)
 	{
-		vector<std::pair<sRectf, cColor>> ars;
+		sp = 0;
+		g_stack[sp++] = { m_rect, level, m_qtree.m_root };
 
-		const sRectf rect = m_qtree.GetNodeRect(node);
-		ars.push_back({ rect, cColor::WHITE });
-
-		if (sQuadTreeNode *north = m_qtree.GetNorthNeighbor(node))
+		while (sp > 0)
 		{
-			const sRectf r = m_qtree.GetNodeRect(north);
-			ars.push_back({ r, cColor::RED });
+			sQuadTreeNode *node = g_stack[sp - 1].node;
+			--sp;
+
+			// leaf node?
+			if (!node->children[0])
+			{
+				const sRectf rect = m_qtree.GetNodeRect(node);
+
+				Vector3 lines[] = {
+					Vector3(rect.left, 0, rect.top)
+					, Vector3(rect.right, 0, rect.top)
+					, Vector3(rect.right, 0, rect.bottom)
+					, Vector3(rect.left, 0, rect.bottom)
+					, Vector3(rect.left, 0, rect.top)
+				};
+
+				renderer.m_rect3D.m_color = cColor::BLACK;
+				renderer.m_rect3D.SetRect(renderer, lines, ARRAYSIZE(lines));
+				renderer.m_rect3D.Render(renderer);
+			}
+
+			for (int i = 0; i < 4; ++i)
+				if (node->children[i])
+					g_stack[sp++].node = node->children[i];
 		}
 
-		if (sQuadTreeNode *east = m_qtree.GetEastNeighbor(node))
+		Plane ground(Vector3(0, 1, 0), 0);
+		Vector3 pos = ground.Pick(ray.orig, ray.dir);
+		if (sQuadTreeNode *node = m_qtree.GetNode(sRectf::Rect(pos.x, pos.z, 0, 0)))
 		{
-			const sRectf r = m_qtree.GetNodeRect(east);
-			ars.push_back({ r, cColor::GREEN });
-		}
+			vector<std::pair<sRectf, cColor>> ars;
 
-		if (sQuadTreeNode *south = m_qtree.GetSouthNeighbor(node))
-		{
-			const sRectf r = m_qtree.GetNodeRect(south);
-			ars.push_back({ r, cColor::BLUE });
-		}
+			const sRectf rect = m_qtree.GetNodeRect(node);
+			ars.push_back({ rect, cColor::WHITE });
 
-		if (sQuadTreeNode *west = m_qtree.GetWestNeighbor(node))
-		{
-			const sRectf r = m_qtree.GetNodeRect(west);
-			ars.push_back({ r, cColor::YELLOW });
-		}
+			if (sQuadTreeNode *north = m_qtree.GetNorthNeighbor(node))
+			{
+				const sRectf r = m_qtree.GetNodeRect(north);
+				ars.push_back({ r, cColor::RED });
+			}
 
-		for (auto &data : ars)
-		{
-			const sRectf &r = data.first;
+			if (sQuadTreeNode *east = m_qtree.GetEastNeighbor(node))
+			{
+				const sRectf r = m_qtree.GetNodeRect(east);
+				ars.push_back({ r, cColor::GREEN });
+			}
 
-			Vector3 lines[] = {
-				Vector3(r.left, 0, r.top)
-				, Vector3(r.right, 0, r.top)
-				, Vector3(r.right, 0, r.bottom)
-				, Vector3(r.left, 0, r.bottom)
-				, Vector3(r.left, 0, r.top)
-			};
+			if (sQuadTreeNode *south = m_qtree.GetSouthNeighbor(node))
+			{
+				const sRectf r = m_qtree.GetNodeRect(south);
+				ars.push_back({ r, cColor::BLUE });
+			}
 
-			CommonStates state(renderer.GetDevice());
-			renderer.GetDevContext()->RSSetState(state.CullNone());
-			renderer.GetDevContext()->OMSetDepthStencilState(state.DepthNone(), 0);
+			if (sQuadTreeNode *west = m_qtree.GetWestNeighbor(node))
+			{
+				const sRectf r = m_qtree.GetNodeRect(west);
+				ars.push_back({ r, cColor::YELLOW });
+			}
 
-			renderer.m_rect3D.m_color = data.second;
-			renderer.m_rect3D.SetRect(renderer, lines, ARRAYSIZE(lines));
-			renderer.m_rect3D.Render(renderer);
+			for (auto &data : ars)
+			{
+				const sRectf &r = data.first;
 
-			renderer.GetDevContext()->OMSetDepthStencilState(state.DepthDefault(), 0);
-			renderer.GetDevContext()->RSSetState(state.CullCounterClockwise());
+				Vector3 lines[] = {
+					Vector3(r.left, 0, r.top)
+					, Vector3(r.right, 0, r.top)
+					, Vector3(r.right, 0, r.bottom)
+					, Vector3(r.left, 0, r.bottom)
+					, Vector3(r.left, 0, r.top)
+				};
+
+				CommonStates state(renderer.GetDevice());
+				renderer.GetDevContext()->RSSetState(state.CullNone());
+				renderer.GetDevContext()->OMSetDepthStencilState(state.DepthNone(), 0);
+
+				renderer.m_rect3D.m_color = data.second;
+				renderer.m_rect3D.SetRect(renderer, lines, ARRAYSIZE(lines));
+				renderer.m_rect3D.Render(renderer);
+
+				renderer.GetDevContext()->OMSetDepthStencilState(state.DepthDefault(), 0);
+				renderer.GetDevContext()->RSSetState(state.CullCounterClockwise());
+			}
 		}
 	}
 
-
-
-	//int sp = 0;
-	//g_stack[sp++] = { m_rect, level };
-
-	//m_shader.SetTechnique("Unlit");
-	//m_shader.Begin();
-	//m_shader.BeginPass(renderer, 0);
-
-	//while (sp > 0)
-	//{
-	//	const sRectf rect = g_stack[sp - 1].rect;
-	//	const int lv = g_stack[sp - 1].level;
-	//	--sp;
-
-	//	const float hw = rect.Width() / 2.f;
-	//	const float hh = rect.Height() / 2.f;
-	//	const Vector3 center = Vector3(rect.Center().x, 0, rect.Center().y);
-	//	const float radius = sqrt(hw*hw + hh*hh);
-
-	//	cBoundingSphere bsphere;
-	//	bsphere.SetBoundingSphere(center, radius);
-	//	if (!frustum.IsInSphere(bsphere))
-	//		continue;
-
-	//	const Vector3 eyePos(frustum.m_pos.x, 0, frustum.m_pos.z);
-	//	const float distance = max(0, center.Distance(eyePos) - radius);
-	//	const int curLevel = GetLevel(distance);// (int)(distance / 10.f) - 1;
-	//	//const int offsetLevel = (int)(radius / 10.f) + 1;
-	//	const bool isMinSize = hw < 25.f;
-
-	//	//if (isMinSize || (lv <= (curLevel - offsetLevel)))
-	//	if (isMinSize || (lv <= curLevel))
-	//	{
-	//		Transform tfm;
-	//		tfm.pos.x = rect.left;
-	//		tfm.pos.z = rect.top;
-	//		tfm.pos.y = 0.f;
-	//		renderer.m_cbPerFrame.m_v->mWorld = XMMatrixTranspose(tfm.GetMatrixXM());
-	//		renderer.m_cbPerFrame.Update(renderer);
-
-	//		m_cbTessellation.m_v->size = Vector2(rect.Width(), rect.Height());
-	//		m_cbTessellation.Update(renderer, 6);
-
-	//		m_vtxBuff.Bind(renderer);
-	//		renderer.GetDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
-	//		renderer.GetDevContext()->Draw(m_vtxBuff.GetVertexCount(), 0);
-	//		continue;
-	//	}
-
-	//	g_stack[sp++] = { sRectf::Rect(rect.left, rect.top, hw, hh), lv - 1 };
-	//	g_stack[sp++] = { sRectf::Rect(rect.left + hw, rect.top, hw, hh), lv - 1 };
-	//	g_stack[sp++] = { sRectf::Rect(rect.left, rect.top + hh, hw, hh), lv - 1 };
-	//	g_stack[sp++] = { sRectf::Rect(rect.left + hw, rect.top + hh, hw, hh), lv - 1 };
-
-	//	assert(sp < 1024);
-	//}
-
-	//renderer.UnbindShaderAll();
 }
 
 
