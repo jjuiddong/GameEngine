@@ -4,6 +4,8 @@
 //
 #pragma once
 
+#include "terrainquadtree.h"
+
 
 class cMapView : public framework::cDockWindow
 {
@@ -34,6 +36,8 @@ public:
 	graphic::cGridLine m_ground;
 	graphic::cRenderTarget m_renderTarget;
 	bool m_showGround;
+	int m_tessFactor;
+	cTerrainQuadTree m_quadTree;
 
 	// MouseMove Variable
 	POINT m_viewPos;

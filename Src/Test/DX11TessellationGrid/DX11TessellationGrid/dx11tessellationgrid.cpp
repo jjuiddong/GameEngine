@@ -125,7 +125,7 @@ bool cViewer::OnInit()
 	m_vtxBuffer.Create(m_renderer, vertices.size(), sizeof(sVertexTex), &vertices[0]);
 
 	if (!m_shader.Create(m_renderer, "../media/shader11/tessellation_grid.fxo", "Tech"
-		, eVertexType::POSITION | eVertexType::TEXTURE ))
+		, eVertexType::POSITION | eVertexType::TEXTURE0 ))
 	{
 		assert(0);
 	}

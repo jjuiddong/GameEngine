@@ -5,6 +5,7 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="mapview.cpp" />
     <ClCompile Include="observerview.cpp" />
+    <ClCompile Include="terrainquadtree.cpp" />
     <ClCompile Include="quadtree.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -14,7 +15,8 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="mapview.h" />
     <ClInclude Include="observerview.h" />
-    <ClInclude Include="quadtree.h" />
     <ClInclude Include="dx11tessellationquadtree.h" />
+    <ClInclude Include="terrainquadtree.h" />
+    <ClInclude Include="quadtree.h" />
   </ItemGroup>
 </Project>

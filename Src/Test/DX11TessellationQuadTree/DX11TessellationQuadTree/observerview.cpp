@@ -1,7 +1,7 @@
 
 #include "stdafx.h"
 #include "observerview.h"
-#include "quadtree.h"
+#include "terrainquadtree.h"
 #include "dx11tessellationquadtree.h"
 #include "mapview.h"
 
@@ -15,6 +15,7 @@ cObserverView::cObserverView(const string &name)
 	, m_groundPlane1(Vector3(0, 1, 0), 0)
 	, m_groundPlane2(Vector3(0, -1, 0), 0)
 	, m_showGround(false)
+	, m_tessFactor(1)
 {
 }
 
@@ -25,7 +26,8 @@ cObserverView::~cObserverView()
 
 bool cObserverView::Init(cRenderer &renderer)
 {
-	m_camera.SetCamera(Vector3(-10, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	m_camera.SetCamera(Vector3(-1220.39185f, 3232.31787f, -1109.33813f)
+		, Vector3(1174.66431f, -0.000244140625f, 1674.89478f), Vector3(0, 1, 0));
 	m_camera.SetProjection(MATH_PI / 4.f, m_rect.Width() / m_rect.Height(), 1, 10000.f);
 	m_camera.SetViewPort(m_rect.Width(), m_rect.Height());
 
@@ -37,6 +39,10 @@ bool cObserverView::Init(cRenderer &renderer)
 		, DXGI_FORMAT_D24_UNORM_S8_UINT);
 
 	m_ground.Create(renderer, 100, 100, 10, 10);
+	
+	m_quadTree.m_rect = sRectf::Rect(0, 0, 5000, 5000);
+	if (!m_quadTree.Create(renderer))
+		return false;
 
 	return true;
 }
@@ -60,6 +66,9 @@ void cObserverView::OnPreRender(const float deltaSeconds)
 
 	if (m_renderTarget.Begin(renderer))
 	{
+		CommonStates states(renderer.GetDevice());
+		renderer.GetDevContext()->RSSetState(states.Wireframe());
+
 		if (m_showGround)
 			m_ground.Render(renderer);
 
@@ -68,17 +77,8 @@ void cObserverView::OnPreRender(const float deltaSeconds)
 
 		cFrustum frustum;
 		frustum.SetFrustum(mainCam.GetViewProjectionMatrix());
-		cQuadTree qtree(sRectf::Rect(0, 0, 5000, 5000));
-		qtree.Render(renderer, frustum, 5, 15);
-
-		//for (int i = 0; i < 10; ++i)
-		//{
-		//	for (int k = 0; k < 10; ++k)
-		//	{
-		//		cQuadTree qtree(sRectf::Rect((float)i * 100, (float)k * 100, 100, 100));
-		//		qtree.Render(renderer, frustum, 10, 15);
-		//	}
-		//}
+		m_quadTree.m_cbTessellation.m_v->tessellationAmount = (float)m_tessFactor;
+		//m_quadTree.Render(renderer, frustum, 5, 15);
 	}
 	m_renderTarget.End(renderer);
 }
@@ -101,6 +101,7 @@ void cObserverView::OnRender(const float deltaSeconds)
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::Checkbox("Show Ground", &m_showGround);
+		ImGui::DragInt("Tessellation Factor", &m_tessFactor);
 		ImGui::End();
 	}
 }
@@ -167,7 +168,6 @@ void cObserverView::OnMouseMove(const POINT mousePt)
 {
 	const POINT delta = { mousePt.x - m_mousePos.x, mousePt.y - m_mousePos.y };
 	m_mousePos = mousePt;
-
 
 	if (m_mouseDown[0])
 	{
