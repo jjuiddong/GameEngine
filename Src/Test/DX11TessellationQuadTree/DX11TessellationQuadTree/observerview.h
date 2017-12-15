@@ -33,6 +33,7 @@ protected:
 public:
 	graphic::cGridLine m_ground;
 	graphic::cRenderTarget m_renderTarget;
+	graphic::cDbgFrustum m_dbgFrustum;
 	cTerrainQuadTree m_quadTree;
 
 	bool m_showGround;

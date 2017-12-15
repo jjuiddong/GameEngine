@@ -6,10 +6,6 @@
     <ClCompile Include="mapview.cpp" />
     <ClCompile Include="observerview.cpp" />
     <ClCompile Include="terrainquadtree.cpp" />
-    <ClCompile Include="quadtree.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\..\..\media\shader11\tessellation_quadtree.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

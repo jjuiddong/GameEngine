@@ -12,12 +12,27 @@ struct sTessellationBuffer
 {
 	float tessellationAmount;
 	Vector2 size;
-	float dummy;
+	float level;
+	float edgeLevel[4]; // north-east-south-west
+	//float dummy;
 };
 
 
 class cTerrainQuadTree
 {
+public:
+	struct eDirection { enum Enum { NORTH, EAST, SOUTH, WEST }; };
+
+	struct sQuadData
+	{
+		int level[4]; // eDirection index
+
+		sQuadData::sQuadData() {
+			ZeroMemory(level, sizeof(level));
+		}
+	};
+
+
 public:
 	cTerrainQuadTree();
 	cTerrainQuadTree(sRectf &rect);
@@ -32,12 +47,19 @@ public:
 
 protected:
 	int GetLevel(const float distance);
+	void CalcSeamlessLevel();
+	void CalcQuadEdgeLevel(sQuadTreeNode<sQuadData> *from, sQuadTreeNode<sQuadData> *to
+		, const eDirection::Enum type);
+	eDirection::Enum GetOpposite(const eDirection::Enum type);
+	void RenderTessellation(graphic::cRenderer &renderer);
+	void RenderQuad(graphic::cRenderer &renderer, const Ray &ray);
+	void BuildQuadTree(const graphic::cFrustum &frustum);
 
 
 public:
 	bool m_isShowQuadTree;
 	sRectf m_rect;
-	cQuadTree m_qtree;
+	cQuadTree<sQuadData> m_qtree;
 	graphic::cVertexBuffer m_vtxBuff;
 	graphic::cShader11 m_shader;
 	graphic::cConstantBuffer<sTessellationBuffer> m_cbTessellation;

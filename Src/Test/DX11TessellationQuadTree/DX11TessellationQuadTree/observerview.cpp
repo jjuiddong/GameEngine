@@ -44,13 +44,15 @@ bool cObserverView::Init(cRenderer &renderer)
 	if (!m_quadTree.Create(renderer))
 		return false;
 
+	m_dbgFrustum.Create(renderer, Matrix44::Identity);
+	m_dbgFrustum.m_box.m_color = cColor::GREEN;
+
 	return true;
 }
 
 
 void cObserverView::OnUpdate(const float deltaSeconds)
 {
-
 }
 
 
@@ -81,6 +83,10 @@ void cObserverView::OnPreRender(const float deltaSeconds)
 		frustum.SetFrustum(mainCam.GetViewProjectionMatrix());
 		m_quadTree.m_cbTessellation.m_v->tessellationAmount = (float)m_tessFactor;
 		m_quadTree.Render(renderer, frustum, 5, 15, ray);
+
+		m_dbgFrustum.SetFrustum(renderer, frustum);
+		m_dbgFrustum.Render(renderer);
+
 	}
 	m_renderTarget.End(renderer);
 }

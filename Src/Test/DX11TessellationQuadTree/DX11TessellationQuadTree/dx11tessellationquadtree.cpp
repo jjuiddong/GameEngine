@@ -49,11 +49,13 @@ bool cViewer::OnInit()
 
 	m_mapView = new cMapView("Map View");
 	m_mapView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, NULL);
-	m_mapView->Init(m_renderer);
+	bool result = m_mapView->Init(m_renderer);
+	assert(result);
 
 	m_observerView = new cObserverView("Observer View");
 	m_observerView->Create(eDockState::DOCKWINDOW, eDockSlot::BOTTOM, this, m_mapView);
-	m_observerView->Init(m_renderer);
+	result = m_observerView->Init(m_renderer);
+	assert(result);
 
 	m_gui.SetContext();
 
