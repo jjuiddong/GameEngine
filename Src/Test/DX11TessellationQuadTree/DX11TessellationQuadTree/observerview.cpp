@@ -162,7 +162,7 @@ void cObserverView::OnWheelMove(const float delta, const POINT mousePt)
 	// zoom in/out
 	float zoomLen = 0;
 	if (len > 100)
-		zoomLen = 50;
+		zoomLen = len * 0.5f;
 	else if (len > 50)
 		zoomLen = max(1.f, (len / 2.f));
 	else

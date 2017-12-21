@@ -37,7 +37,7 @@ bool cTerrainQuadTree::Create(graphic::cRenderer &renderer)
 	vtx.v = 0;
 	m_vtxBuff.Create(renderer, 1, sizeof(sVertexTex), &vtx);
 
-	if (!m_shader.Create(renderer, "../media/shader11/tess-pos.fxo", "Unlit"
+	if (!m_shader.Create(renderer, "../media/shader11/tess-pos-quadtree.fxo", "Unlit"
 		, eVertexType::POSITION | eVertexType::TEXTURE0))
 	{
 		return false;
