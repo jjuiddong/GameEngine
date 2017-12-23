@@ -3,14 +3,4 @@
   <ItemGroup>
     <ClCompile Include="dx11quad.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Filter Include="FX">
-      <UniqueIdentifier>{b88690fb-039a-487d-88eb-96946eb5816e}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\..\..\media\shader11\quad.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-  </ItemGroup>
 </Project>

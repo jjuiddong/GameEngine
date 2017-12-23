@@ -1,5 +1,6 @@
 //
 // DX11 Font
+// DirectX::SpriteFont, SpriteBatch
 //
 
 #include "../../../../../Common/Common/common.h"
@@ -26,7 +27,7 @@ public:
 
 
 public:
-	cCamera m_terrainCamera;
+	cCamera3D m_terrainCamera;
 	cGrid m_ground;
 	cDbgLine m_dbgLine;
 	cDbgArrow m_dbgArrow;
@@ -34,7 +35,7 @@ public:
 	cDbgAxis m_axis;
 	cTexture m_texture;
 	SpriteFont *m_sprFont;
-	SpriteBatch* m_sprBatch;
+	SpriteBatch *m_sprBatch;
 
 
 	Transform m_world;
@@ -57,6 +58,7 @@ cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
 	, m_sprFont(NULL)
 	, m_sprBatch(NULL)
+	, m_terrainCamera("main camera")
 {
 	m_windowName = L"DX11 Font";
 	//const RECT r = { 0, 0, 1024, 768 };
@@ -80,21 +82,17 @@ bool cViewer::OnInit()
 {
 	DragAcceptFiles(m_hWnd, TRUE);
 
-	//cResourceManager::Get()->SetMediaDirectory("../media/");
-
-	const int WINSIZE_X = m_windowRect.right - m_windowRect.left;
-	const int WINSIZE_Y = m_windowRect.bottom - m_windowRect.top;
-	GetMainCamera().Init(&m_renderer);
+	const float WINSIZE_X = m_windowRect.right - m_windowRect.left;
+	const float WINSIZE_Y = m_windowRect.bottom - m_windowRect.top;
 	GetMainCamera().SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	GetMainCamera().SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
+	GetMainCamera().SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 0.1f, 10000.0f);
 	GetMainCamera().SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	m_terrainCamera.Init(&m_renderer);
 	m_terrainCamera.SetCamera(Vector3(-3, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	m_terrainCamera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
+	m_terrainCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
 	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	m_ground.Create(m_renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
+	m_ground.Create(m_renderer, 10, 10, 1, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::COLOR | eVertexType::TEXTURE0);
 	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
 	m_dbgLine.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0), 1.f, cColor::RED);
@@ -177,7 +175,7 @@ void cViewer::OnRender(const float deltaSeconds)
 			origin = XMFLOAT2(sizeX / 2, sizeY / 2);
 		}
 
-		m_sprFont->DrawString(m_sprBatch, wbuf, position, DirectX::Colors::White, 0.f, origin, 3.f);
+		m_sprFont->DrawString(m_sprBatch, wbuf, position, DirectX::Colors::White, 0.f, origin, 1.f);
 		m_sprBatch->End();
 
 		m_renderer.EndScene();
@@ -213,8 +211,6 @@ void cViewer::ChangeWindowSize()
 
 void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	framework::cInputManager::Get()->MouseProc(message, wParam, lParam);
-
 	static bool maximizeWnd = false;
 	switch (message)
 	{
@@ -296,10 +292,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		m_curPos.x = LOWORD(lParam);
 		m_curPos.y = HIWORD(lParam);
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
-		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
+		const Ray ray = graphic::GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
+		m_moveLen = common::clamp(1, 100, (p1 - ray.orig).Length());
 		graphic::GetMainCamera().MoveCancel();
 
 		if (m_isFrustumTracking)
@@ -349,11 +344,10 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
+		const Ray ray = graphic::GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
 		//m_line.SetLine(orig + Vector3(1, 0, 0), p1, 0.3f);
-		m_dbgLine.SetLine(orig + Vector3(-1, 0, 0), p1 + Vector3(-1, 0, 0), 0.3f);
+		m_dbgLine.SetLine(ray.orig + Vector3(-1, 0, 0), p1 + Vector3(-1, 0, 0), 0.3f);
 
 		if (wParam & 0x10) // middle button down
 		{
@@ -389,8 +383,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			graphic::GetMainCamera().Yaw2(x * 0.005f);
-			graphic::GetMainCamera().Pitch2(y * 0.005f);
+			m_terrainCamera.Yaw2(x * 0.005f);
+			m_terrainCamera.Pitch2(y * 0.005f);
 
 		}
 		else if (m_MButtonDown)

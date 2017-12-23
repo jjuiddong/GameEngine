@@ -26,8 +26,8 @@ public:
 
 
 public:
-	cCamera m_terrainCamera;
-	cGrid m_ground;
+	cCamera3D m_terrainCamera;
+	cGridLine m_ground;
 	cDbgLine m_dbgLine;
 	cDbgArrow m_dbgArrow;
 	cDbgBox m_dbgBox;
@@ -54,6 +54,7 @@ INIT_FRAMEWORK(cViewer);
 
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
+	, m_terrainCamera("main camera")
 {
 	m_windowName = L"DX11 Quad";
 	//const RECT r = { 0, 0, 1024, 768 };
@@ -73,25 +74,17 @@ cViewer::~cViewer()
 
 bool cViewer::OnInit()
 {
-	DragAcceptFiles(m_hWnd, TRUE);
-
-	//cResourceManager::Get()->SetMediaDirectory("../media/");
-
-	const int WINSIZE_X = m_windowRect.right - m_windowRect.left;
-	const int WINSIZE_Y = m_windowRect.bottom - m_windowRect.top;
-	GetMainCamera().Init(&m_renderer);
+	const float WINSIZE_X = m_windowRect.right - m_windowRect.left;
+	const float WINSIZE_Y = m_windowRect.bottom - m_windowRect.top;
 	GetMainCamera().SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	GetMainCamera().SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
+	GetMainCamera().SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 0.1f, 10000.0f);
 	GetMainCamera().SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	m_terrainCamera.Init(&m_renderer);
 	m_terrainCamera.SetCamera(Vector3(-3, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	m_terrainCamera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
+	m_terrainCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
 	m_terrainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	m_ground.Create(m_renderer, 10, 10, 1, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::DIFFUSE | eVertexType::TEXTURE);
-	m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-
+	m_ground.Create(m_renderer, 10, 10, 1, 1);
 	m_dbgLine.Create(m_renderer, Vector3(2, 0, 0), Vector3(10, 0, 0), 1.f, cColor::RED);
 	m_dbgBox.Create(m_renderer);
 	cBoundingBox bbox(Vector3(0,0,0), Vector3(1,1,1), Quaternion());
@@ -102,8 +95,12 @@ bool cViewer::OnInit()
 	m_quad.m_transform.rot.SetRotationX(ANGLE2RAD(90));
 	m_quad.m_texture = &m_texture;
 
-	m_billboard.Create(m_renderer, BILLBOARD_TYPE::ALL_AXIS, 1, 1, Vector3(1, 0, 1), "../media/ConveyerBelt.xFencing_Mesh_Blue.dds");
-	m_billboard.m_texture = &m_texture;
+	m_billboard.Create(m_renderer
+		//, BILLBOARD_TYPE::ALL_AXIS
+		, BILLBOARD_TYPE::DYN_SCALE
+		, 1, 1, Vector3(1, 0, 1), "../media/body.dds");
+	m_billboard.m_dynScaleMin = 0.3f;
+	m_billboard.m_dynScaleMax = 3.f;
 
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
@@ -130,16 +127,12 @@ void cViewer::OnUpdate(const float deltaSeconds)
 	GetMainCamera().Update(deltaSeconds);
 }
 
-bool show_test_window = true;
-bool show_another_window = false;
-//ImVec4 clear_col = ImColor(114, 144, 154);
 
 void cViewer::OnRender(const float deltaSeconds)
 {
 	if (m_isFrustumTracking)
 		cMainCamera::Get()->PushCamera(&m_terrainCamera);
 
-	//GetMainLight().Bind(m_renderer, 0);
 
 	// Render
 	if (m_renderer.ClearScene())
@@ -147,22 +140,7 @@ void cViewer::OnRender(const float deltaSeconds)
 		m_renderer.BeginScene();
 
 		GetMainCamera().Bind(m_renderer);
-
-		static float t = 0;
-		t += deltaSeconds;
-
-		XMMATRIX mView = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetViewMatrix());
-		XMMATRIX mProj = XMLoadFloat4x4((XMFLOAT4X4*)&m_terrainCamera.GetProjectionMatrix());
-		XMMATRIX mWorld = XMLoadFloat4x4((XMFLOAT4X4*)&m_world.GetMatrix());
-
-		m_renderer.m_cbPerFrame.m_v->mWorld = XMMatrixTranspose(mWorld);
-		m_renderer.m_cbPerFrame.m_v->mView = XMMatrixTranspose(mView);
-		m_renderer.m_cbPerFrame.m_v->mProjection = XMMatrixTranspose(mProj);
-
-		m_renderer.m_cbLight = GetMainLight().GetLight();
-		m_renderer.m_cbLight.Update(m_renderer, 1);
-		m_renderer.m_cbMaterial = m_mtrl.GetMaterial();
-		m_renderer.m_cbMaterial.Update(m_renderer, 2);
+		GetMainLight().Bind(m_renderer);
 
 		m_ground.Render(m_renderer);
 		m_billboard.Render(m_renderer);
@@ -201,8 +179,6 @@ void cViewer::ChangeWindowSize()
 
 void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	framework::cInputManager::Get()->MouseProc(message, wParam, lParam);
-
 	static bool maximizeWnd = false;
 	switch (message)
 	{
@@ -284,10 +260,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		m_curPos.x = LOWORD(lParam);
 		m_curPos.y = HIWORD(lParam);
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
-		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
+		const Ray ray = graphic::GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
+		m_moveLen = common::clamp(1, 100, (p1 - ray.orig).Length());
 		graphic::GetMainCamera().MoveCancel();
 
 		if (m_isFrustumTracking)
@@ -337,11 +312,10 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
+		const Ray ray = graphic::GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
 		//m_line.SetLine(orig + Vector3(1, 0, 0), p1, 0.3f);
-		m_dbgLine.SetLine(orig + Vector3(-1, 0, 0), p1 + Vector3(-1, 0, 0), 0.3f);
+		m_dbgLine.SetLine(ray.orig + Vector3(-1, 0, 0), p1 + Vector3(-1, 0, 0), 0.3f);
 
 		if (wParam & 0x10) // middle button down
 		{
@@ -377,8 +351,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			graphic::GetMainCamera().Yaw2(x * 0.005f);
-			graphic::GetMainCamera().Pitch2(y * 0.005f);
+			m_terrainCamera.Yaw2(x * 0.005f);
+			m_terrainCamera.Pitch2(y * 0.005f);
 
 		}
 		else if (m_MButtonDown)
