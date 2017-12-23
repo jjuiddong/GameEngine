@@ -97,9 +97,14 @@ bool cViewer::OnInit()
 	//Vector3 p2(7.05255985f, 0.000000000f, 7.24174976f);
 	//Vector3 p3(7.07285976f, 10.0000000f, 4.60248995f);
 
-	Vector3 p1(19.7215004f, 10.0000000f, 19.5296001f);
-	Vector3 p2(19.5757999f, 0.000000000f, 15.7475996f);
-	Vector3 p3(19.5757999f, 10.0000000f, 15.7475996f);
+	//Vector3 p1(19.7215004f, 10.0000000f, 19.5296001f);
+	//Vector3 p2(19.5757999f, 0.000000000f, 15.7475996f);
+	//Vector3 p3(19.5757999f, 10.0000000f, 15.7475996f);
+
+	Vector3 p1(7.07285976f, 0.000000000f, 4.60248995f);
+	Vector3 p2(7.09057999f, 0.000000000f, 8.71693993f);
+	Vector3 p3(7.07285976f, 10.0000000f, 4.60248995f);
+
 	m_vtx.push_back(p1);
 	m_vtx.push_back(p2);
 	m_vtx.push_back(p3);
@@ -147,8 +152,10 @@ void cViewer::OnRender(const float deltaSeconds)
 		//Vector3 orig(6.14031315f, 1.00000000f, 1.83890367f);
 		//Vector3 dir(0.556241572f, 0.000000000f, 0.831020653f);
 
-		Vector3 orig(18.2494278f, 1.00000000f, 16.6841183f);
-		Vector3 dir(-0.845626056f, 0.000000000f, 0.533775806f);
+		//Vector3 orig(18.2494278f, 1.00000000f, 16.6841183f);
+		//Vector3 dir(-0.845626056f, 0.000000000f, 0.533775806f);
+		Vector3 orig(6.00752783f, 1.00000000f, 0.931966662f);
+		Vector3 dir(0.260853469f, 0.000000000f, 0.965378404f);
 
 		m_renderer.m_dbgLine.SetLine(orig, orig + dir*10.f, 0.05f);
 		m_renderer.m_dbgLine.Render(m_renderer);
