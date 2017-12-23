@@ -48,13 +48,13 @@ public:
 
 
 public:
-	cCamera m_mainCamera;
-	cCamera m_secondCamera;
+	cCamera3D m_mainCamera;
+	cCamera3D m_secondCamera;
 	cGrid m_ground;
 	cDbgAxis m_axis;
 	cTexture m_texture;
 
-	cCamera m_lightCamera;
+	cCamera3D m_lightCamera;
 	cDbgFrustum m_dbgLightFrustum;
 	cDbgFrustum m_dbgMainFrustum;
 
@@ -91,6 +91,9 @@ INIT_FRAMEWORK(cViewer);
 
 cViewer::cViewer()
 	: m_groundPlane1(Vector3(0, 1, 0), 0)
+	, m_mainCamera("main camera")
+	, m_secondCamera("second camera")
+	, m_lightCamera("light camera")
 {
 	m_windowName = L"DX11 Ocean";
 	//const RECT r = { 0, 0, 1024, 768 };
@@ -122,12 +125,10 @@ bool cViewer::OnInit()
 	const float WINSIZE_X = (float)(m_windowRect.right - m_windowRect.left);
 	const float WINSIZE_Y = (float)(m_windowRect.bottom - m_windowRect.top);
 
-	m_mainCamera.Init(&m_renderer);
 	m_mainCamera.SetCamera(Vector3(-1000, 1000, -1000), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_mainCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.f, 100000.f);
 	m_mainCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
-	m_secondCamera.Init(&m_renderer);
 	m_secondCamera.SetCamera(Vector3(-10, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_secondCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
 	m_secondCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
@@ -142,7 +143,7 @@ bool cViewer::OnInit()
 
 	m_mtrl.InitWhite();
 
-	m_ground.Create(m_renderer, 10, 10, 100, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE
+	m_ground.Create(m_renderer, 10, 10, 100, 100, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE0
 		, cColor::WHITE
 		//, g_defaultTexture
 		, "tile.jpg"
@@ -158,9 +159,9 @@ bool cViewer::OnInit()
 
 	//m_model.Create(m_renderer, common::GenerateId(), "../media/boxlifter.x");
 
-	m_lightCamera.Init(&m_renderer);
 	m_lightCamera.SetCamera(lightPos, lightLookat, Vector3(0, 1, 0));
 	m_lightCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
+	m_lightCamera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
 	cViewport svp = m_renderer.m_viewPort;
 	svp.m_vp.MinDepth = 0.f;
@@ -168,10 +169,10 @@ bool cViewer::OnInit()
 	svp.m_vp.Width = 1024;
 	svp.m_vp.Height = 1024;
 	//m_shadowMap.Create(m_renderer, svp, DXGI_FORMAT_R32_FLOAT);
-	m_dbgLightFrustum.Create(m_renderer, m_lightCamera);
+	m_dbgLightFrustum.Create(m_renderer, m_lightCamera.GetViewProjectionMatrix());
 	m_dbgLightFrustum.SetFrustum(m_renderer, m_dbgLightFrustum.m_viewProj);
 
-	m_dbgMainFrustum.Create(m_renderer, m_mainCamera);
+	m_dbgMainFrustum.Create(m_renderer, m_mainCamera.GetViewProjectionMatrix());
 	m_dbgMainFrustum.SetFrustum(m_renderer, m_dbgMainFrustum.m_viewProj);
 
 	for (int i = 0; i < 6; ++i)
@@ -323,7 +324,6 @@ void cViewer::ChangeWindowSize()
 void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	m_gui.WndProcHandler(m_hWnd, message, wParam, lParam);
-	framework::cInputManager::Get()->MouseProc(message, wParam, lParam);
 
 	static bool maximizeWnd = false;
 	switch (message)
@@ -420,10 +420,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		m_curPos.x = LOWORD(lParam);
 		m_curPos.y = HIWORD(lParam);
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
-		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
+		const Ray ray = graphic::GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
+		m_moveLen = common::clamp(1, 100, (p1 - ray.orig).Length());
 		graphic::GetMainCamera().MoveCancel();
 	}
 	break;
@@ -472,9 +471,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
+		const Ray ray = GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
 
 		if (wParam & 0x10) // middle button down
 		{
@@ -509,8 +507,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			graphic::GetMainCamera().Yaw2(x * 0.005f);
-			graphic::GetMainCamera().Pitch2(y * 0.005f);
+			m_mainCamera.Yaw2(x * 0.005f);
+			m_mainCamera.Pitch2(y * 0.005f);
 
 		}
 		else if (m_MButtonDown)
@@ -527,9 +525,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 		if (isPressCtrl)
-			m_dbgLightFrustum.SetFrustum(m_renderer, m_lightCamera);
+			m_dbgLightFrustum.SetFrustum(m_renderer, m_lightCamera.GetViewProjectionMatrix());
 
-		m_dbgMainFrustum.SetFrustum(m_renderer, m_mainCamera);
+		m_dbgMainFrustum.SetFrustum(m_renderer, m_mainCamera.GetViewProjectionMatrix());
 	}
 	break;
 	}

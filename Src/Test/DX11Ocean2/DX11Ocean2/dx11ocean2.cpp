@@ -40,7 +40,7 @@ public:
 
 
 public:
-	cCamera m_mainCamera;
+	cCamera3D m_mainCamera;
 	cMaterial m_mtrl;
 
 	cShader11 m_shader;
@@ -300,10 +300,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		m_curPos.x = LOWORD(lParam);
 		m_curPos.y = HIWORD(lParam);
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
-		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
+		const Ray ray = GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
+		m_moveLen = common::clamp(1, 100, (p1 - ray.orig).Length());
 		graphic::GetMainCamera().MoveCancel();
 	}
 	break;
@@ -352,9 +351,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
+		const Ray ray = GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
 
 		if (wParam & 0x10) // middle button down
 		{
@@ -389,8 +387,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			graphic::GetMainCamera().Yaw2(x * 0.005f);
-			graphic::GetMainCamera().Pitch2(y * 0.005f);
+			m_mainCamera.Yaw2(x * 0.005f);
+			m_mainCamera.Pitch2(y * 0.005f);
 
 		}
 		else if (m_MButtonDown)
