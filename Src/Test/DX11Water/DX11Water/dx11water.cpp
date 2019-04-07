@@ -31,8 +31,8 @@ public:
 
 
 public:
-	cCamera m_mainCamera;
-	cCamera m_secondCamera;
+	cCamera3D m_mainCamera;
+	cCamera3D m_secondCamera;
 	cGrid m_ground;
 	cSkyBox m_skyBox;
 	cWater m_water;
@@ -42,13 +42,13 @@ public:
 	cQuad2D m_reflectTex;
 	cQuad2D m_refractTex;
 
-	cCamera m_lightCamera;
+	cCamera3D m_lightCamera;
 	cDbgFrustum m_dbgLightFrustum;
 	cDbgFrustum m_dbgMainFrustum;
 
 	// cascaded shadow map
 	cDbgFrustum m_frustum[3];
-	cCamera m_lightSplitCamera[3];
+	cCamera3D m_lightSplitCamera[3];
 	cDbgQuad m_cascadedGround[3];
 	cRenderTarget m_shadowMap[3];
 	cQuad2D m_shadowMapQuad[3];
@@ -82,7 +82,7 @@ cViewer::cViewer()
 	, m_mainCamera("main camera")
 	, m_secondCamera("second camera")
 	, m_lightCamera("light camera")
-	, m_lightSplitCamera{ cCamera("light1"), cCamera("light2"), cCamera("light3") }
+	, m_lightSplitCamera{ cCamera3D("light1"), cCamera3D("light2"), cCamera3D("light3") }
 {
 	m_windowName = L"DX11 Water";
 	//const RECT r = { 0, 0, 1024, 768 };
@@ -131,11 +131,13 @@ bool cViewer::OnInit()
 
 	m_mtrl.InitWhite();
 
-	m_ground.Create(m_renderer, 10, 10, 100, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE
+	m_ground.Create(m_renderer, 10, 10, 100, 100
+		, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE0
 		, cColor::WHITE
 		//, g_defaultTexture
 		, "tile.jpg"
-		, Vector2(0,0), Vector2(1,1), 256
+		, Vector2(0,0), Vector2(1,1)
+		, 256
 	);
 	//m_ground.m_primitiveType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
@@ -145,7 +147,7 @@ bool cViewer::OnInit()
 	m_axis.Create(m_renderer);
 	m_axis.SetAxis(bbox2, false);
 
-	m_model.Create(m_renderer, common::GenerateId(), "../media/boxlifter.x");
+	m_model.Create(m_renderer, common::GenerateId(), "boxlifter.x");
 
 	m_lightCamera.SetCamera(lightPos, lightLookat, Vector3(0, 1, 0));
 	m_lightCamera.SetProjection(MATH_PI / 4.f, WINSIZE_X / WINSIZE_Y, 1.0f, 10000.f);
@@ -186,11 +188,11 @@ bool cViewer::OnInit()
 	m_skyBox.Create2(m_renderer, "../media/skybox/");
 	m_water.Create(m_renderer);
 
-	static cTexture tex1(m_water.m_reflectMap.m_texture);
+	static cTexture tex1(m_water.m_reflectMap.m_texSRV);
 	m_reflectTex.Create(m_renderer, 0, 0, 300, 300);
 	m_reflectTex.m_texture = &tex1;
 
-	static cTexture tex2(m_water.m_refractMap.m_texture);
+	static cTexture tex2(m_water.m_refractMap.m_texSRV);
 	m_refractTex.Create(m_renderer, 0, 310, 300, 300);
 	m_refractTex.m_texture = &tex2;
 
@@ -232,17 +234,19 @@ void cViewer::OnRender(const float deltaSeconds)
 	GetMainLight().Bind(m_renderer);
 	GetMainCamera().Bind(m_renderer);
 
-	cShader11 *shader = m_renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
+	cShader11 *shader = m_renderer.m_shaderMgr.FindShader(
+		eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE0);
 
 	CommonStates states(m_renderer.GetDevice());
 	m_renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
 	m_renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
 	m_renderer.GetDevContext()->OMSetBlendState(states.Opaque(), 0, 0xffffffff);
 
-	m_texture.Unbind(m_renderer, 0);
-	m_texture.Unbind(m_renderer, 1);
-	m_texture.Unbind(m_renderer, 2);
-	m_texture.Unbind(m_renderer, 3);
+	//m_texture.Unbind(m_renderer, 0);
+	//m_texture.Unbind(m_renderer, 1);
+	//m_texture.Unbind(m_renderer, 2);
+	//m_texture.Unbind(m_renderer, 3);
+	m_renderer.UnbindTextureAll();
 
 	//----------------------------------------------------------
 	// Build ShadowMap
@@ -299,9 +303,9 @@ void cViewer::OnRender(const float deltaSeconds)
 
 		if (m_showShadowMap)
 		{
-			cTexture shadowTex0(m_shadowMap[0].m_texture);
-			cTexture shadowTex1(m_shadowMap[1].m_texture);
-			cTexture shadowTex2(m_shadowMap[2].m_texture);
+			cTexture shadowTex0(m_shadowMap[0].m_texSRV);
+			cTexture shadowTex1(m_shadowMap[1].m_texSRV);
+			cTexture shadowTex2(m_shadowMap[2].m_texSRV);
 			m_shadowMapQuad[0].m_texture = &shadowTex0;
 			m_shadowMapQuad[1].m_texture = &shadowTex1;
 			m_shadowMapQuad[2].m_texture = &shadowTex2;
@@ -391,16 +395,18 @@ void cViewer::RenderScene(
 		}
 	}
 
-	cShader11 *shader = m_renderer.m_shaderMgr.FindShader(eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE);
-	cTexture shadowTex0(m_shadowMap[0].m_texture);
-	cTexture shadowTex1(m_shadowMap[1].m_texture);
-	cTexture shadowTex2(m_shadowMap[2].m_texture);
+	cShader11 *shader = m_renderer.m_shaderMgr.FindShader(
+		eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE0);
+	cTexture shadowTex0(m_shadowMap[0].m_texSRV);
+	cTexture shadowTex1(m_shadowMap[1].m_texSRV);
+	cTexture shadowTex2(m_shadowMap[2].m_texSRV);
 	m_renderer.BindTexture(&shadowTex0, 2);
 	m_renderer.BindTexture(&shadowTex1, 3);
 	m_renderer.BindTexture(&shadowTex2, 4);
 
 	m_model.m_techniqueName = techniqueName;
-	m_model.RenderInstancing(m_renderer, 100, tms, tm);
+	//m_model.RenderInstancing(m_renderer, 100, tms, tm);
+	m_model.Render(m_renderer, tm);
 	m_ground.m_techniqueName = techniqueName;
 	m_ground.Render(m_renderer, tm);
 }
@@ -535,10 +541,9 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 		m_curPos.x = LOWORD(lParam);
 		m_curPos.y = HIWORD(lParam);
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
-		m_moveLen = common::clamp(1, 100, (p1 - orig).Length());
+		const Ray ray = graphic::GetMainCamera().GetRay(pos.x, pos.y);
+		const Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
+		m_moveLen = common::clamp(1, 100, (p1 - ray.orig).Length());
 		graphic::GetMainCamera().MoveCancel();
 	}
 	break;
@@ -587,9 +592,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		sf::Vector2i pos = { (int)LOWORD(lParam), (int)HIWORD(lParam) };
 
-		Vector3 orig, dir;
-		graphic::GetMainCamera().GetRay(pos.x, pos.y, orig, dir);
-		Vector3 p1 = m_groundPlane1.Pick(orig, dir);
+		const Ray ray = graphic::GetMainCamera().GetRay(pos.x, pos.y);
+		Vector3 p1 = m_groundPlane1.Pick(ray.orig, ray.dir);
 
 		if (wParam & 0x10) // middle button down
 		{
@@ -624,8 +628,8 @@ void cViewer::OnMessageProc(UINT message, WPARAM wParam, LPARAM lParam)
 			const int y = pos.y - m_curPos.y;
 			m_curPos = pos;
 
-			graphic::GetMainCamera().Yaw2(x * 0.005f);
-			graphic::GetMainCamera().Pitch2(y * 0.005f);
+			graphic::GetMainCamera().Yaw(x * 0.005f);
+			graphic::GetMainCamera().Pitch(y * 0.005f);
 
 		}
 		else if (m_MButtonDown)
